@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Marée — Restaurant de Fruits de Mer en Bord de Mer</title>
+<meta name="description" content="La Marée, restaurant français de fruits de mer face à la Méditerranée. Pêche du jour, cuisine de la mer et terrasse au coucher du soleil. Réservez votre table.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23C1502E'/%3E%3Cpath d='M20 55c10-25 50-25 60 0-10 15-50 15-60 0z' fill='%23F4E3C1'/%3E%3Ccircle cx='38' cy='52' r='4' fill='%23C1502E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-anchor" viewBox="0 0 24 24"><path d="M12 2v6m0 0a3 3 0 1 0-3-3m3 3a3 3 0 1 0 3-3M12 22v-8m-7-2c0 5 3 9 7 10 4-1 7-5 7-10M5 12H2m20 0h-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="icon-fish" viewBox="0 0 24 24"><path d="M2 12c4-6 12-8 18-4-2 2-2 6 0 8-6 4-14 2-18-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7" cy="11" r=".9" fill="currentColor"/><path d="M20 8l2 4-2 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-wine" viewBox="0 0 24 24"><path d="M7 3h10l-1 8a4 4 0 0 1-8 0L7 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 15v6M9 21h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.2 4.2l2 2M17.8 17.8l2 2M2 12h3M19 12h3M4.2 19.8l2-2M17.8 6.2l2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M12 22s7-7.4 7-13a7 7 0 1 0-14 0c0 5.6 7 13 7 13z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-phone" viewBox="0 0 24 24"><path d="M4 5c0 8 7 15 15 15l2-4-5-2-1.5 1.5A12 12 0 0 1 8.5 9.5L10 8 8 3 4 5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="icon-quote" viewBox="0 0 24 24"><path d="M7 8c-2 1-3 3-3 5.5S5.5 18 8 18s4-2 4-4.5S10.5 9 8 9V6C4 6 2 9 2 13.5" fill="currentColor"/><path d="M17 8c-2 1-3 3-3 5.5s1.5 4.5 4 4.5 4-2 4-4.5S20.5 9 18 9V6c-4 0-6 3-6 7.5" fill="currentColor"/></symbol>
+  <symbol id="icon-insta" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></symbol>
+  <symbol id="icon-fb" viewBox="0 0 24 24"><path d="M14 22v-8h3l.5-4H14V7.5c0-1.1.3-1.9 2-1.9H17V2.2A15 15 0 0 0 14.6 2C11.6 2 10 3.9 10 7v3H7v4h3v8h4z" fill="currentColor"/></symbol>
+</svg>
+
+<div class="grain-overlay" aria-hidden="true"></div>
+
+<header class="site-header" id="site-header">
+  <div class="container header-inner">
+    <a href="#home" class="brand">
+      <span class="brand-mark"><svg width="30" height="30"><use href="#icon-anchor"/></svg></span>
+      <span class="brand-text">La Marée</span>
+    </a>
+    <nav class="main-nav" id="main-nav">
+      <a href="#home" class="nav-link">Accueil</a>
+      <a href="#menu" class="nav-link">Menu</a>
+      <a href="#chef" class="nav-link">Notre Chef</a>
+      <a href="#reserve" class="nav-link">Réserver</a>
+      <a href="#location" class="nav-link">Nous trouver</a>
+    </nav>
+    <div class="header-actions">
+      <a href="tel:+33442000000" class="header-phone"><svg width="16" height="16"><use href="#icon-phone"/></svg><span>04 42 00 00 00</span></a>
+      <a href="#reserve" class="btn btn-primary btn-sm">Réserver une table</a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero" id="home">
+    <div class="hero-waves" aria-hidden="true">
+      <svg viewBox="0 0 1440 200" preserveAspectRatio="none"><path d="M0,80 C240,140 480,20 720,70 C960,120 1200,30 1440,80 L1440,200 L0,200 Z"></path></svg>
+    </div>
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Restaurant &amp; Terrasse face à la mer</p>
+        <h1>La Marée<span class="hero-accent">.</span></h1>
+        <p class="hero-tagline">Fruits de mer sauvages, pêche du jour et cuisine française, servis les pieds dans le sable, le regard sur la Méditerranée.</p>
+        <div class="hero-actions">
+          <a href="#reserve" class="btn btn-primary">Réserver une table</a>
+          <a href="#menu" class="btn btn-ghost">Découvrir le menu <svg width="14" height="14"><use href="#icon-chevron"/></svg></a>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-meta-item"><strong>4.9</strong><span>★★★★★ · 620 avis</span></div>
+          <div class="hero-meta-sep"></div>
+          <div class="hero-meta-item"><strong>Depuis 1998</strong><span>Cassis, Côte d'Azur</span></div>
+        </div>
+      </div>
+      <div class="hero-plate" aria-hidden="true">
+        <div class="hero-plate-glow"></div>
+        <svg viewBox="0 0 480 480" class="plate-svg">
+          <defs>
+            <radialGradient id="plateGrad" cx="50%" cy="42%" r="65%">
+              <stop offset="0%" stop-color="#FFF8EC"/>
+              <stop offset="70%" stop-color="#F4E3C1"/>
+              <stop offset="100%" stop-color="#E3C48F"/>
+            </radialGradient>
+            <linearGradient id="fishGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#E8A33D"/>
+              <stop offset="100%" stop-color="#C1502E"/>
+            </linearGradient>
+            <linearGradient id="oysterGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#8C6A45"/>
+              <stop offset="100%" stop-color="#5C4128"/>
+            </linearGradient>
+            <linearGradient id="lemonGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F6D75B"/>
+              <stop offset="100%" stop-color="#D9A441"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="240" cy="252" rx="216" ry="216" fill="url(#plateGrad)"/>
+          <ellipse cx="240" cy="252" rx="216" ry="216" fill="none" stroke="#D9A441" stroke-width="2" opacity=".5"/>
+          <ellipse cx="240" cy="252" rx="176" ry="176" fill="none" stroke="#C1502E" stroke-width="1.5" opacity=".25"/>
+
+          <g transform="translate(150,190) rotate(-8)">
+            <path d="M0,40 C40,0 130,-6 168,26 C150,58 40,70 0,40Z" fill="url(#fishGrad)"/>
+            <path d="M0,40 C40,0 130,-6 168,26 C150,58 40,70 0,40Z" fill="none" stroke="#7A2E2E" stroke-width="1" opacity=".3"/>
+            <path d="M168,26 L200,6 L196,44 Z" fill="#C1502E"/>
+            <circle cx="24" cy="30" r="3.2" fill="#2B2320"/>
+            <path d="M40,18 C70,10 100,10 130,18" stroke="#7A2E2E" stroke-width="1.4" fill="none" opacity=".5"/>
+            <path d="M40,30 C70,24 100,24 130,30" stroke="#7A2E2E" stroke-width="1.4" fill="none" opacity=".4"/>
+            <path d="M45,44 C75,52 105,52 132,42" stroke="#7A2E2E" stroke-width="1.4" fill="none" opacity=".4"/>
+          </g>
+
+          <g transform="translate(90,270)">
+            <path d="M0,22 C-4,4 14,-8 34,-4 C54,0 58,20 42,32 C26,44 4,40 0,22Z" fill="url(#oysterGrad)"/>
+            <path d="M4,20 C2,8 16,0 30,3 C44,6 46,18 36,26 C26,34 8,32 4,20Z" fill="#F4E3C1"/>
+            <circle cx="20" cy="16" r="2.6" fill="#D9A441"/>
+          </g>
+          <g transform="translate(140,320)">
+            <path d="M0,20 C-4,4 12,-8 30,-4 C48,0 52,18 38,28 C24,38 4,36 0,20Z" fill="url(#oysterGrad)"/>
+            <path d="M4,18 C2,8 14,0 26,3 C38,6 40,16 32,24 C22,32 8,30 4,18Z" fill="#F4E3C1"/>
+            <circle cx="18" cy="14" r="2.4" fill="#D9A441"/>
+          </g>
+
+          <g transform="translate(300,300) rotate(18)">
+            <path d="M0,0 A30,30 0 0 1 42,0 L42,4 A30,30 0 0 1 0,4 Z" fill="url(#lemonGrad)"/>
+            <path d="M4,2 A26,26 0 0 1 38,2" fill="none" stroke="#FFF3C8" stroke-width="2" opacity=".8"/>
+            <path d="M8,3 L34,3 M12,-1 L12,7 M21,-2 L21,8 M30,-1 L30,7" stroke="#B8860B" stroke-width=".8" opacity=".5"/>
+          </g>
+
+          <g transform="translate(320,190)" opacity=".85">
+            <path d="M0,30 Q6,10 -2,0" fill="none" stroke="#4C7A5A" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M-8,26 Q-2,10 -6,-2" fill="none" stroke="#4C7A5A" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M8,28 Q14,12 8,-4" fill="none" stroke="#4C7A5A" stroke-width="2.4" stroke-linecap="round"/>
+          </g>
+
+          <g stroke="#F4E3C1" stroke-width="2" opacity=".7" fill="none" stroke-linecap="round">
+            <path d="M320,140 C316,120 324,110 320,92"/>
+            <path d="M336,144 C332,124 340,114 336,96"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <a href="#menu" class="scroll-cue" aria-label="Défiler vers le menu"><span></span></a>
+  </section>
+
+  <section class="strip">
+    <div class="container strip-grid">
+      <div class="strip-item">
+        <svg width="26" height="26"><use href="#icon-fish"/></svg>
+        <div><strong>Pêche du jour</strong><span>Directement du port à votre assiette</span></div>
+      </div>
+      <div class="strip-item">
+        <svg width="26" height="26"><use href="#icon-sun"/></svg>
+        <div><strong>Terrasse face à la mer</strong><span>Coucher de soleil sur la Méditerranée</span></div>
+      </div>
+      <div class="strip-item">
+        <svg width="26" height="26"><use href="#icon-wine"/></svg>
+        <div><strong>Cave de Provence</strong><span>Vins locaux sélectionnés par notre sommelier</span></div>
+      </div>
+      <div class="strip-item">
+        <svg width="26" height="26"><use href="#icon-anchor"/></svg>
+        <div><strong>Depuis 1998</strong><span>Trois générations de tradition marine</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section menu-section" id="menu">
+    <div class="container">
+      <p class="section-eyebrow reveal">Notre Carte</p>
+      <h2 class="section-title reveal">Un avant-goût du menu</h2>
+      <p class="section-lead reveal">Une cuisine française généreuse, portée par la fraîcheur des produits de la mer. La carte change au rythme des arrivages du port.</p>
+
+      <div class="menu-tabs reveal" role="tablist" aria-label="Catégories du menu">
+        <button class="menu-tab is-active" data-cat="entrees" role="tab" aria-selected="true">Entrées</button>
+        <button class="menu-tab" data-cat="plats" role="tab" aria-selected="false">Plats</button>
+        <button class="menu-tab" data-cat="desserts" role="tab" aria-selected="false">Desserts</button>
+      </div>
+
+      <div class="menu-grid reveal" id="menu-grid">
+
+        <article class="menu-card" data-cat="entrees">
+          <div class="menu-thumb thumb-entree"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-fish"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Huîtres de Bouzigues</h3><span class="price">16&nbsp;€</span></div>
+            <p>Six huîtres fines de claire, glace pilée, citron et mignonette à l'échalote.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="entrees">
+          <div class="menu-thumb thumb-entree"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-fish"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Bisque de Homard</h3><span class="price">14&nbsp;€</span></div>
+            <p>Velouté onctueux au homard breton, crème fouettée à l'estragon.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="entrees">
+          <div class="menu-thumb thumb-entree"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-fish"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Tartare de Daurade</h3><span class="price">18&nbsp;€</span></div>
+            <p>Daurade royale, agrumes de saison, huile d'olive de Provence, aneth.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="plats" hidden>
+          <div class="menu-thumb thumb-plat"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-fish"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Bouillabaisse Traditionnelle</h3><span class="price">42&nbsp;€</span></div>
+            <p>Poissons de roche, rouille maison, croûtons à l'ail, servie en deux temps.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="plats" hidden>
+          <div class="menu-thumb thumb-plat"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-fish"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Loup de Mer en Croûte de Sel</h3><span class="price">38&nbsp;€</span></div>
+            <p>Bar sauvage entier, fenouil confit, beurre blanc au safran.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="plats" hidden>
+          <div class="menu-thumb thumb-plat"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-fish"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Plateau Royal de Fruits de Mer</h3><span class="price">68&nbsp;€</span></div>
+            <p>Homard, langoustines, huîtres, bulots, crevettes grises, tourteau. Pour 2 personnes.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="plats" hidden>
+          <div class="menu-thumb thumb-plat"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-fish"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Risotto Gambas &amp; Safran</h3><span class="price">29&nbsp;€</span></div>
+            <p>Riz carnaroli, gambas grillées, safran de Provence, copeaux de parmesan.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="desserts" hidden>
+          <div class="menu-thumb thumb-dessert"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-sun"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Tarte au Citron de Menton</h3><span class="price">11&nbsp;€</span></div>
+            <p>Citron de Menton, meringue italienne, sablé breton.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="desserts" hidden>
+          <div class="menu-thumb thumb-dessert"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-sun"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Crème Brûlée Vanille</h3><span class="price">10&nbsp;€</span></div>
+            <p>Vanille bourbon, sucre caramélisé, biscuit à la cuillère.</p>
+          </div>
+        </article>
+
+        <article class="menu-card" data-cat="desserts" hidden>
+          <div class="menu-thumb thumb-dessert"><svg viewBox="0 0 24 24" width="42" height="42"><use href="#icon-sun"/></svg></div>
+          <div class="menu-card-body">
+            <div class="menu-card-head"><h3>Fondant au Chocolat</h3><span class="price">12&nbsp;€</span></div>
+            <p>Chocolat grand cru, cœur coulant, glace à la fleur de sel.</p>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="menu-footer reveal">
+        <p>Menu déjeuner en semaine dès 32&nbsp;€ · Menu dégustation en 5 services sur réservation</p>
+        <a href="#reserve" class="btn btn-outline">Réserver une table</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section chef-section" id="chef">
+    <div class="container chef-grid">
+      <div class="chef-portrait reveal">
+        <div class="chef-portrait-glow"></div>
+        <svg viewBox="0 0 320 380" class="chef-svg">
+          <defs>
+            <linearGradient id="chefBg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#F4E3C1"/>
+              <stop offset="100%" stop-color="#E3C48F"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="320" height="380" rx="18" fill="url(#chefBg)"/>
+          <ellipse cx="160" cy="200" rx="100" ry="112" fill="#E8A33D" opacity=".2"/>
+
+          <path d="M92,352 C92,282 118,258 160,258 C202,258 228,282 228,352 Z" fill="#7A2E2E"/>
+          <circle cx="160" cy="182" r="46" fill="#D9A97A"/>
+
+          <circle cx="128" cy="132" r="24" fill="#7A2E2E"/>
+          <circle cx="160" cy="118" r="30" fill="#7A2E2E"/>
+          <circle cx="192" cy="132" r="24" fill="#7A2E2E"/>
+          <rect x="120" y="140" width="80" height="18" rx="9" fill="#7A2E2E"/>
+          <line x1="128" y1="149" x2="192" y2="149" stroke="#F4E3C1" stroke-width="1.6" opacity=".45"/>
+
+          <path d="M132,300 C132,286 144,278 160,278 C176,278 188,286 188,300 L188,352 L132,352 Z" fill="#FFF8EC"/>
+          <circle cx="160" cy="310" r="3" fill="#C1502E"/>
+          <circle cx="160" cy="326" r="3" fill="#C1502E"/>
+        </svg>
+      </div>
+      <div class="chef-copy reveal">
+        <p class="section-eyebrow">L'Histoire du Chef</p>
+        <h2 class="section-title">Chef Antoine Lefèvre</h2>
+        <p class="chef-quote">« La mer nous offre ses trésors chaque matin&nbsp;; notre rôle est simplement de leur rendre hommage. »</p>
+        <p>Petit-fils de pêcheur, Antoine a grandi sur le port de Cassis, entre les casiers à langoustes et les caisses de poisson tout juste débarquées. À quatorze ans, il troque la barque de son grand-père pour les cuisines des grandes maisons marseillaises, où il apprend la rigueur de la cuisine française classique.</p>
+        <p>De retour sur sa côte natale, il ouvre La Marée avec une conviction simple&nbsp;: laisser le produit parler. Chaque matin, il choisit lui-même la pêche du jour au port, et compose sa carte en fonction de ce que la mer a bien voulu offrir — jamais l'inverse.</p>
+        <div class="chef-signoff">
+          <span class="chef-signature">Antoine Lefèvre</span>
+          <span>Chef &amp; Fondateur, La Marée</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reserve-section" id="reserve">
+    <div class="container reserve-grid">
+      <div class="reserve-info reveal">
+        <p class="section-eyebrow">Réservation</p>
+        <h2 class="section-title">Une table, à l'heure de la marée</h2>
+        <p class="section-lead">Les tables en terrasse partent vite, surtout au coucher du soleil. Réservez à l'avance pour être sûr d'avoir la vue.</p>
+        <ul class="reserve-facts">
+          <li><svg width="18" height="18"><use href="#icon-clock"/></svg> Déjeuner 12h–14h30 · Dîner 19h–22h30</li>
+          <li><svg width="18" height="18"><use href="#icon-anchor"/></svg> Fermé le lundi</li>
+          <li><svg width="18" height="18"><use href="#icon-phone"/></svg> Ou par téléphone au 04 42 00 00 00</li>
+        </ul>
+      </div>
+
+      <form class="reserve-form reveal" id="reserve-form" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="r-name">Nom complet</label>
+            <input type="text" id="r-name" name="name" required autocomplete="name" placeholder="Jeanne Dupont">
+            <span class="field-error">Merci d'indiquer votre nom.</span>
+          </div>
+          <div class="field">
+            <label for="r-guests">Convives</label>
+            <select id="r-guests" name="guests" required>
+              <option value="">—</option>
+              <option>1 personne</option>
+              <option selected>2 personnes</option>
+              <option>3 personnes</option>
+              <option>4 personnes</option>
+              <option>5 personnes</option>
+              <option>6 personnes</option>
+              <option>7+ personnes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="r-date">Date</label>
+            <input type="date" id="r-date" name="date" required>
+            <span class="field-error">Choisissez une date à venir.</span>
+          </div>
+          <div class="field">
+            <label for="r-time">Heure</label>
+            <select id="r-time" name="time" required>
+              <option value="">—</option>
+              <optgroup label="Déjeuner">
+                <option>12:00</option><option>12:30</option><option>13:00</option><option>13:30</option><option>14:00</option>
+              </optgroup>
+              <optgroup label="Dîner">
+                <option>19:00</option><option>19:30</option><option>20:00</option><option>20:30</option><option>21:00</option><option>21:30</option><option>22:00</option>
+              </optgroup>
+            </select>
+            <span class="field-error">Choisissez une heure.</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="r-email">E-mail</label>
+            <input type="email" id="r-email" name="email" required autocomplete="email" placeholder="vous@exemple.com">
+            <span class="field-error">Adresse e-mail invalide.</span>
+          </div>
+          <div class="field">
+            <label for="r-phone">Téléphone</label>
+            <input type="tel" id="r-phone" name="phone" required autocomplete="tel" placeholder="06 00 00 00 00">
+            <span class="field-error">Merci d'indiquer un numéro.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="r-notes">Demande particulière <span class="optional">(facultatif)</span></label>
+          <textarea id="r-notes" name="notes" rows="3" placeholder="Allergies, occasion spéciale, préférence de table..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Confirmer la réservation</button>
+        <p class="form-note">Vous recevrez un appel ou un e-mail de confirmation sous 2 heures.</p>
+      </form>
+
+      <div class="reserve-success" id="reserve-success" hidden>
+        <svg width="52" height="52" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4C7A5A"/><path d="M7 12.5l3 3 7-7" stroke="#FBF3E7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Demande envoyée&nbsp;!</h3>
+        <p id="reserve-success-detail"></p>
+        <button type="button" class="btn btn-outline" id="reserve-again">Modifier ma demande</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section location-section" id="location">
+    <div class="container">
+      <p class="section-eyebrow reveal">Nous trouver</p>
+      <h2 class="section-title reveal">Sur le quai, face au large</h2>
+      <div class="location-grid reveal">
+        <div class="location-card">
+          <ul class="location-details">
+            <li><svg width="20" height="20"><use href="#icon-pin"/></svg><div><strong>Adresse</strong><span>12 Quai des Pêcheurs<br>13260 Cassis, France</span></div></li>
+            <li><svg width="20" height="20"><use href="#icon-clock"/></svg><div><strong>Horaires</strong><span>Mar–Dim · 12h–14h30 &amp; 19h–22h30<br>Fermé le lundi</span></div></li>
+            <li><svg width="20" height="20"><use href="#icon-phone"/></svg><div><strong>Téléphone</strong><span><a href="tel:+33442000000">04 42 00 00 00</a></span></div></li>
+            <li><svg width="20" height="20"><use href="#icon-mail"/></svg><div><strong>E-mail</strong><span><a href="mailto:contact@lamaree-restaurant.fr">contact@lamaree-restaurant.fr</a></span></div></li>
+          </ul>
+          <a class="btn btn-outline" target="_blank" rel="noopener" href="https://www.openstreetmap.org/search?query=Cassis%2C%20France">Itinéraire &amp; plan complet</a>
+        </div>
+        <div class="location-map">
+          <div class="map-fallback" aria-hidden="true">
+            <svg viewBox="0 0 200 140" class="map-fallback-art">
+              <path d="M0,100 C30,80 60,110 90,95 C120,80 150,105 200,90 L200,140 L0,140 Z" fill="#2C5F63" opacity=".18"/>
+              <path d="M0,105 C30,86 60,114 90,100 C120,86 150,110 200,96" fill="none" stroke="#2C5F63" stroke-width="2" opacity=".4"/>
+              <g stroke="#7A2E2E" stroke-width=".6" opacity=".18">
+                <path d="M20,0 V140 M60,0 V140 M100,0 V140 M140,0 V140 M180,0 V140"/>
+                <path d="M0,20 H200 M0,55 H200 M0,90 H200 M0,125 H200"/>
+              </g>
+            </svg>
+            <svg width="34" height="34" viewBox="0 0 24 24" class="map-fallback-pin"><use href="#icon-pin"/></svg>
+            <span>Cassis, Côte d'Azur</span>
+          </div>
+          <iframe id="location-iframe" title="Carte de La Marée à Cassis" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=5.5250%2C43.2070%2C5.5540%2C43.2230&layer=mapnik&marker=43.2148%2C5.5396">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href="#home" class="brand">
+        <span class="brand-mark"><svg width="26" height="26"><use href="#icon-anchor"/></svg></span>
+        <span class="brand-text">La Marée</span>
+      </a>
+      <p>Cuisine française de la mer, sur le port de Cassis depuis 1998.</p>
+      <div class="footer-social">
+        <a href="#" aria-label="Instagram"><svg width="18" height="18"><use href="#icon-insta"/></svg></a>
+        <a href="#" aria-label="Facebook"><svg width="18" height="18"><use href="#icon-fb"/></svg></a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Explorer</h4>
+      <a href="#menu">Menu</a>
+      <a href="#chef">Notre Chef</a>
+      <a href="#reserve">Réserver</a>
+      <a href="#location">Nous trouver</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <a href="tel:+33442000000">04 42 00 00 00</a>
+      <a href="mailto:contact@lamaree-restaurant.fr">contact@lamaree-restaurant.fr</a>
+      <span>12 Quai des Pêcheurs, 13260 Cassis</span>
+    </div>
+    <div class="footer-col footer-newsletter">
+      <h4>La lettre de la marée</h4>
+      <p>Menus de saison et soirées privées, une fois par mois.</p>
+      <form id="newsletter-form">
+        <input type="email" placeholder="Votre e-mail" required aria-label="Adresse e-mail">
+        <button type="submit" class="btn btn-primary btn-sm">S'inscrire</button>
+      </form>
+      <p class="newsletter-note" id="newsletter-note" hidden>Merci, à très bientôt !</p>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© <span id="year"></span> La Marée. Tous droits réservés.</span>
+    <span>Site de démonstration — fruits de mer, imaginés avec amour.</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
