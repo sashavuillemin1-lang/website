@@ -15,365 +15,280 @@
 <meta property="og:description" content="Face à la marina Fort Louis, à Marigot, depuis 2001. Cuisine maison, poissons du jour, cocktails au comptoir. Ouvert 8h — 00h.">
 <meta property="og:url" content="https://oplongeoir.com/">
 <meta property="og:image" content="https://oplongeoir.com/og-image.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ô Plongeoir — Resto · Bistro · Cocktails · Marigot">
-<meta name="twitter:description" content="Face à la marina Fort Louis depuis 2001. Cuisine maison, cocktails au comptoir. Ouvert 8h — 00h.">
-<meta name="twitter:image" content="https://oplongeoir.com/og-image.jpg">
 <script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"Restaurant",
-  "name":"Ô Plongeoir",
-  "url":"https://oplongeoir.com/",
-  "image":"https://oplongeoir.com/og-image.jpg",
-  "telephone":"+590590879471",
-  "priceRange":"€€",
-  "servesCuisine":["Française","Créole","Poissons et fruits de mer"],
-  "foundingDate":"2001",
-  "address":{
-    "@type":"PostalAddress",
-    "streetAddress":"17 Bd Hubert Petit",
-    "addressLocality":"Marigot",
-    "postalCode":"97150",
-    "addressCountry":"MF"
-  },
-  "geo":{"@type":"GeoCoordinates","latitude":18.0703919,"longitude":-63.0864717},
-  "hasMap":"https://www.google.com/maps/search/?api=1&query=18.0703919,-63.0864717&query_place_id=ChIJfeRl8SFvDowRGNPmM-Q380Q",
-  "sameAs":["https://www.instagram.com/oplongeoirsxm/"],
-  "acceptsReservations":"True",
-  "openingHoursSpecification":[{
-    "@type":"OpeningHoursSpecification",
-    "dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
-    "opens":"08:00","closes":"00:00"
-  }],
-  "paymentAccepted":"Espèces, Visa, Mastercard"
-}
+{"@context":"https://schema.org","@type":"Restaurant","name":"Ô Plongeoir","url":"https://oplongeoir.com/","image":"https://oplongeoir.com/og-image.jpg","telephone":"+590590879471","priceRange":"€€","servesCuisine":["Française","Créole","Poissons et fruits de mer"],"foundingDate":"2001","address":{"@type":"PostalAddress","streetAddress":"17 Bd Hubert Petit","addressLocality":"Marigot","postalCode":"97150","addressCountry":"MF"},"geo":{"@type":"GeoCoordinates","latitude":18.0703919,"longitude":-63.0864717},"sameAs":["https://www.instagram.com/oplongeoirsxm/"],"acceptsReservations":"True","openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"08:00","closes":"00:00"}],"paymentAccepted":"Espèces, Visa, Mastercard"}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Italiana&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Italiana&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --deep:#0d2a30;--deep2:#082025;--deep3:#123b43;
+  --deep:#0d2a30;--deep2:#082025;
   --paper:#fbf6f0;--paper2:#f3ece2;
   --gold:#b08d57;--goldl:#c9a978;--goldd:#8f6f3f;
-  --ink:#1b2426;--mute:#6f6a63;
-  --cream:#f3ece2;--creamd:rgba(243,236,226,.74);--line:rgba(243,236,226,.16);
-  --ease:cubic-bezier(.16,.84,.24,1);
-  --safe-b:env(safe-area-inset-bottom);
+  --ink:#1b2426;--mute:#6f6a63;--cream:#f3ece2;
+  --line:rgba(27,36,38,.12);
+  --hh:64px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;}
-body{background:var(--deep2);color:var(--cream);font-family:'Jost',sans-serif;font-weight:300;overflow:hidden;-webkit-font-smoothing:antialiased;}
-h1,h2,h3,h4{font-family:'Cormorant Garamond',serif;font-weight:300;line-height:1.05;}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--hh) + 58px);}
+body{background:var(--paper);color:var(--ink);font-family:'Jost',sans-serif;font-weight:300;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:400;line-height:1.1;}
 a{color:inherit;text-decoration:none;}
-button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;}
-:focus-visible{outline:1px solid var(--goldl);outline-offset:3px;}
-
-/* grain léger sur tout l'écran */
-.grain{position:fixed;inset:0;z-index:600;pointer-events:none;opacity:.07;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
-
-.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.66rem;font-weight:400;letter-spacing:.3em;text-transform:uppercase;color:var(--goldl);}
-.eyebrow b{font-weight:400;font-family:'Italiana',serif;font-size:1.05rem;letter-spacing:.05em;}
-.eyebrow i{width:26px;height:1px;background:currentColor;opacity:.6;}
-
-/* ---------- pages empilées ---------- */
-.deck{height:100svh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain;}
-.deck::-webkit-scrollbar{display:none;}
-.pg{height:100svh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:calc(24px + env(safe-area-inset-top)) 26px calc(112px + var(--safe-b));}
-.pg .bg{position:absolute;inset:0;background-size:cover;background-position:center;transform:scale(1.12);transition:transform 7s var(--ease);}
-.pg.on .bg{transform:scale(1);}
-.pg .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,32,37,.55) 0%,rgba(8,32,37,.1) 32%,rgba(8,32,37,.72) 55%,rgba(8,32,37,.97) 100%);}
-.pg .in{position:relative;z-index:4;}
-.pg .in>*{opacity:0;transform:translateY(24px);transition:opacity .9s var(--ease),transform .9s var(--ease);}
-.pg.on .in>*{opacity:1;transform:none;}
-.pg.on .in>*:nth-child(2){transition-delay:.08s}
-.pg.on .in>*:nth-child(3){transition-delay:.16s}
-.pg.on .in>*:nth-child(4){transition-delay:.24s}
-.pg.on .in>*:nth-child(5){transition-delay:.32s}
-.pg.on .in>*:nth-child(6){transition-delay:.4s}
-.pg h2{font-size:clamp(2.5rem,11vw,3.2rem);color:var(--cream);margin-top:16px;letter-spacing:-.01em;}
-.pg h2 em{font-style:italic;color:var(--goldl);}
-.pg p{margin-top:16px;color:var(--creamd);font-size:1rem;line-height:1.75;max-width:34ch;}
-
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;font-size:.7rem;font-weight:400;letter-spacing:.22em;text-transform:uppercase;border-radius:999px;transition:transform .25s var(--ease),background .3s,color .3s;}
+button,input,select{font:inherit;color:inherit;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+.eyebrow{font-size:.7rem;font-weight:400;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:999px;border:0;cursor:pointer;font-size:.74rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;transition:transform .2s,background .2s;}
 .btn:active{transform:scale(.97);}
-.btn-gold{background:linear-gradient(135deg,var(--goldl),var(--gold));color:var(--deep2);box-shadow:0 10px 30px -10px rgba(201,169,120,.6);}
-.btn-line{border:1px solid rgba(243,236,226,.4);color:var(--cream);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(8,32,37,.2);}
-.btn svg{flex:none;}
-.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:var(--goldd);}
+.btn-ghost{border:1px solid rgba(243,236,226,.55);color:var(--cream);}
+.btn-dark{background:var(--deep);color:var(--cream);}
 
-/* ---------- page 1 : titre ---------- */
-.pg1{justify-content:center;text-align:center;background:
-  radial-gradient(90% 55% at 50% 100%,rgba(201,169,120,.28),transparent 70%),
-  radial-gradient(70% 45% at 85% 0%,rgba(18,59,67,.9),transparent 70%),
-  linear-gradient(178deg,var(--deep3),var(--deep) 45%,var(--deep2));}
-.pg1 .in{display:flex;flex-direction:column;align-items:center;}
-.sun{position:absolute;left:50%;bottom:9%;width:min(78vw,340px);aspect-ratio:1;transform:translate(-50%,50%);border-radius:50%;
-  background:radial-gradient(circle at 50% 35%,rgba(232,200,150,.55),rgba(201,169,120,.18) 45%,transparent 70%);filter:blur(2px);animation:glow 7s ease-in-out infinite;}
-.ring{position:absolute;left:50%;top:50%;width:min(92vw,420px);aspect-ratio:1;transform:translate(-50%,-54%);border-radius:50%;border:1px solid rgba(201,169,120,.18);}
-.ring::after{content:'';position:absolute;inset:18px;border-radius:50%;border:1px dashed rgba(201,169,120,.12);animation:spin 80s linear infinite;}
-@keyframes glow{0%,100%{opacity:.75;transform:translate(-50%,50%) scale(1)}50%{opacity:1;transform:translate(-50%,50%) scale(1.06)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-.waves{position:absolute;left:0;right:0;bottom:0;height:34%;pointer-events:none;}
-.waves svg{position:absolute;left:0;width:200%;height:100%;}
-.waves path{fill:none;stroke:rgba(201,169,120,.28);stroke-width:1;}
-.waves .w1{bottom:-10%;animation:drift 18s linear infinite;}
-.waves .w2{bottom:-22%;animation:drift 26s linear infinite reverse;opacity:.7;}
-.waves .w3{bottom:-34%;animation:drift 34s linear infinite;opacity:.45;}
-@keyframes drift{to{transform:translateX(-50%)}}
+/* ===== En-tête ===== */
+.top{position:fixed;top:0;left:0;right:0;z-index:50;padding-top:env(safe-area-inset-top);transition:background .3s,box-shadow .3s;}
+.top .wrap{height:var(--hh);display:flex;align-items:center;gap:16px;}
+.logo{font-family:'Italiana',serif;font-size:1.35rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);white-space:nowrap;transition:color .3s;}
+.logo span{color:var(--goldl);}
+.nav{display:none;gap:28px;margin-left:auto;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cream);}
+.nav a{opacity:.85;}
+.nav a:hover{opacity:1;color:var(--goldl);}
+.top .btn{margin-left:auto;min-height:42px;padding:0 18px;}
+.top.solid{background:rgba(251,246,240,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line);}
+.top.solid .logo,.top.solid .nav{color:var(--ink);}
+@media(min-width:820px){.nav{display:flex;}.top .btn{margin-left:8px;}}
 
-.status{display:inline-flex;align-items:center;gap:9px;padding:8px 15px 8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(8,32,37,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--creamd);}
-.status i{width:7px;height:7px;border-radius:50%;background:#8a8a8a;flex:none;}
-.status.open i{background:#6fcf97;box-shadow:0 0 0 0 rgba(111,207,151,.6);animation:ping 2s infinite;}
+/* ===== Hero ===== */
+.hero{position:relative;min-height:92svh;display:flex;align-items:flex-end;color:var(--cream);background:#0d2a30 url('img/cuisine.jpg') center/cover no-repeat;}
+.hero::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,32,37,.65) 0%,rgba(8,32,37,.25) 35%,rgba(8,32,37,.9) 100%);}
+.hero .wrap{position:relative;width:100%;padding-bottom:56px;padding-top:120px;}
+.status{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(8,32,37,.5);border:1px solid rgba(243,236,226,.2);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;}
+.status i{width:7px;height:7px;border-radius:50%;background:#999;}
+.status.open i{background:#6fcf97;}
 .status.closed i{background:#e0876a;}
-@keyframes ping{0%{box-shadow:0 0 0 0 rgba(111,207,151,.55)}80%,100%{box-shadow:0 0 0 9px rgba(111,207,151,0)}}
+.hero h1{font-family:'Italiana',serif;font-weight:400;font-size:clamp(3rem,13vw,6rem);text-transform:uppercase;letter-spacing:.02em;margin-top:18px;}
+.hero h1 span{color:var(--goldl);}
+.hero .sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.35rem;opacity:.9;margin-top:4px;}
+.hero .meta{margin-top:10px;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;opacity:.75;}
+.hero .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;}
 
-.pg1 .eyebrow{margin-top:34px;}
-.pg1 h1{font-family:'Italiana',serif;font-size:clamp(2.6rem,14vw,4rem);text-transform:uppercase;letter-spacing:.02em;font-weight:400;white-space:nowrap;margin-top:14px;
-  background:linear-gradient(180deg,#fff8ee 30%,#d9c3a0);-webkit-background-clip:text;background-clip:text;color:transparent;}
-.pg1 h1 .o{color:var(--goldl);-webkit-text-fill-color:var(--goldl);position:relative;display:inline-block;}
-.pg1 h1 .o::after{content:'';position:absolute;left:50%;bottom:-.06em;width:.5em;height:1px;background:var(--goldl);transform:translateX(-50%);}
-.pg1 .kl{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px;}
-.pg1 .kl i{height:1px;width:34px;background:linear-gradient(90deg,transparent,rgba(243,236,226,.5));}
-.pg1 .kl i:last-child{transform:scaleX(-1);}
-.pg1 .kl span{font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;}
-.pg1 .pl{margin-top:18px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.25rem;color:var(--creamd);}
-.pg1 .row{justify-content:center;margin-top:34px;}
+/* ===== Bandeau infos rapides ===== */
+.quick{background:var(--deep);color:var(--cream);}
+.quick .wrap{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;}
+.quick div{padding:18px 6px;border-left:1px solid rgba(243,236,226,.12);}
+.quick div:first-child{border-left:0;}
+.quick b{display:block;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.15rem;color:var(--goldl);}
+.quick small{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;opacity:.7;}
 
-.hint{position:absolute;bottom:calc(98px + var(--safe-b));left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(243,236,226,.55);}
-.hint i{width:1px;height:28px;background:linear-gradient(180deg,rgba(243,236,226,.8),transparent);animation:dv 2.2s ease-in-out infinite;}
-@keyframes dv{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* ===== Sections ===== */
+section.sec{padding:72px 0;}
+.head{text-align:center;margin-bottom:28px;}
+.head h2{font-size:clamp(2.4rem,9vw,3.4rem);margin-top:8px;}
+.head h2 em{color:var(--gold);}
+.head p{color:var(--mute);max-width:44ch;margin:10px auto 0;}
 
-/* ---------- signatures ---------- */
-.pgs{justify-content:center;padding-left:0;padding-right:0;background:
-  radial-gradient(80% 50% at 0% 100%,rgba(201,169,120,.14),transparent 70%),
-  linear-gradient(180deg,var(--deep2),var(--deep));}
-.pgs .in{padding:0 26px;}
-.cards{position:relative;z-index:4;display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:30px 26px 6px;scrollbar-width:none;}
-.cards::-webkit-scrollbar{display:none;}
-.card{flex:0 0 78%;max-width:320px;scroll-snap-align:start;position:relative;border-radius:22px;padding:22px 22px 20px;min-height:260px;display:flex;flex-direction:column;
-  background:linear-gradient(160deg,rgba(243,236,226,.09),rgba(243,236,226,.02));border:1px solid var(--line);overflow:hidden;}
-.card::before{content:attr(data-n);position:absolute;right:-6px;top:-22px;font-family:'Italiana',serif;font-size:7.5rem;color:rgba(201,169,120,.1);line-height:1;}
-.card .tag{align-self:flex-start;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--goldl);border:1px solid rgba(201,169,120,.4);padding:5px 10px;border-radius:999px;}
-.card h3{font-size:1.75rem;margin-top:auto;padding-top:40px;color:var(--cream);}
-.card p{font-size:.86rem;line-height:1.6;margin-top:8px;color:var(--creamd);}
-.card .pr{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--creamd);}
-.card .pr b{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.4rem;letter-spacing:0;color:var(--goldl);}
-.card.more{align-items:flex-start;justify-content:flex-end;background:linear-gradient(160deg,var(--goldl),var(--gold));color:var(--deep2);border:none;}
-.card.more::before{color:rgba(8,32,37,.1);}
-.card.more h3{color:var(--deep2);}
-.card.more p{color:rgba(8,32,37,.75);}
-.card.more .go{margin-top:18px;width:48px;height:48px;border-radius:50%;border:1px solid rgba(8,32,37,.35);display:grid;place-items:center;}
-.swipe{padding:14px 26px 0;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(243,236,226,.45);position:relative;z-index:4;}
+/* onglets collants */
+.tabs{position:sticky;top:calc(var(--hh) + env(safe-area-inset-top));z-index:40;background:var(--paper);border-bottom:1px solid var(--line);}
+.tabs .wrap{display:flex;gap:8px;overflow-x:auto;padding-top:10px;padding-bottom:10px;scrollbar-width:none;}
+.tabs .wrap::-webkit-scrollbar{display:none;}
+.tabs a{flex:none;padding:8px 16px;border-radius:999px;border:1px solid var(--line);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;transition:background .2s,color .2s;}
+.tabs a.on{background:var(--deep);border-color:var(--deep);color:var(--cream);}
+@media(min-width:820px){.tabs .wrap{justify-content:center;}}
 
-/* ---------- progression latérale ---------- */
-.rail{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:300;display:flex;flex-direction:column;gap:4px;}
-.rail button{width:24px;height:30px;display:grid;place-items:center;}
-.rail button::after{content:'';width:3px;height:18px;border-radius:3px;background:rgba(243,236,226,.28);transition:height .4s var(--ease),background .4s;}
-.rail button.on::after{height:30px;background:var(--goldl);}
-body.light .rail button::after{background:rgba(27,36,38,.22);}
-body.light .rail button.on::after{background:var(--gold);}
-
-/* ---------- barre basse ---------- */
-.dock{position:fixed;left:12px;right:12px;bottom:calc(12px + var(--safe-b));z-index:320;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 20px;border-radius:999px;
-  background:rgba(8,32,37,.72);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid var(--line);box-shadow:0 14px 40px -12px rgba(0,0,0,.55);transition:transform .5s var(--ease);}
-.dock .wm{flex:1;font-family:'Italiana',serif;font-size:.86rem;letter-spacing:.24em;text-transform:uppercase;color:var(--cream);white-space:nowrap;}
-.dock .wm .o{font-size:1.3em;color:var(--goldl);}
-.dock .ic{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--cream);flex:none;}
-.dock .btn{min-height:46px;padding:0 20px;}
-body.sheet-open .dock{transform:translateY(160%);}
-
-/* ---------- infos (page claire) ---------- */
-.pgi{background:linear-gradient(180deg,var(--paper),var(--paper2));color:var(--ink);justify-content:center;padding-bottom:calc(104px + var(--safe-b));}
-.pgi h2{color:var(--ink);font-size:clamp(2.2rem,10vw,2.9rem);}
-.pgi h2 em{color:var(--gold);}
-.pgi p{color:var(--mute);}
-.pgi .eyebrow{color:var(--gold);}
-.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px;}
-.acts a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px;border-radius:16px;border:1px solid rgba(27,36,38,.12);background:#fff;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);box-shadow:0 6px 18px -12px rgba(27,36,38,.35);}
-.acts a svg{color:var(--gold);}
-.rev{margin-top:20px;padding:16px 18px;border-radius:16px;background:rgba(176,141,87,.09);position:relative;}
-.rev .stars{color:var(--gold);font-size:.8rem;letter-spacing:.18em;}
-.rev em{display:block;margin-top:6px;font-family:'Cormorant Garamond',serif;font-size:1.12rem;line-height:1.4;color:var(--ink);}
-.rev .who{display:block;margin-top:8px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);}
-.ig{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;margin-top:20px;padding-top:18px;border-top:1px solid rgba(27,36,38,.12);}
-.ig h5{font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;font-family:'Jost',sans-serif;font-weight:400;}
-.ig p,.ig a{font-family:'Cormorant Garamond',serif;font-size:1.05rem;line-height:1.45;margin:0;color:var(--ink);max-width:none;}
-.ig .today{color:var(--gold);font-style:italic;}
-
-/* ---------- feuilles (carte / boissons) ---------- */
-.scrim{position:fixed;inset:0;z-index:490;background:rgba(4,16,19,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .45s;}
-body.sheet-open .scrim{opacity:1;pointer-events:auto;}
-.sheet{position:fixed;left:0;right:0;bottom:0;top:7%;z-index:500;background:var(--paper);color:var(--ink);transform:translateY(101%);transition:transform .55s var(--ease);display:flex;flex-direction:column;border-radius:26px 26px 0 0;box-shadow:0 -20px 60px -20px rgba(0,0,0,.5);}
-.sheet.open{transform:none;}
-.sheet.drag{transition:none;}
-.grab{padding:10px 0 2px;display:grid;place-items:center;flex:none;touch-action:none;}
-.grab::before{content:'';width:42px;height:4px;border-radius:99px;background:rgba(27,36,38,.2);}
-.sh{padding:8px 22px 12px;display:flex;justify-content:space-between;align-items:flex-end;flex:none;touch-action:none;}
-.sh h3{font-size:2.1rem;margin-top:6px;color:var(--ink);}
-.sh .eyebrow{color:var(--gold);}
-.sc{width:44px;height:44px;border-radius:50%;border:1px solid rgba(27,36,38,.16);display:grid;place-items:center;color:var(--ink);flex:none;}
-.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 22px 14px;scrollbar-width:none;flex:none;border-bottom:1px solid rgba(27,36,38,.08);}
-.tabs::-webkit-scrollbar{display:none;}
-.tabs button{flex:none;min-height:38px;padding:0 16px;border-radius:999px;border:1px solid rgba(27,36,38,.14);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);transition:background .3s,color .3s,border-color .3s;}
-.tabs button.on{background:var(--deep);border-color:var(--deep);color:var(--cream);}
-.sb{overflow-y:auto;padding:22px 22px calc(40px + var(--safe-b));flex:1;overscroll-behavior:contain;scroll-behavior:smooth;}
-.cat{margin-bottom:34px;scroll-margin-top:12px;}
-.cat h4{display:flex;align-items:center;gap:12px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.6rem;color:var(--ink);margin-bottom:16px;}
-.cat h4::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(176,141,87,.6),transparent);}
-.item{padding:12px 0;border-bottom:1px dashed rgba(27,36,38,.1);}
-.item:last-of-type{border-bottom:none;}
+.menu{display:grid;gap:40px;margin-top:36px;}
+@media(min-width:820px){.menu{grid-template-columns:1fr 1fr;gap:48px 64px;}}
+.cat h3{font-style:italic;font-size:1.9rem;display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+.cat h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--goldl),transparent);}
+.item{padding:12px 0;border-bottom:1px dashed var(--line);}
+.item:last-of-type{border-bottom:0;}
 .line{display:flex;align-items:baseline;gap:10px;}
-.nm{font-family:'Cormorant Garamond',serif;font-size:1.22rem;font-weight:500;color:var(--ink);}
-.dots{flex:1;border-bottom:1px dotted rgba(27,36,38,.25);transform:translateY(-5px);}
-.pr{font-size:.82rem;font-weight:400;color:var(--goldd);white-space:nowrap;}
-.ds{font-size:.84rem;color:var(--mute);line-height:1.6;margin-top:4px;}
-.note{border-left:2px solid var(--gold);padding:10px 14px;font-size:.8rem;line-height:1.65;color:var(--mute);margin-top:14px;background:rgba(176,141,87,.07);border-radius:0 10px 10px 0;}
-.sheet-foot{margin-top:6px;padding:20px;border-radius:18px;background:var(--deep);color:var(--cream);text-align:center;}
-.sheet-foot p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.15rem;color:var(--creamd);}
-.sheet-foot .btn{margin-top:14px;}
+.nm{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:500;}
+.dots{flex:1;border-bottom:1px dotted rgba(27,36,38,.28);transform:translateY(-5px);}
+.pr{font-weight:400;color:var(--goldd);white-space:nowrap;}
+.ds{font-size:.9rem;color:var(--mute);margin-top:2px;}
+.badge{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:999px;background:rgba(176,141,87,.14);color:var(--goldd);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;vertical-align:middle;font-family:'Jost',sans-serif;font-weight:400;}
+.note{margin-top:12px;padding:10px 14px;border-left:2px solid var(--gold);background:rgba(176,141,87,.08);border-radius:0 8px 8px 0;font-size:.85rem;color:var(--mute);}
 
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
-  .pg .in>*{opacity:1;transform:none;}
-}
+/* bar */
+.bar{background:var(--deep);color:var(--cream);}
+.bar .head p{color:rgba(243,236,226,.7);}
+.bar .head h2 em{color:var(--goldl);}
+.bar-photo{height:260px;border-radius:18px;background:#123b43 url('img/bar.jpg') center/cover;margin-bottom:8px;}
+@media(min-width:820px){.bar-photo{height:360px;}}
+.bar .item{border-color:rgba(243,236,226,.14);}
+.bar .ds{color:rgba(243,236,226,.65);}
+.bar .pr{color:var(--goldl);}
+.bar .dots{border-color:rgba(243,236,226,.25);}
+
+/* réservation */
+.resa{background:var(--paper2);}
+.box{max-width:560px;margin:0 auto;background:#fff;border-radius:22px;padding:26px 22px;box-shadow:0 20px 50px -30px rgba(27,36,38,.4);}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form label{display:flex;flex-direction:column;gap:6px;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);min-width:0;}
+.form .full{grid-column:1/-1;}
+.form input,.form select{width:100%;height:50px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);font-size:1rem;letter-spacing:0;text-transform:none;color:var(--ink);outline:none;-webkit-appearance:none;appearance:none;}
+.form input:focus,.form select:focus{border-color:var(--gold);}
+.form .btn{grid-column:1/-1;width:100%;margin-top:4px;}
+.or{display:flex;align-items:center;gap:12px;margin:20px 0 14px;font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+.or::before,.or::after{content:'';flex:1;height:1px;background:var(--line);}
+.alt{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.alt .btn{width:100%;padding:0 12px;}
+.small{margin-top:14px;text-align:center;font-size:.82rem;color:var(--mute);}
+
+/* infos */
+.infos{display:grid;gap:14px;}
+@media(min-width:820px){.infos{grid-template-columns:repeat(3,1fr);}}
+.card{padding:22px;border:1px solid var(--line);border-radius:18px;}
+.card h3{font-size:1.4rem;margin-bottom:6px;}
+.card p{color:var(--mute);}
+.card a.link{display:inline-block;margin-top:10px;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--goldd);border-bottom:1px solid var(--goldl);}
+.rev{margin-top:14px;text-align:center;padding:28px 20px;}
+.rev .stars{color:var(--gold);letter-spacing:.2em;}
+.rev q{display:block;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.5rem;line-height:1.35;margin-top:8px;}
+.rev small{display:block;margin-top:10px;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);}
+
+footer{background:var(--deep2);color:rgba(243,236,226,.7);text-align:center;padding:40px 20px calc(96px + env(safe-area-inset-bottom));font-size:.85rem;}
+footer .logo{display:inline-block;margin-bottom:10px;}
+footer a{color:var(--goldl);}
+
+/* boutons flottants mobile */
+.fab{position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:45;display:grid;grid-template-columns:1fr 1fr;gap:8px;transform:translateY(140%);transition:transform .35s;}
+.fab.show{transform:none;}
+.fab .btn{box-shadow:0 10px 30px -10px rgba(0,0,0,.45);}
+@media(min-width:820px){.fab{display:none;}footer{padding-bottom:40px;}}
 </style>
 </head>
 <body>
-<div class="grain" aria-hidden="true"></div>
 
-<div class="deck" id="deck">
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="logo" href="#"><span>Ô</span> Plongeoir</a>
+    <nav class="nav">
+      <a href="#carte">La carte</a>
+      <a href="#bar">Vins &amp; cocktails</a>
+      <a href="#infos">Infos</a>
+    </nav>
+    <a class="btn btn-gold" href="#reserver">Réserver</a>
+  </div>
+</header>
 
-  <!-- 1 · Accueil -->
-  <section class="pg pg1" data-theme="dark">
-    <div class="ring" aria-hidden="true"></div>
-    <div class="sun" aria-hidden="true"></div>
-    <div class="waves" aria-hidden="true">
-      <svg class="w1" viewBox="0 0 800 100" preserveAspectRatio="none"><path d="M0 50 Q100 20 200 50 T400 50 T600 50 T800 50"/></svg>
-      <svg class="w2" viewBox="0 0 800 100" preserveAspectRatio="none"><path d="M0 50 Q100 25 200 50 T400 50 T600 50 T800 50"/></svg>
-      <svg class="w3" viewBox="0 0 800 100" preserveAspectRatio="none"><path d="M0 50 Q100 30 200 50 T400 50 T600 50 T800 50"/></svg>
+<section class="hero">
+  <div class="wrap">
+    <div class="status" id="status"><i></i><span>Lun. — sam. · 8h — 00h</span></div>
+    <h1><span>Ô</span> Plongeoir</h1>
+    <div class="sub">Resto · Bistro · Cocktails, face à la marina Fort Louis</div>
+    <div class="meta">Marigot · Saint-Martin · Depuis 2001</div>
+    <div class="row">
+      <a class="btn btn-gold" href="#reserver">Réserver une table</a>
+      <a class="btn btn-ghost" href="#carte">Voir la carte</a>
     </div>
-    <div class="in">
-      <div class="status" id="status"><i></i><span>Lun. — sam. · 8h — 00h</span></div>
-      <div class="eyebrow">Marigot · Saint-Martin · Depuis 2001</div>
-      <h1><span class="o">Ô</span> Plongeoir</h1>
-      <div class="kl"><i></i><span>Resto · Bistro · Cocktails</span><i></i></div>
-      <div class="pl">Face à la marina Fort Louis</div>
-      <div class="row">
-        <button class="btn btn-gold" data-sheet="s-carte">Voir la carte</button>
-        <button class="btn btn-line" data-goto="infos">Nous trouver</button>
-      </div>
-    </div>
-    <div class="hint" aria-hidden="true"><span>Glissez</span><i></i></div>
-  </section>
+  </div>
+</section>
 
-  <!-- 2 · La maison -->
-  <section class="pg" data-theme="dark">
-    <div class="bg" style="background-image:url('img/cuisine.jpg'),radial-gradient(120% 70% at 30% 20%,#2a5159,#0d2a30 60%,#082025)"></div>
-    <div class="veil"></div>
-    <div class="in">
-      <span class="eyebrow"><b>02</b><i></i>La maison</span>
-      <h2>On vous garde<br><em>une place</em></h2>
-      <p>Ce qui est là à midi ne sera peut-être plus là ce soir : la cuisine suit la marée et le marché. Poissons du jour, viandes grillées, saveurs créoles — tout est fait maison.</p>
-      <div class="row">
-        <button class="btn btn-gold" data-sheet="s-carte">Voir la carte
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M2 7l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+<div class="quick">
+  <div class="wrap">
+    <div><b>8h — 00h</b><small>Lun. au sam.</small></div>
+    <div><b>4,6 ★</b><small>507 avis Google</small></div>
+    <div><b>Marina</b><small>Parking gratuit</small></div>
+  </div>
+</div>
+
+<!-- LA CARTE -->
+<section class="sec" id="carte">
+  <div class="wrap head">
+    <span class="eyebrow">Cuisine maison</span>
+    <h2>La <em>carte</em></h2>
+    <p>La cuisine suit la marée et le marché : poissons du jour, viandes grillées, saveurs créoles.</p>
+  </div>
+  <div class="tabs"><div class="wrap" id="tabs"></div></div>
+  <div class="wrap"><div class="menu" id="menu"></div></div>
+</section>
+
+<!-- VINS & COCKTAILS -->
+<section class="sec bar" id="bar">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Le bar · 8h — 00h</span>
+      <h2>Vins &amp; <em>cocktails</em></h2>
+      <p>Un apéro, un cocktail maison, pendant que le soleil descend sur la marina.</p>
+    </div>
+    <div class="bar-photo" role="img" aria-label="Cocktails au comptoir"></div>
+    <div class="menu" id="drinks"></div>
+  </div>
+</section>
+
+<!-- RÉSERVATION -->
+<section class="sec resa" id="reserver">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Réservation</span>
+      <h2>Réservez <em>votre table</em></h2>
+      <p>Remplissez, on vous confirme par WhatsApp.</p>
+    </div>
+    <div class="box">
+      <form class="form" id="resa">
+        <label class="full">Nom<input name="nom" required autocomplete="name" placeholder="Votre nom"></label>
+        <label>Date<input type="date" name="date" required></label>
+        <label>Heure<select name="heure" required></select></label>
+        <label>Personnes<select name="pers"></select></label>
+        <label>Téléphone<input type="tel" name="tel" autocomplete="tel" placeholder="Optionnel"></label>
+        <button class="btn btn-gold" type="submit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm4.5 12.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.6 4c1.4.6 2 .6 2.7.5a2.4 2.4 0 001.6-1.1 2 2 0 00.1-1.1z"/></svg>
+          Envoyer ma demande
         </button>
+      </form>
+      <div class="or">ou</div>
+      <div class="alt">
+        <a class="btn btn-dark" href="tel:+590590879471">Appeler</a>
+        <a class="btn btn-dark" href="https://wa.me/590590879471" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+      <p class="small">+590 590 87 94 71 · Grandes tablées et événements sur demande</p>
+    </div>
+  </div>
+</section>
+
+<!-- INFOS -->
+<section class="sec" id="infos">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Infos pratiques</span>
+      <h2>Nous <em>trouver</em></h2>
+    </div>
+    <div class="infos">
+      <div class="card">
+        <h3>Adresse</h3>
+        <p>17 Bd Hubert Petit<br>97150 Marigot, Saint-Martin<br>Face à la marina · parking gratuit</p>
+        <a class="link" href="https://www.google.com/maps/search/?api=1&amp;query=18.0703919,-63.0864717&amp;query_place_id=ChIJfeRl8SFvDowRGNPmM-Q380Q" target="_blank" rel="noopener">Itinéraire</a>
+      </div>
+      <div class="card">
+        <h3>Horaires</h3>
+        <p>Du lundi au samedi<br>8h — 00h<br>Fermé le dimanche</p>
+        <a class="link" href="#reserver">Réserver</a>
+      </div>
+      <div class="card">
+        <h3>Contact</h3>
+        <p>+590 590 87 94 71<br>Commandes à emporter<br>@oplongeoirsxm</p>
+        <a class="link" href="https://www.instagram.com/oplongeoirsxm/" target="_blank" rel="noopener">Instagram</a>
       </div>
     </div>
-  </section>
-
-  <!-- 3 · Signatures -->
-  <section class="pg pgs" data-theme="dark">
-    <div class="in">
-      <span class="eyebrow"><b>03</b><i></i>Signatures</span>
-      <h2>Ceux qu'on<br><em>nous réclame</em></h2>
+    <div class="rev">
+      <div class="stars">★★★★★</div>
+      <q>Un vrai goût de la maison. On se sent comme en famille ici.</q>
+      <small>Léa M. · 4,6/5 sur 507 avis Google</small>
     </div>
-    <div class="cards" id="cards"></div>
-    <div class="swipe">← Faites défiler →</div>
-  </section>
+  </div>
+</section>
 
-  <!-- 4 · Le bar -->
-  <section class="pg" data-theme="dark">
-    <div class="bg" style="background-image:url('img/bar.jpg'),radial-gradient(120% 70% at 70% 30%,#6b5334,#2a2a22 45%,#082025)"></div>
-    <div class="veil"></div>
-    <div class="in">
-      <span class="eyebrow"><b>04</b><i></i>Le bar</span>
-      <h2>Un apéro,<br><em>un cocktail maison</em></h2>
-      <p>Le comptoir ouvre à 8h et ne ferme qu'à minuit, pendant que le soleil descend sur la marina.</p>
-      <div class="row">
-        <button class="btn btn-gold" data-sheet="s-vins">Nos boissons
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M2 7l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
-        </button>
-      </div>
-    </div>
-  </section>
+<footer>
+  <div class="logo"><span>Ô</span> Plongeoir</div>
+  <p>17 Bd Hubert Petit, Marigot · <a href="tel:+590590879471">+590 590 87 94 71</a></p>
+  <p>Espèces, Visa, Mastercard · © Ô Plongeoir, depuis 2001</p>
+</footer>
 
-  <!-- 5 · Infos -->
-  <section class="pg pgi" id="infos" data-theme="light">
-    <div class="in">
-      <span class="eyebrow"><b>05</b><i></i>Nous trouver</span>
-      <h2>Votre table face<br>à <em>la marina</em></h2>
-      <p>Face à la marina de Marigot. Parking gratuit à proximité. On prépare aussi votre commande à emporter.</p>
-      <div class="acts">
-        <a href="tel:+590590879471">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>
-          Appeler
-        </a>
-        <a href="https://wa.me/590590879471" target="_blank" rel="noopener">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.6 4c1.4.6 2 .6 2.7.5a2.4 2.4 0 001.6-1.1 2 2 0 00.1-1.1z"/></svg>
-          WhatsApp
-        </a>
-        <a href="https://www.google.com/maps/search/?api=1&amp;query=18.0703919,-63.0864717&amp;query_place_id=ChIJfeRl8SFvDowRGNPmM-Q380Q" target="_blank" rel="noopener">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Itinéraire
-        </a>
-      </div>
-      <div class="rev">
-        <span class="stars">★★★★★</span>
-        <em>« Un vrai goût de la maison. On se sent comme en famille ici. »</em>
-        <span class="who">Léa M. · Marigot — 4,6/5 sur 507 avis Google</span>
-      </div>
-      <div class="ig">
-        <div><h5>Adresse</h5><p>17 Bd Hubert Petit<br>97150 Marigot</p></div>
-        <div><h5>Horaires</h5><p>8h — 00h<br>Lun. au sam.</p><p class="today" id="today"></p></div>
-        <div><h5>Téléphone</h5><a href="tel:+590590879471">+590 590 87 94 71</a></div>
-        <div><h5>Instagram</h5><a href="https://www.instagram.com/oplongeoirsxm/" target="_blank" rel="noopener">@oplongeoirsxm</a></div>
-      </div>
-    </div>
-  </section>
-
-</div>
-
-<nav class="rail" id="rail" aria-label="Sections"></nav>
-
-<div class="dock">
-  <span class="wm"><span class="o">Ô</span> Plongeoir</span>
-  <a class="ic" href="https://wa.me/590590879471" target="_blank" rel="noopener" aria-label="WhatsApp">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.6 4c1.4.6 2 .6 2.7.5a2.4 2.4 0 001.6-1.1 2 2 0 00.1-1.1z"/></svg>
-  </a>
-  <a class="btn btn-gold" href="tel:+590590879471">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>
-    Réserver
-  </a>
-</div>
-
-<div class="scrim" id="scrim"></div>
-<div class="sheet" id="s-carte" role="dialog" aria-modal="true" aria-label="La carte">
-  <div class="grab"></div>
-  <div class="sh"><div><span class="eyebrow">Resto · Bistro · Cocktails</span><h3>La carte</h3></div><button class="sc" aria-label="Fermer">✕</button></div>
-  <div class="tabs"></div>
-  <div class="sb" data-menu="carte"></div>
-</div>
-<div class="sheet" id="s-vins" role="dialog" aria-modal="true" aria-label="Nos boissons">
-  <div class="grab"></div>
-  <div class="sh"><div><span class="eyebrow">Ouvert 8h — 00h</span><h3>Nos boissons</h3></div><button class="sc" aria-label="Fermer">✕</button></div>
-  <div class="tabs"></div>
-  <div class="sb" data-menu="boissons"></div>
+<div class="fab" id="fab">
+  <a class="btn btn-dark" href="#carte">La carte</a>
+  <a class="btn btn-gold" href="#reserver">Réserver</a>
 </div>
 
 <script>
@@ -394,13 +309,13 @@ const CARTE = [
  ["Poissons", [
   ["Sashimi de thon","23,00 €","Fines tranches de thon crues."],
   ["Tartare de thon","23,00 €","Thon, mangue et coriandre, teriyaki."],
-  ["Tataki kamikaze de thon","23,00 €","Mi-cuit de thon saisi, sauce teriyaki maison."],
+  ["Tataki kamikaze de thon","23,00 €","Mi-cuit de thon saisi, sauce teriyaki maison.",1],
   ["Mahi-mahi","21,00 €","Filet grillé à la plancha, riz jasmin, salade mixte et sa sauce chien."],
-  ["Crevettes à la Papy","21,00 €","Flambées au pastis, ail, crème, persil, sauce safranée, frites maison et salade mixte."],
+  ["Crevettes à la Papy","21,00 €","Flambées au pastis, ail, crème, persil, sauce safranée, frites maison et salade mixte.",1],
   ["Burger Ô Mahi-Mahi","18,00 €","Filet mariné, sauce cocktail, tomates, oignons, pickles, crudités, frites maison."]
  ], "Les trois plats de thon sont accompagnés de riz thaï, gingembre mariné, wakamé, wasabi et chutney de mangue maison."],
  ["Viandes", [
-  ["La fameuse bavette","24,00 €","Frites maison, salade mixte, sauce ô choix."],
+  ["La fameuse bavette","24,00 €","Frites maison, salade mixte, sauce ô choix.",1],
   ["La belle entrecôte","30,00 €","Frites maison, salade mixte, sauce ô choix."],
   ["Le burger du Plongeoir","18,00 €","Steak de bœuf, bacon, cheddar, oignons confits, pickles, crudités, sauce cocktail, frites maison."],
   ["Les rognons à l'ancienne","19,00 €","Fricassée de rognons de veau, moutarde à l'ancienne, purée maison, légumes confits."],
@@ -419,148 +334,80 @@ const CARTE = [
 
 const BOISSONS = [
  ["Cocktails", [
-  ["La sélection du bar","—","Préparés au comptoir, du matin jusqu'à minuit."],
-  ["Mocktails","—","Versions sans alcool, sur demande."]
+  ["La sélection du bar","","Cocktails maison préparés au comptoir, du matin jusqu'à minuit."],
+  ["Mocktails","","Versions sans alcool, sur demande."]
  ]],
  ["Vins & champagne", [
-  ["Blanc","—","Au verre ou à la bouteille."],
-  ["Rosé","—","Au verre ou à la bouteille."],
-  ["Rouge","—","Au verre ou à la bouteille."],
-  ["Champagne","—","À la coupe."]
+  ["Blanc, rosé, rouge","","Au verre ou à la bouteille."],
+  ["Champagne","","À la coupe."]
  ]],
  ["Bières & softs", [
-  ["Bières fraîches","—","Demandez nos bières du moment."],
-  ["Jus, sodas & eaux","—","Sélection de boissons fraîches."],
-  ["Cafés","—","Dès l'ouverture, à 8h."]
+  ["Bières fraîches","","Demandez nos bières du moment."],
+  ["Jus, sodas & eaux","","Sélection de boissons fraîches."],
+  ["Cafés","","Dès l'ouverture, à 8h."]
  ]],
- ["À partager", [
+ ["Pour l'apéro", [
   ["Tapas à partager","dès 9,00 €","Tapenade, rillettes de crabe, nems, gyozas."]
  ]]
 ];
 
-/* plats mis en avant (tirés de la carte) */
-const SIGNATURES = [
- ["Poisson","Tataki kamikaze de thon","Mi-cuit de thon saisi, sauce teriyaki maison, riz thaï et chutney de mangue.","23 €"],
- ["Flambé","Crevettes à la Papy","Flambées au pastis, ail, crème et sauce safranée. Frites maison.","21 €"],
- ["Grill","La fameuse bavette","Frites maison, salade mixte et sauce ô choix.","24 €"],
- ["Soleil","L'Exotique","Mahi-mahi et crevettes à la plancha, fruits frais, sauce chien.","19 €"]
-];
-</script>
-<script>
 (function(){
-  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const render=(data,key)=>data.map(([cat,items,note],i)=>`
+    <div class="cat" id="${key}-${i}">
+      <h3>${esc(cat)}</h3>
+      ${items.map(([n,p,d,sig])=>`
+        <div class="item">
+          <div class="line"><span class="nm">${esc(n)}</span>${p?`<span class="dots"></span><span class="pr">${esc(p)}</span>`:''}</div>
+          <div class="ds">${sig?'<span class="badge">Signature</span>':''}${esc(d)}</div>
+        </div>`).join('')}
+      ${note?`<p class="note">${esc(note)}</p>`:''}
+    </div>`).join('');
+  document.getElementById('menu').innerHTML=render(CARTE,'c');
+  document.getElementById('drinks').innerHTML=render(BOISSONS,'b');
 
-  /* ---- cartes signature ---- */
-  $('#cards').innerHTML = SIGNATURES.map(([t,n,d,p],i)=>`
-    <article class="card" data-n="0${i+1}">
-      <span class="tag">${esc(t)}</span>
-      <h3>${esc(n)}</h3>
-      <p>${esc(d)}</p>
-      <div class="pr"><span>Signature</span><b>${esc(p)}</b></div>
-    </article>`).join('') + `
-    <button class="card more" data-sheet="s-carte" data-n="+">
-      <h3>Toute<br>la carte</h3>
-      <p>Tapas, salades, poissons, viandes, pâtes et currys.</p>
-      <span class="go"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5"/></svg></span>
-    </button>`;
+  /* onglets de la carte */
+  const tabs=document.getElementById('tabs');
+  tabs.innerHTML=CARTE.map(([cat],i)=>`<a href="#c-${i}"${i?'':' class="on"'}>${esc(cat)}</a>`).join('');
+  const links=[...tabs.children], cats=CARTE.map((_,i)=>document.getElementById('c-'+i));
 
-  /* ---- menus + onglets ---- */
-  function renderMenu(data, sheet, key){
-    const sb=$('.sb',sheet), tabs=$('.tabs',sheet);
-    sb.innerHTML = data.map(([cat,items,note],ci)=>`
-      <section class="cat" id="${key}-${ci}">
-        <h4>${esc(cat)}</h4>
-        ${items.map(([n,p,d])=>`
-          <div class="item">
-            <div class="line"><span class="nm">${esc(n)}</span>${p==='—'?'':`<span class="dots"></span><span class="pr">${esc(p)}</span>`}</div>
-            <div class="ds">${esc(d)}</div>
-          </div>`).join('')}
-        ${note?`<p class="note">${esc(note)}</p>`:''}
-      </section>`).join('') + `
-      <div class="sheet-foot">
-        <p>Une envie, une allergie, une grande tablée ?</p>
-        <a class="btn btn-gold" href="tel:+590590879471">Appeler le Plongeoir</a>
-      </div>`;
-    tabs.innerHTML = data.map(([cat],ci)=>`<button data-t="${key}-${ci}"${ci?'':' class="on"'}>${esc(cat)}</button>`).join('');
-    tabs.addEventListener('click',e=>{
-      const b=e.target.closest('button'); if(!b) return;
-      const t=document.getElementById(b.dataset.t);
-      sb.scrollTo({top:t.offsetTop-sb.offsetTop,behavior:'smooth'});
-    });
-    const cats=$$('.cat',sb), btns=$$('button',tabs);
-    sb.addEventListener('scroll',()=>{
-      let cur=0; const y=sb.scrollTop+sb.offsetTop+40;
-      cats.forEach((c,i)=>{ if(c.offsetTop<=y) cur=i; });
-      if(sb.scrollTop+sb.clientHeight>=sb.scrollHeight-4) cur=cats.length-1;
-      btns.forEach((b,i)=>b.classList.toggle('on',i===cur));
-      btns[cur].scrollIntoView({inline:'nearest',block:'nearest'});
-    },{passive:true});
-  }
-  renderMenu(CARTE, $('#s-carte'), 'c');
-  renderMenu(BOISSONS, $('#s-vins'), 'b');
-
-  /* ---- pages + progression ---- */
-  const deck=$('#deck'), pages=$$('.pg'), rail=$('#rail');
-  pages.forEach((p,i)=>{
-    const b=document.createElement('button');
-    b.setAttribute('aria-label','Section '+(i+1));
-    b.addEventListener('click',()=>p.scrollIntoView({behavior:'smooth'}));
-    rail.appendChild(b);
-  });
-  const bars=[...rail.children];
-  const io=new IntersectionObserver(es=>es.forEach(e=>{
-    e.target.classList.toggle('on',e.isIntersecting);
-    if(e.isIntersecting){
-      const i=pages.indexOf(e.target);
-      bars.forEach((b,j)=>b.classList.toggle('on',j===i));
-      document.body.classList.toggle('light',e.target.dataset.theme==='light');
+  /* en-tête, onglet actif, boutons flottants */
+  const top=document.getElementById('top'), fab=document.getElementById('fab'), resa=document.getElementById('reserver');
+  let last=-1;
+  function onScroll(){
+    top.classList.toggle('solid',scrollY>40);
+    const r=resa.getBoundingClientRect();
+    fab.classList.toggle('show',scrollY>innerHeight*.7 && !(r.top<innerHeight && r.bottom>0));
+    let cur=0; cats.forEach((c,i)=>{ if(c.getBoundingClientRect().top<200) cur=i; });
+    if(cur!==last){
+      links.forEach((l,i)=>l.classList.toggle('on',i===cur));
+      tabs.scrollTo({left:links[cur].offsetLeft-20,behavior:'smooth'});
+      last=cur;
     }
-  }),{root:deck,threshold:.55});
-  pages.forEach(p=>io.observe(p));
-  $$('[data-goto]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.goto).scrollIntoView({behavior:'smooth'})));
-
-  /* ---- feuilles ---- */
-  function closeSheets(){
-    $$('.sheet.open').forEach(s=>{s.classList.remove('open');s.style.transform='';});
-    document.body.classList.remove('sheet-open');
   }
-  function openSheet(id){
-    closeSheets();
-    $('#'+id).classList.add('open');
-    document.body.classList.add('sheet-open');
-  }
-  document.addEventListener('click',e=>{
-    const t=e.target.closest('[data-sheet]'); if(t) openSheet(t.dataset.sheet);
-  });
-  $$('.sc').forEach(b=>b.addEventListener('click',closeSheets));
-  $('#scrim').addEventListener('click',closeSheets);
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheets(); });
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
 
-  /* glisser vers le bas pour fermer */
-  $$('.sheet').forEach(s=>{
-    let y0=null, dy=0;
-    $$('.grab,.sh',s).forEach(h=>{
-      h.addEventListener('touchstart',e=>{y0=e.touches[0].clientY;dy=0;s.classList.add('drag');},{passive:true});
-      h.addEventListener('touchmove',e=>{ if(y0===null) return; dy=Math.max(0,e.touches[0].clientY-y0); s.style.transform=`translateY(${dy}px)`; },{passive:true});
-      h.addEventListener('touchend',()=>{ s.classList.remove('drag'); if(dy>110) closeSheets(); else s.style.transform=''; y0=null; });
-    });
+  /* formulaire de réservation -> WhatsApp */
+  const f=document.getElementById('resa');
+  const heures=[]; for(let h=8;h<=22;h++){ heures.push(h+'h00'); heures.push(h+'h30'); }
+  f.heure.innerHTML=heures.map(h=>`<option${h==='19h30'?' selected':''}>${h}</option>`).join('');
+  f.pers.innerHTML=[1,2,3,4,5,6,7,8,9,10].map(n=>`<option${n===2?' selected':''}>${n}</option>`).join('')+'<option>Plus de 10</option>';
+  const d=new Date(), pad=n=>String(n).padStart(2,'0');
+  f.date.value=f.date.min=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  f.addEventListener('submit',e=>{
+    e.preventDefault();
+    const date=new Date(f.date.value+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    const msg=`Bonjour, je souhaite réserver une table au Ô Plongeoir.\nNom : ${f.nom.value}\nDate : ${date}\nHeure : ${f.heure.value}\nPersonnes : ${f.pers.value}`+(f.tel.value?`\nTéléphone : ${f.tel.value}`:'');
+    window.open('https://wa.me/590590879471?text='+encodeURIComponent(msg),'_blank');
   });
 
-  /* ---- ouvert / fermé (heure de Saint-Martin) ---- */
+  /* ouvert / fermé (heure de Saint-Martin) */
   try{
-    const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Marigot',weekday:'short',hour:'numeric',hourCycle:'h23'}).formatToParts(new Date());
-    const wd=parts.find(p=>p.type==='weekday').value;
-    const h=+parts.find(p=>p.type==='hour').value % 24;
-    const open = wd!=='Sun' && h>=8;
-    let txt;
-    if(open) txt='Ouvert · jusqu’à minuit';
-    else if(wd==='Sun') txt='Fermé · réouverture lundi 8h';
-    else txt='Fermé · ouvre à 8h';
-    const st=$('#status');
+    const p=new Intl.DateTimeFormat('en-US',{timeZone:'America/Marigot',weekday:'short',hour:'numeric',hourCycle:'h23'}).formatToParts(new Date());
+    const wd=p.find(x=>x.type==='weekday').value, h=+p.find(x=>x.type==='hour').value%24;
+    const open=wd!=='Sun'&&h>=8, st=document.getElementById('status');
     st.classList.add(open?'open':'closed');
-    $('span',st).textContent=txt;
-    $('#today').textContent = open ? 'Ouvert en ce moment' : '';
+    st.querySelector('span').textContent=open?'Ouvert · jusqu’à minuit':(wd==='Sun'?'Fermé · réouverture lundi 8h':'Fermé · ouvre à 8h');
   }catch(e){}
 })();
 </script>
