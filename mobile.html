@@ -157,6 +157,42 @@ footer a{color:var(--goldl);}
 .fab.show{transform:none;}
 .fab .btn{box-shadow:0 10px 30px -10px rgba(0,0,0,.45);}
 @media(min-width:820px){.fab{display:none;}footer{padding-bottom:40px;}}
+
+/* ===== Effets au toucher / au clic ===== */
+.btn,.tabs a,.toc a,.card,.item,.nav a,.alt .btn{position:relative;overflow:hidden;}
+.btn{transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .25s,background .2s,color .2s;}
+.btn:active{transform:scale(.95);}
+.btn-gold{box-shadow:0 8px 22px -10px rgba(176,141,87,.7);}
+.btn-gold:hover{box-shadow:0 12px 28px -10px rgba(176,141,87,.85);}
+.ripple{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.28;transform:scale(0);animation:rip .6s ease-out forwards;}
+@keyframes rip{to{transform:scale(1);opacity:0}}
+.tabs a,.toc a{transition:background .25s,color .25s,border-color .25s,transform .18s;}
+.tabs a:active{transform:scale(.93);}
+.item{border-radius:10px;transition:background .3s,transform .2s;margin:0 -10px;padding-left:10px;padding-right:10px;}
+.item:active,.item.tap{background:rgba(176,141,87,.12);transform:scale(.985);}
+.bar .item:active,.bar .item.tap{background:rgba(201,169,120,.12);}
+.item .pr{transition:transform .3s;}
+.item:active .pr,.item.tap .pr{transform:scale(1.12);}
+@media(hover:hover){.item:hover{background:rgba(176,141,87,.07);}.bar .item:hover{background:rgba(201,169,120,.08);}}
+.card{transition:transform .25s,box-shadow .3s;}
+.card:active{transform:scale(.98);}
+@media(hover:hover){.card:hover{transform:translateY(-3px);box-shadow:0 18px 40px -24px rgba(27,36,38,.45);}}
+.form input,.form select{transition:border-color .2s,box-shadow .2s,transform .15s;}
+.form input:focus,.form select:focus{box-shadow:0 0 0 4px rgba(176,141,87,.18);}
+.btn.sent{background:#2f7d57!important;}
+.btn.sent::before{content:'✓';font-size:1.1em;margin-right:4px;animation:pop .4s cubic-bezier(.2,1.6,.4,1);}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+/* apparition au défilement */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1);}
+.rv.in{opacity:1;transform:none;}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero .wrap>*,.hero .txt>*{animation:up .8s cubic-bezier(.2,.8,.2,1) both;}
+.hero .wrap>*:nth-child(2),.hero .txt>*:nth-child(2){animation-delay:.1s}
+.hero .wrap>*:nth-child(3),.hero .txt>*:nth-child(3){animation-delay:.2s}
+.hero .wrap>*:nth-child(4),.hero .txt>*:nth-child(4){animation-delay:.3s}
+.hero .wrap>*:nth-child(5),.hero .txt>*:nth-child(5){animation-delay:.4s}
+.hero .txt>*:nth-child(6){animation-delay:.5s}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -409,6 +445,39 @@ const BOISSONS = [
     st.classList.add(open?'open':'closed');
     st.querySelector('span').textContent=open?'Ouvert · jusqu’à minuit':(wd==='Sun'?'Fermé · réouverture lundi 8h':'Fermé · ouvre à 8h');
   }catch(e){}
+})();
+</script>
+<script>
+/* ===== Effets ===== */
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* onde au toucher sur les boutons */
+  document.addEventListener('pointerdown',e=>{
+    const el=e.target.closest('.btn,.tabs a,.toc a'); if(!el||reduce) return;
+    const r=el.getBoundingClientRect(), d=Math.max(r.width,r.height)*2.2, s=document.createElement('span');
+    s.className='ripple'; s.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
+    el.appendChild(s); setTimeout(()=>s.remove(),650);
+    if(navigator.vibrate) navigator.vibrate(8);
+  });
+  /* plat touché : petit flash doré */
+  document.addEventListener('click',e=>{
+    const it=e.target.closest('.item'); if(!it) return;
+    it.classList.remove('tap'); void it.offsetWidth; it.classList.add('tap');
+    setTimeout(()=>it.classList.remove('tap'),450);
+  });
+  /* bouton de réservation : confirmation visuelle */
+  const f=document.getElementById('resa');
+  if(f) f.addEventListener('submit',()=>{
+    const b=f.querySelector('button[type=submit]'), t=b.innerHTML;
+    b.classList.add('sent'); b.textContent='Demande prête sur WhatsApp';
+    setTimeout(()=>{b.classList.remove('sent'); b.innerHTML=t;},3000);
+  });
+  /* apparition des blocs au défilement */
+  if(reduce||!('IntersectionObserver' in window)) return;
+  const els=document.querySelectorAll('.head,.cat,.card,.box,.bar-photo,.rev,.quick div');
+  els.forEach(el=>el.classList.add('rv'));
+  const io=new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);} }),{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  els.forEach(el=>io.observe(el));
 })();
 </script>
 </body>
