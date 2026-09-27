@@ -1,4 +1,0 @@
-Déposez ici les photos de la page mobile :
-- cuisine.jpg (section « La maison »)
-- bar.jpg (section « Le bar »)
-Format conseillé : JPG vertical, ~1200px de haut, < 300 Ko.
