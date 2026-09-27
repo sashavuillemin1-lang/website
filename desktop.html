@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ô Plongeoir — Resto · Bistro · Cocktails · Marigot, Saint-Martin</title>
+<meta name="description" content="Ô Plongeoir — resto, bistro et cocktails face à la marina Fort Louis à Marigot, Saint-Martin, depuis 2001. Cuisine maison, poissons du jour, viandes grillées et saveurs créoles. Ouvert 8h — 00h du lundi au samedi.">
+<meta name="theme-color" content="#0d2a30">
+<link rel="canonical" href="https://oplongeoir.com/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230d2a30'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='40' fill='%23c9a978' text-anchor='middle'%3E%C3%94%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="restaurant">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Ô Plongeoir">
+<meta property="og:title" content="Ô Plongeoir — Resto · Bistro · Cocktails · Marigot">
+<meta property="og:description" content="Face à la marina Fort Louis, à Marigot, depuis 2001. Cuisine maison, poissons du jour, cocktails au comptoir. Ouvert 8h — 00h.">
+<meta property="og:url" content="https://oplongeoir.com/">
+<meta property="og:image" content="https://oplongeoir.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Ô Plongeoir","url":"https://oplongeoir.com/","image":"https://oplongeoir.com/og-image.jpg","telephone":"+590590879471","priceRange":"€€","servesCuisine":["Française","Créole","Poissons et fruits de mer"],"foundingDate":"2001","address":{"@type":"PostalAddress","streetAddress":"17 Bd Hubert Petit","addressLocality":"Marigot","postalCode":"97150","addressCountry":"MF"},"geo":{"@type":"GeoCoordinates","latitude":18.0703919,"longitude":-63.0864717},"sameAs":["https://www.instagram.com/oplongeoirsxm/"],"acceptsReservations":"True","openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"08:00","closes":"00:00"}],"paymentAccepted":"Espèces, Visa, Mastercard"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Italiana&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#0d2a30;--deep2:#082025;
+  --paper:#fbf6f0;--paper2:#f3ece2;
+  --gold:#b08d57;--goldl:#c9a978;--goldd:#8f6f3f;
+  --ink:#1b2426;--mute:#6f6a63;--cream:#f3ece2;
+  --line:rgba(27,36,38,.12);
+  --hh:76px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;scroll-padding-top:var(--hh);}
+body{background:var(--paper);color:var(--ink);font-family:'Jost',sans-serif;font-weight:300;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;min-width:960px;}
+h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:400;line-height:1.08;}
+a{color:inherit;text-decoration:none;}
+button,input,select{font:inherit;color:inherit;}
+.wrap{max-width:1240px;margin:0 auto;padding:0 48px;}
+.eyebrow{font-size:.72rem;font-weight:400;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 30px;border-radius:999px;border:0;cursor:pointer;font-size:.74rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;transition:background .2s,transform .2s,color .2s;}
+.btn:hover{transform:translateY(-1px);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:var(--goldd);}
+.btn-ghost{border:1px solid rgba(243,236,226,.5);color:var(--cream);}
+.btn-ghost:hover{background:rgba(243,236,226,.1);}
+.btn-dark{background:var(--deep);color:var(--cream);}
+.btn-dark:hover{background:var(--deep2);}
+
+/* ===== En-tête ===== */
+.top{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(8,32,37,.55);backdrop-filter:blur(12px);transition:background .3s,box-shadow .3s;}
+.top .wrap{height:var(--hh);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;}
+.logo{font-family:'Italiana',serif;font-size:1.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cream);white-space:nowrap;transition:color .3s;}
+.logo span{color:var(--goldl);}
+.nav{display:flex;gap:40px;font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cream);}
+.nav a{position:relative;padding:6px 0;opacity:.85;transition:opacity .2s;}
+.nav a::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--goldl);transform:scaleX(0);transition:transform .3s;}
+.nav a:hover,.nav a.on{opacity:1;}
+.nav a:hover::after,.nav a.on::after{transform:scaleX(1);}
+.right{display:flex;align-items:center;justify-content:flex-end;gap:22px;}
+.phone{font-size:.84rem;letter-spacing:.06em;color:var(--cream);opacity:.85;transition:color .3s;}
+.top .btn{height:46px;padding:0 26px;}
+.top.solid{background:rgba(251,246,240,.95);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line);}
+.top.solid .logo,.top.solid .nav,.top.solid .phone{color:var(--ink);}
+
+/* ===== Hero (texte à gauche, photo à droite) ===== */
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;background:var(--deep);color:var(--cream);}
+.hero .txt{display:flex;flex-direction:column;justify-content:center;padding:calc(var(--hh) + 40px) 56px 64px max(48px,calc((100vw - 1240px)/2 + 48px));
+  background:radial-gradient(90% 60% at 0% 100%,rgba(201,169,120,.16),transparent 70%);}
+.status{align-self:flex-start;display:inline-flex;align-items:center;gap:9px;padding:7px 16px;border-radius:999px;border:1px solid rgba(243,236,226,.2);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;}
+.status i{width:8px;height:8px;border-radius:50%;background:#999;}
+.status.open i{background:#6fcf97;}
+.status.closed i{background:#e0876a;}
+.hero h1{font-family:'Italiana',serif;font-weight:400;font-size:clamp(3.2rem,4.6vw,5.6rem);text-transform:uppercase;letter-spacing:.02em;margin-top:28px;line-height:1;white-space:nowrap;}
+.hero h1 span{color:var(--goldl);}
+.hero .sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.7rem;color:rgba(243,236,226,.88);margin-top:18px;}
+.hero .lead{margin-top:18px;max-width:42ch;color:rgba(243,236,226,.7);}
+.hero .row{display:flex;gap:12px;margin-top:36px;}
+.hero .meta{margin-top:48px;padding-top:24px;border-top:1px solid rgba(243,236,226,.14);display:flex;gap:48px;}
+.hero .meta b{display:block;font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.5rem;color:var(--goldl);}
+.hero .meta small{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(243,236,226,.6);}
+.hero .pic{position:relative;background:#123b43 url('img/cuisine.jpg') center/cover no-repeat;}
+.hero .pic::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,42,48,.55),transparent 30%);}
+.hero .tagpic{position:absolute;right:40px;bottom:40px;z-index:2;padding:16px 22px;border-radius:16px;background:rgba(8,32,37,.7);backdrop-filter:blur(8px);color:var(--cream);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.15rem;}
+.hero .tagpic small{display:block;font-family:'Jost',sans-serif;font-style:normal;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--goldl);}
+
+/* ===== Sections ===== */
+section.sec{padding:110px 0;}
+.head h2{font-size:3.6rem;margin-top:12px;}
+.head h2 em{color:var(--gold);}
+.head p{color:var(--mute);max-width:46ch;margin-top:14px;}
+
+/* carte : sommaire collant à gauche */
+.carte{display:grid;grid-template-columns:260px 1fr;gap:72px;}
+.side{position:sticky;top:calc(var(--hh) + 32px);align-self:start;}
+.toc{margin-top:36px;display:flex;flex-direction:column;border-left:1px solid var(--line);}
+.toc a{padding:10px 0 10px 20px;margin-left:-1px;border-left:2px solid transparent;font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);transition:color .2s,border-color .2s;}
+.toc a:hover{color:var(--ink);}
+.toc a.on{color:var(--ink);border-left-color:var(--gold);}
+.side .btn{margin-top:36px;}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:56px 64px;}
+.cat{scroll-margin-top:calc(var(--hh) + 32px);}
+.cat h3{font-style:italic;font-size:2.1rem;display:flex;align-items:center;gap:16px;margin-bottom:10px;}
+.cat h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--goldl),transparent);}
+.item{padding:14px 0;border-bottom:1px dashed var(--line);}
+.item:last-of-type{border-bottom:0;}
+.line{display:flex;align-items:baseline;gap:12px;}
+.nm{font-family:'Cormorant Garamond',serif;font-size:1.32rem;font-weight:500;}
+.dots{flex:1;border-bottom:1px dotted rgba(27,36,38,.28);transform:translateY(-5px);}
+.pr{font-weight:400;color:var(--goldd);white-space:nowrap;}
+.ds{font-size:.92rem;color:var(--mute);margin-top:3px;}
+.badge{display:inline-block;margin-right:8px;padding:2px 9px;border-radius:999px;background:rgba(176,141,87,.14);color:var(--goldd);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;vertical-align:1px;}
+.note{margin-top:14px;padding:12px 16px;border-left:2px solid var(--gold);background:rgba(176,141,87,.08);border-radius:0 8px 8px 0;font-size:.88rem;color:var(--mute);}
+
+/* bar : photo collante + liste */
+.bar{background:var(--deep);color:var(--cream);}
+.bar .grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;}
+.bar-photo{position:sticky;top:calc(var(--hh) + 32px);height:calc(100vh - var(--hh) - 64px);max-height:720px;border-radius:24px;background:#123b43 url('img/bar.jpg') center/cover;}
+.bar .head h2 em{color:var(--goldl);}
+.bar .head p{color:rgba(243,236,226,.7);}
+.bar .menu{grid-template-columns:1fr;gap:40px;margin-top:48px;}
+.bar .item{border-color:rgba(243,236,226,.14);}
+.bar .ds{color:rgba(243,236,226,.65);}
+.bar .pr{color:var(--goldl);}
+.bar .dots{border-color:rgba(243,236,226,.25);}
+
+/* réservation + infos */
+.resa{background:var(--paper2);}
+.resa .grid{display:grid;grid-template-columns:7fr 5fr;gap:64px;align-items:start;}
+.box{margin-top:36px;background:#fff;border-radius:24px;padding:36px;box-shadow:0 24px 60px -34px rgba(27,36,38,.45);}
+.form{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.form label{display:flex;flex-direction:column;gap:7px;font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);min-width:0;}
+.form .half{grid-column:span 2;}
+.form input,.form select{width:100%;height:52px;padding:0 16px;border:1px solid var(--line);border-radius:12px;background:var(--paper);font-size:1rem;letter-spacing:0;text-transform:none;color:var(--ink);outline:none;}
+.form input:focus,.form select:focus{border-color:var(--gold);}
+.form .btn{grid-column:1/-1;margin-top:6px;}
+.alt{display:flex;align-items:center;gap:14px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line);font-size:.9rem;color:var(--mute);}
+.alt .btn{height:44px;padding:0 20px;}
+.alt span{margin-right:auto;}
+.infos{display:flex;flex-direction:column;gap:14px;}
+.card{padding:26px 28px;border-radius:20px;background:var(--paper);border:1px solid var(--line);}
+.card h3{font-size:1.5rem;margin-bottom:6px;}
+.card p{color:var(--mute);}
+.card a.link{display:inline-block;margin-top:10px;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--goldd);border-bottom:1px solid var(--goldl);}
+.card.rev{background:var(--deep);color:var(--cream);border:0;}
+.rev .stars{color:var(--goldl);letter-spacing:.2em;}
+.rev q{display:block;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.45rem;line-height:1.35;margin-top:8px;}
+.rev small{display:block;margin-top:10px;font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(243,236,226,.6);}
+
+footer{background:var(--deep2);color:rgba(243,236,226,.7);padding:56px 0;font-size:.88rem;}
+footer .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;}
+footer a{color:var(--goldl);}
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="logo" href="#"><span>Ô</span> Plongeoir</a>
+    <nav class="nav" id="nav">
+      <a href="#carte">La carte</a>
+      <a href="#bar">Vins &amp; cocktails</a>
+      <a href="#reserver">Réservation</a>
+    </nav>
+    <div class="right">
+      <a class="phone" href="tel:+590590879471">+590 590 87 94 71</a>
+      <a class="btn btn-gold" href="#reserver">Réserver</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="txt">
+    <div class="status" id="status"><i></i><span>Lun. — sam. · 8h — 00h</span></div>
+    <h1><span>Ô</span> Plongeoir</h1>
+    <div class="sub">Resto · Bistro · Cocktails, face à la marina Fort Louis</div>
+    <p class="lead">Ce qui est là à midi ne sera peut-être plus là ce soir : la cuisine suit la marée et le marché. Poissons du jour, viandes grillées, saveurs créoles — tout est fait maison.</p>
+    <div class="row">
+      <a class="btn btn-gold" href="#reserver">Réserver une table</a>
+      <a class="btn btn-ghost" href="#carte">Voir la carte</a>
+    </div>
+    <div class="meta">
+      <div><b>8h — 00h</b><small>Lun. au sam.</small></div>
+      <div><b>4,6 ★</b><small>507 avis Google</small></div>
+      <div><b>Depuis 2001</b><small>Marigot · Saint-Martin</small></div>
+    </div>
+  </div>
+  <div class="pic">
+    <div class="tagpic"><small>Cuisine maison</small>La cuisine suit la marée</div>
+  </div>
+</section>
+
+<!-- LA CARTE -->
+<section class="sec" id="carte">
+  <div class="wrap carte">
+    <aside class="side">
+      <div class="head">
+        <span class="eyebrow">Cuisine maison</span>
+        <h2>La <em>carte</em></h2>
+      </div>
+      <nav class="toc" id="toc"></nav>
+      <a class="btn btn-dark" href="#reserver">Réserver</a>
+    </aside>
+    <div class="menu" id="menu"></div>
+  </div>
+</section>
+
+<!-- VINS & COCKTAILS -->
+<section class="sec bar" id="bar">
+  <div class="wrap grid">
+    <div class="bar-photo" role="img" aria-label="Cocktails au comptoir"></div>
+    <div>
+      <div class="head">
+        <span class="eyebrow">Le bar · 8h — 00h</span>
+        <h2>Vins &amp; <em>cocktails</em></h2>
+        <p>Un apéro, un cocktail maison. Le comptoir ouvre à 8h et ne ferme qu'à minuit, pendant que le soleil descend sur la marina.</p>
+      </div>
+      <div class="menu" id="drinks"></div>
+    </div>
+  </div>
+</section>
+
+<!-- RÉSERVATION + INFOS -->
+<section class="sec resa" id="reserver">
+  <div class="wrap grid">
+    <div>
+      <div class="head">
+        <span class="eyebrow">Réservation</span>
+        <h2>Réservez <em>votre table</em></h2>
+        <p>Remplissez le formulaire, votre demande part sur WhatsApp et on vous confirme rapidement.</p>
+      </div>
+      <div class="box">
+        <form class="form" id="resa">
+          <label class="half">Nom<input name="nom" required autocomplete="name" placeholder="Votre nom"></label>
+          <label class="half">Téléphone<input type="tel" name="tel" autocomplete="tel" placeholder="Optionnel"></label>
+          <label class="half">Date<input type="date" name="date" required></label>
+          <label>Heure<select name="heure" required></select></label>
+          <label>Personnes<select name="pers"></select></label>
+          <button class="btn btn-gold" type="submit">Envoyer ma demande</button>
+        </form>
+        <div class="alt">
+          <span>Ou directement :</span>
+          <a class="btn btn-dark" href="tel:+590590879471">Appeler</a>
+          <a class="btn btn-dark" href="https://wa.me/590590879471" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
+    </div>
+    <div class="infos" id="infos">
+      <div class="card">
+        <h3>Adresse</h3>
+        <p>17 Bd Hubert Petit, 97150 Marigot<br>Face à la marina · parking gratuit</p>
+        <a class="link" href="https://www.google.com/maps/search/?api=1&amp;query=18.0703919,-63.0864717&amp;query_place_id=ChIJfeRl8SFvDowRGNPmM-Q380Q" target="_blank" rel="noopener">Itinéraire</a>
+      </div>
+      <div class="card">
+        <h3>Horaires</h3>
+        <p>Du lundi au samedi, 8h — 00h<br>Fermé le dimanche</p>
+      </div>
+      <div class="card">
+        <h3>Contact</h3>
+        <p>+590 590 87 94 71 · Commandes à emporter</p>
+        <a class="link" href="https://www.instagram.com/oplongeoirsxm/" target="_blank" rel="noopener">@oplongeoirsxm</a>
+      </div>
+      <div class="card rev">
+        <div class="stars">★★★★★</div>
+        <q>Un vrai goût de la maison. On se sent comme en famille ici.</q>
+        <small>Léa M. · 4,6/5 sur 507 avis Google</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo"><span>Ô</span> Plongeoir</div>
+    <p>17 Bd Hubert Petit, Marigot · <a href="tel:+590590879471">+590 590 87 94 71</a> · Espèces, Visa, Mastercard</p>
+    <p>© Ô Plongeoir, depuis 2001</p>
+  </div>
+</footer>
+
+<script>
+const CARTE = [
+ ["Tapas", [
+  ["Tapenade d'olives","9,00 €","Tapenade d'olives noires, toasts."],
+  ["Rillettes de crabe","12,00 €","Rillettes de crabe maison et toasts."],
+  ["Crevettes à la créole","12,00 €","Crevettes sautées, sauce créole."],
+  ["Nems de poulet","13,00 €","4 nems de poulet, salade et menthe."],
+  ["Gyozas ô poulet","12,00 €","6 raviolis japonais grillés à la plancha."]
+ ]],
+ ["Salades", [
+  ["La Parmesane","17,00 €","Salade, poulet, bacon, croûtons, parmesan, sauce César."],
+  ["L'Exotique","19,00 €","Duo de mahi-mahi et crevettes à la plancha, fruits frais, crudités, sauce chien."],
+  ["La Salade Thaï","19,00 €","Wok de crevettes et légumes croquants, vermicelles de riz, salade."],
+  ["La Salade Chèvre Chaud","17,00 €","Salade, crudités, croûtons au chèvre frais, miel, amandes."]
+ ]],
+ ["Poissons", [
+  ["Sashimi de thon","23,00 €","Fines tranches de thon crues."],
+  ["Tartare de thon","23,00 €","Thon, mangue et coriandre, teriyaki."],
+  ["Tataki kamikaze de thon","23,00 €","Mi-cuit de thon saisi, sauce teriyaki maison.",1],
+  ["Mahi-mahi","21,00 €","Filet grillé à la plancha, riz jasmin, salade mixte et sa sauce chien."],
+  ["Crevettes à la Papy","21,00 €","Flambées au pastis, ail, crème, persil, sauce safranée, frites maison et salade mixte.",1],
+  ["Burger Ô Mahi-Mahi","18,00 €","Filet mariné, sauce cocktail, tomates, oignons, pickles, crudités, frites maison."]
+ ], "Les trois plats de thon sont accompagnés de riz thaï, gingembre mariné, wakamé, wasabi et chutney de mangue maison."],
+ ["Viandes", [
+  ["La fameuse bavette","24,00 €","Frites maison, salade mixte, sauce ô choix.",1],
+  ["La belle entrecôte","30,00 €","Frites maison, salade mixte, sauce ô choix."],
+  ["Le burger du Plongeoir","18,00 €","Steak de bœuf, bacon, cheddar, oignons confits, pickles, crudités, sauce cocktail, frites maison."],
+  ["Les rognons à l'ancienne","19,00 €","Fricassée de rognons de veau, moutarde à l'ancienne, purée maison, légumes confits."],
+  ["Carpaccio de bœuf","18,00 €","À l'italienne, sauce vierge, copeaux de parmesan, câpres, frites maison, salade mixte."],
+  ["Fricassée de volaille à la Normande","21,00 €","Poulet, crème, champignons, pommes flambées au calvados, purée maison."]
+ ], "Sauce ô choix : chèvre, échalotes, poivre, moutarde ou ô champignons."],
+ ["Pâtes", [
+  ["Pasta del mar","21,00 €","Linguini marinière, palourdes, moules, crevettes."],
+  ["Pasta pesto","17,00 €","Linguini, courgettes, pignons de pin, tomates cerise, parmesan."]
+ ]],
+ ["Currys", [
+  ["Curry vert","21,00 €","Crevettes ô lait de coco et légumes, riz jasmin."],
+  ["Curry végétarien","17,00 €","Légumes ô lait de coco, riz jasmin."]
+ ]]
+];
+
+const BOISSONS = [
+ ["Cocktails", [
+  ["La sélection du bar","","Cocktails maison préparés au comptoir, du matin jusqu'à minuit."],
+  ["Mocktails","","Versions sans alcool, sur demande."]
+ ]],
+ ["Vins & champagne", [
+  ["Blanc, rosé, rouge","","Au verre ou à la bouteille."],
+  ["Champagne","","À la coupe."]
+ ]],
+ ["Bières & softs", [
+  ["Bières fraîches","","Demandez nos bières du moment."],
+  ["Jus, sodas & eaux","","Sélection de boissons fraîches."],
+  ["Cafés","","Dès l'ouverture, à 8h."]
+ ]],
+ ["Pour l'apéro", [
+  ["Tapas à partager","dès 9,00 €","Tapenade, rillettes de crabe, nems, gyozas."]
+ ]]
+];
+
+(function(){
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const render=(data,key)=>data.map(([cat,items,note],i)=>`
+    <div class="cat" id="${key}-${i}">
+      <h3>${esc(cat)}</h3>
+      ${items.map(([n,p,d,sig])=>`
+        <div class="item">
+          <div class="line"><span class="nm">${esc(n)}</span>${p?`<span class="dots"></span><span class="pr">${esc(p)}</span>`:''}</div>
+          <div class="ds">${sig?'<span class="badge">Signature</span>':''}${esc(d)}</div>
+        </div>`).join('')}
+      ${note?`<p class="note">${esc(note)}</p>`:''}
+    </div>`).join('');
+  document.getElementById('menu').innerHTML=render(CARTE,'c');
+  document.getElementById('drinks').innerHTML=render(BOISSONS,'b');
+
+  const toc=document.getElementById('toc');
+  toc.innerHTML=CARTE.map(([cat],i)=>`<a href="#c-${i}"${i?'':' class="on"'}>${esc(cat)}</a>`).join('');
+  const links=[...toc.children], cats=CARTE.map((_,i)=>document.getElementById('c-'+i));
+  const top=document.getElementById('top');
+  const navLinks=[...document.querySelectorAll('#nav a')], secs=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+
+  function onScroll(){
+    top.classList.toggle('solid',scrollY>40);
+    let cur=0; cats.forEach((c,i)=>{ if(c.getBoundingClientRect().top<240) cur=i; });
+    links.forEach((l,i)=>l.classList.toggle('on',i===cur));
+    let s=-1; secs.forEach((el,i)=>{ if(el.getBoundingClientRect().top<innerHeight*.4) s=i; });
+    navLinks.forEach((a,i)=>a.classList.toggle('on',i===s));
+  }
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  /* formulaire de réservation -> WhatsApp */
+  const f=document.getElementById('resa');
+  const heures=[]; for(let h=8;h<=22;h++){ heures.push(h+'h00'); heures.push(h+'h30'); }
+  f.heure.innerHTML=heures.map(h=>`<option${h==='19h30'?' selected':''}>${h}</option>`).join('');
+  f.pers.innerHTML=[1,2,3,4,5,6,7,8,9,10].map(n=>`<option${n===2?' selected':''}>${n}</option>`).join('')+'<option>Plus de 10</option>';
+  const d=new Date(), pad=n=>String(n).padStart(2,'0');
+  f.date.value=f.date.min=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  f.addEventListener('submit',e=>{
+    e.preventDefault();
+    const date=new Date(f.date.value+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    const msg=`Bonjour, je souhaite réserver une table au Ô Plongeoir.\nNom : ${f.nom.value}\nDate : ${date}\nHeure : ${f.heure.value}\nPersonnes : ${f.pers.value}`+(f.tel.value?`\nTéléphone : ${f.tel.value}`:'');
+    window.open('https://wa.me/590590879471?text='+encodeURIComponent(msg),'_blank');
+  });
+
+  /* ouvert / fermé (heure de Saint-Martin) */
+  try{
+    const p=new Intl.DateTimeFormat('en-US',{timeZone:'America/Marigot',weekday:'short',hour:'numeric',hourCycle:'h23'}).formatToParts(new Date());
+    const wd=p.find(x=>x.type==='weekday').value, h=+p.find(x=>x.type==='hour').value%24;
+    const open=wd!=='Sun'&&h>=8, st=document.getElementById('status');
+    st.classList.add(open?'open':'closed');
+    st.querySelector('span').textContent=open?'Ouvert · jusqu’à minuit':(wd==='Sun'?'Fermé · réouverture lundi 8h':'Fermé · ouvre à 8h');
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
