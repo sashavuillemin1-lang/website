@@ -7,6 +7,7 @@ Ce fichier contient les consignes complètes que suit la tâche planifiée hebdo
 2. Lire ce fichier, le dernier `rapport_*.md`, `annonces.csv` et `passages.txt`.
 3. **Le premier lundi du mois**, vérifier où en est l'interdiction fédérale d'achat par les non-Canadiens (expiration prévue le 1er janvier 2027, remplacement éventuel).
 4. Rechercher les annonces (voir Sources) : quelques requêtes par quartier et par type de bien, sans pagination massive.
+4 bis. **Revérifier chaque annonce déjà connue** d'`annonces.csv` (sauf les retirées) par une recherche de son numéro Centris ou de son adresse. N'inclure dans `BIENS` que celles qui sont retrouvées encore en vente. Une annonce non retrouvée faute d'accès aux sites ne doit pas être comptée comme retirée : la garder dans `BIENS` avec ses données précédentes et noter « non revérifiée ».
 5. Mettre à jour la liste `BIENS` de `calcul.py` avec **les annonces vues lors de ce passage**, y compris celles déjà connues encore en ligne, au prix actuel. Pour chaque annonce, renseigner `id` (numéro Centris) dès qu'il est connu. Si une fiche récente le permet, remplacer les données estimées par les vraies (revenus, taxes, chambres, salles de bain).
 6. Lancer `python3 calcul.py AAAA-MM-JJ` depuis `veille-immo/`. Le script fusionne avec l'historique : il détecte les baisses de prix et passe en « retiré » les annonces absentes de 2 passages consécutifs.
 7. Écrire `rapport_AAAA-MM-JJ.md` (format ci-dessous), puis faire un commit et pousser.

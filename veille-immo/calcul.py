@@ -30,54 +30,15 @@ def U(cat):
 
 # metro : minutes à pied estimées (None = inconnu) ; logements : composition connue ou None
 BIENS = [
-    dict(adresse="8370A-8372, avenue Querbes", quartier="Saint-Michel/Parc-Ex", type="triplex", nb=3, logements=None,
-         revenus=57600, prix=650000, annee=1948, sdb=None, metro=12, id="24859967", url=U("triplex~a-vendre~montreal-villeray-saint-michel-parc-extension/24859967"),
-         notes="Revenus bruts potentiels 57 600 $ (ratio 8,9 %, inhabituel : vérifier les baux). Composition des logements non indiquée."),
-    dict(adresse="7152-7156, 17e Avenue", quartier="Saint-Michel/Parc-Ex", type="triplex", nb=3, logements=["3½", "3½", "6½"],
-         revenus=48000, prix=648000, annee=1932, sdb=1, metro=13, id="24737003", url=U("triplex~a-vendre~montreal-villeray-saint-michel-parc-extension/24737003"),
-         notes="Jumelé. Revenus bruts potentiels 48 000 $. Logement principal (6½) : 3 ch., 1 sdb. Courtier RE/MAX Alliance."),
-    dict(adresse="5483-5487, boulevard Saint-Michel", quartier="Rosemont", type="triplex", nb=3, logements=None,
-         revenus=39600, prix=660000, annee=None, sdb=None, metro=20, url=U("triplex~a-vendre~montreal-rosemont-la-petite-patrie"),
-         notes="Composition et année non indiquées. Artère passante."),
-    dict(adresse="5343-5347, 3e Avenue", quartier="Rosemont", type="triplex", nb=3, logements=["5½", "5½", "6½"],
-         revenus=None, prix=699000, annee=1919, sdb=None, metro=18, id="26983111", url=U("triplex~a-vendre~montreal-rosemont-la-petite-patrie/26983111"),
-         notes="Trois logements de 3 chambres : 3 colocations possibles. Revenus non indiqués. Ancienne fiche 16256335 à 639 000 $ (prix relevé ou nouvelle inscription ?)."),
-    dict(adresse="6992-6994, avenue d'Outremont", quartier="Saint-Michel/Parc-Ex", type="duplex", nb=2, logements=None,
-         revenus=43200, prix=650000, annee=1927, sdb=1, metro=10, id="23398820", url=U("duplex~a-vendre~montreal-villeray-saint-michel-parc-extension/23398820"),
-         notes="HORS CRITÈRES : logement principal de 6 pièces mais 2 ch. seulement (+ sdb et salle d'eau) ; 4½ du haut VACANT (valeur locative 1 600 $). Revenus potentiels 3 600 $/mois. Taxes 2025 : 4 066 $. Métro Acadie et REM à proximité. Sous-sol > 6 pi : 3e chambre possible ?"),
-    dict(adresse="8115-8117, rue Boyer", quartier="Villeray", type="duplex", nb=2, logements=None,
-         revenus=22140, prix=599000, annee=None, sdb=None, metro=12, url=U("duplex~a-vendre~montreal-villeray-saint-michel-parc-extension"),
-         notes="Revenus bas (22 140 $) : potentiel si un logement se libère. Composition non indiquée."),
-    dict(adresse="2772-2774, rue de Cadillac", quartier="MHM", type="duplex", nb=2, logements=["4½", "8½"],
-         revenus=31920, prix=615000, annee=1953, sdb=None, metro=7, url=U("duplex~a-vendre~montreal-mercier-hochelaga-maisonneuve"),
-         notes="Fiche exacte non trouvée dans l'index (lien = recherche du quartier). Décrit comme rénové. Un 8½ idéal pour la colocation (4 chambres ou plus). Sous-sol aménageable. Stationnement en allée."),
-    dict(adresse="2185-2185A, avenue Mercier", quartier="MHM", type="duplex", nb=2, logements=None,
-         revenus=None, prix=529900, annee=1959, sdb=None, metro=15, url=U("duplex~a-vendre~montreal-mercier-hochelaga-maisonneuve"),
-         notes="822 pi² habitables seulement : sans doute trop petit pour une colocation de 3 chambres. Info manquante."),
-    dict(adresse="5534-5536, rue Pierre-Tétreault", quartier="MHM", type="duplex", nb=2, logements=None,
-         revenus=None, prix=615000, annee=1954, sdb=None, metro=None, url=U("duplex~a-vendre~montreal-mercier-hochelaga-maisonneuve"),
-         notes="Détaché, stationnement. Composition et revenus non indiqués."),
-    dict(adresse="5310, 16e Avenue", quartier="Rosemont", type="duplex", nb=2, logements=["4½", "4½"],
-         revenus=28320, prix=674900, annee=None, sdb=None, metro=20, url=U("duplex~a-vendre~montreal-rosemont-la-petite-patrie"),
-         notes="HORS CRITÈRES : aucun logement de 3 chambres (2 × 4½)."),
-    dict(adresse="2323-2325, rue Monsabré", quartier="MHM", type="duplex", nb=2, logements=["4½", "4½"],
-         revenus=22800, prix=549000, annee=1908, sdb=None, metro=12, url=U("duplex~a-vendre~montreal-mercier-hochelaga-maisonneuve"),
-         notes="HORS CRITÈRES : aucun logement de 3 chambres (2 × 4½)."),
-    dict(adresse="2831-2833, rue Dickson", quartier="MHM", type="duplex", nb=2, logements=["4½", "4½"],
-         revenus=None, prix=549000, annee=1914, sdb=None, metro=12, url=U("duplex~a-vendre~montreal-mercier-hochelaga-maisonneuve"),
-         notes="HORS CRITÈRES : aucun logement de 3 chambres (2 × 4½)."),
-    dict(adresse="6730, place Beaubien", quartier="MHM", type="condo", nb=1, chambres=3, sdb=2,
-         prix=694800, annee=1985, metro=None, id="25760012", url=U("condo~a-vendre~montreal-mercier-hochelaga-maisonneuve/25760012"),
-         notes="Nouveau-Rosemont. Même unité aussi inscrite à 688 800 $ (fiches 18926174 et 22288044, intergénération). 1 726 pi², 1 chambre au sous-sol, garage, cour. Frais de copropriété et règlement (location à la chambre) inconnus."),
-    dict(adresse="4816, rue De Chambly, app. 3", quartier="Rosemont", type="condo", nb=1, chambres=3, sdb=1,
-         prix=639700, annee=2000, metro=15, id="17409780", url=U("condo~a-vendre~montreal-rosemont-la-petite-patrie/17409780"),
-         notes="1 158 pi², balcon, stationnement. Frais de copropriété et règlement inconnus."),
-    dict(adresse="4245, boulevard Rosemont, app. 6", quartier="Rosemont", type="condo", nb=1, chambres=3, sdb=1,
-         prix=629000, annee=1999, metro=15, id="20794958", url=U("condo~a-vendre~montreal-rosemont-la-petite-patrie/20794958"),
-         notes="1 213 pi², foyer au bois, stationnement. Frais de copropriété et règlement inconnus."),
-    dict(adresse="6535, rue De Lanaudière", quartier="Rosemont", type="condo", nb=1, chambres=3, sdb=1,
-         prix=599900, annee=1926, metro=8, id="16582342", url=U("condo~a-vendre~montreal-rosemont-la-petite-patrie/16582342"),
-         notes="COPROPRIÉTÉ INDIVISE : financement plus difficile, convention d'indivision à lire. 1 072 pi²."),
+    # Passage du 2026-11-09 : seules les annonces vues cette semaine (les autres restent dans annonces.csv)
+    dict(adresse="5966-5970, rue Hochelaga", quartier="MHM", type="quadruplex", nb=4, logements=None,
+         revenus=33960, prix=659000, annee=1930, sdb=None, metro=None, id="19698408",
+         url=U("quadruplex~a-vendre~montreal-mercier-hochelaga-maisonneuve/19698408"),
+         notes="HORS CRITÈRES colocation : petits logements (fiche FR 20237599 : 1 × 1½ + 4 × 3½, à 695 000 $). Ancien duplex converti en 2003-2005 (vérifier permis). SEUL 4 LOGEMENTS ET PLUS ≤ 700 000 $ : non visé par l'interdiction fédérale."),
+    dict(adresse="2550-2552, rue De Contrecoeur", quartier="MHM", type="duplex", nb=2, logements=None,
+         revenus=None, prix=689000, annee=None, sdb=None, metro=None, id="26100284",
+         url="https://www.remax-quebec.com/en/duplex-for-sale/2550-2552-rue-de-contrecoeur-montreal-mercier-hochelaga-maisonneuve-mercier-26100284.rmx",
+         notes="Prix incohérent : 689 000 $ (RE/MAX 26100284) contre 749 000 $ (Centris 26921845). Évaluation 2025 : 487 600 $. Composition et revenus inconnus."),
 ]
 
 def calc(b):
@@ -195,6 +156,8 @@ for k, a in anciens.items():
     # absente lors des 2 derniers passages (celui-ci inclus) -> retirée
     if len(passages) >= 2 and a["date_derniere_vue"] < passages[-2]:
         a["statut"] = "retiré"
+    elif a["statut"] == "nouveau":
+        a["statut"] = "actif"
     rows.append(a)
 with open("passages.txt", "w", encoding="utf-8") as f:
     f.write("\n".join(passages) + "\n")
