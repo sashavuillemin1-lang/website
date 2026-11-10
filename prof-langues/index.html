@@ -141,7 +141,6 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .msg .bubble{padding:9px 12px;border-radius:14px;line-height:1.45;overflow-wrap:anywhere}
 .msg.t{align-self:flex-start}
 .msg.t .bubble{background:rgba(255,255,255,.07);border-top-left-radius:4px}
-.msg.t .tr{font-size:13px;color:var(--call-muted);padding-left:12px}
 .msg.u{align-self:flex-end;align-items:flex-end}
 .msg.u .bubble{background:#2a4f58;border-top-right-radius:4px}
 .msg .who{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted)}
@@ -208,6 +207,14 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .fix .k{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted)}
 .gap-chip{font-size:12px;background:rgba(108,182,201,.15);color:#a8d8e6;border-radius:6px;padding:2px 7px}
 .retry{align-self:flex-start;background:transparent;border:1px solid rgba(255,255,255,.25);color:var(--call-fg);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
+.bubble .w{cursor:pointer;border-radius:3px;transition:background .1s}
+.bubble .w:hover,.bubble .w:focus-visible{background:rgba(255,255,255,.14);outline:none}
+.bubble .w.sel{background:rgba(240,192,90,.28)}
+.def{background:#1f2a2e;border:1px solid rgba(240,192,90,.35);border-radius:10px;padding:9px 11px;font-size:13.5px;display:flex;flex-direction:column;gap:5px}
+.def b{font-family:var(--f-display);font-size:15px;color:#f3d48f}
+.def p{margin:0;color:#dfe6e3}
+.def .ex{color:var(--call-muted);font-style:italic}
+.def .row button{background:transparent;border:1px solid rgba(255,255,255,.25);color:var(--call-fg);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -656,9 +663,9 @@ Mots déjà bien acquis (ne les réexplique pas) : ${known}`;
 function levelBehaviour(l, lvl) {
   const i = LEVELS.indexOf(lvl);
   const L = l === "es" ? "espagnol" : "anglais";
-  if (i <= 1) return `Niveau observé ${lvl} (débutant). Parle en ${L} très simple : phrases de 3 à 8 mots, présent, vocabulaire du quotidien. Ajoute une courte partie en français ("lang":"fr") seulement pour expliquer ou encourager, jamais plus d'une phrase. Mets la traduction française de tes phrases en ${L} dans "translation". Introduis au maximum 2 mots nouveaux par réplique (dans "new_words"). Si l'élève bloque ou répond en français, donne-lui la phrase en ${L} à répéter. Pose des questions fermées ou à choix pour l'aider à produire.`;
-  if (i <= 3) return `Niveau observé ${lvl}. Parle en ${L} clair et naturel, phrases courtes à moyennes, en introduisant progressivement de nouveaux temps et tournures. "translation" seulement pour les phrases difficiles, sinon "". Explications courtes en français uniquement si l'élève ne comprend pas.`;
-  return `Niveau observé ${lvl}. Parle en ${L} natif, riche et idiomatique, comme avec un collègue cultivé : débats, nuances, humour, expressions idiomatiques${l === "en" ? ", phrasal verbs" : ""}, registres variés. Jamais de français. "translation" = "". Pousse l'élève à préciser, argumenter, reformuler avec un vocabulaire plus précis.`;
+  if (i <= 1) return `Niveau observé ${lvl} (débutant). IMMERSION TOTALE : tu parles UNIQUEMENT en ${L}, jamais un mot de français, même si l'élève ne comprend pas. Pour te faire comprendre : phrases de 3 à 8 mots, présent, mots transparents pour un francophone, répétition des mêmes structures, questions à choix ("¿Café o té?"), exemples concrets, reformulation encore plus simple. Introduis au maximum 2 mots nouveaux par réplique (dans "new_words") en les rendant compréhensibles par le contexte. Si l'élève bloque ou répond en français, propose-lui la phrase en ${L} à répéter, sans traduire.`;
+  if (i <= 3) return `Niveau observé ${lvl}. IMMERSION TOTALE : uniquement en ${L}, jamais de français. Parle clair et naturel, phrases courtes à moyennes, et introduis progressivement de nouveaux temps et tournures. Si l'élève ne comprend pas, reformule avec des mots plus simples, un synonyme ou un exemple, sans jamais traduire.`;
+  return `Niveau observé ${lvl}. IMMERSION TOTALE : uniquement en ${L}, jamais de français. Parle en ${L} natif, riche et idiomatique, comme avec un collègue cultivé : débats, nuances, humour, expressions idiomatiques${l === "en" ? ", phrasal verbs" : ""}, registres variés. Pousse l'élève à préciser, argumenter, reformuler avec un vocabulaire plus précis.`;
 }
 function adaptHint() {
   const a = C.analyses.slice(-4);
@@ -695,10 +702,10 @@ RÈGLES
 - Tout ce que tu dis est lu à voix haute : 1 à 4 phrases, pas de markdown, pas d'emoji, pas de listes.
 - Appelle ${S.profile.name} par son prénom de temps en temps, pas à chaque réplique.
 - Les messages qui commencent par [oral] viennent de la reconnaissance vocale : ne relève pas ponctuation ou accents.
+- AUCUNE traduction, AUCUN mot de français, quoi qu'il arrive. Si l'élève dit « (No entiendo) » ou équivalent, redis la même idée avec des mots plus simples et un exemple. S'il demande de l'aide, donne-lui un modèle de réponse en ${LANGS[l].name.toLowerCase()} à répéter.
 
 FORMAT : uniquement un objet JSON :
-{"say":[{"lang":"${l}","text":"ta réplique"}],"translation":"traduction française ou \\"\\"","new_words":[{"word":"mot en ${LANGS[l].name.toLowerCase()}","meaning":"sens en français"}]}
-"say" contient une ou plusieurs parties dans l'ordre où tu les dis ; "lang" vaut "${l}" ou "fr".`;
+{"say":[{"lang":"${l}","text":"ta réplique, uniquement en ${LANGS[l].name.toLowerCase()}"}],"new_words":[{"word":"mot nouveau","meaning":"définition très simple EN ${LANGS[l].name.toUpperCase()} (jamais en français), avec des mots plus faciles que le mot lui-même"}]}`;
 }
 function analysisPrompt(l, teacherLine, said) {
   const d = S.data[l];
@@ -711,12 +718,13 @@ Ce que la prof venait de dire : « ${teacherLine || "(début de séance)"} »
 Ce que l'élève a répondu${said.startsWith("[oral]") ? " (transcrit par reconnaissance vocale : ignore ponctuation, majuscules et accents manquants)" : ""} : « ${said.replace(/^\[oral\]\s*/, "")} »
 
 Fais :
-1. "corrections" : CHAQUE vraie erreur (grammaire, conjugaison, accord, vocabulaire, préposition, faux ami, ordre des mots). "original" = passage exact fautif, "corrected" = forme correcte, "explanation" = règle en français en 1 phrase, "category" = libellé court de la lacune (ex. "ser / estar", "accord en genre", "present perfect vs prétérit", "prépositions", "faux amis", "vocabulaire manquant").
-2. "better" : 0 à 2 formulations correctes mais améliorables (plus naturel, plus précis, plus riche) adaptées à son niveau : {"said","better","why"}.
-3. "vocab_gaps" : les mots qui lui ont manqué ou qu'il devrait apprendre d'après cette réponse : mots dits en français, contournements, mot trop basique à enrichir, mot mal choisi. {"word" (en ${LANGS[l].name.toLowerCase()}, avec article pour un nom ${l === "es" ? "espagnol" : ""}),"meaning" (français),"example" (phrase courte d'exemple)}. Maximum 3.
+1. "corrections" : CHAQUE vraie erreur (grammaire, conjugaison, accord, vocabulaire, préposition, faux ami, ordre des mots). "original" = passage exact fautif, "corrected" = forme correcte, "explanation" = la règle expliquée EN ${LANGS[l].name.toUpperCase()} (jamais en français), en 1 phrase avec des mots adaptés à son niveau, "category" = libellé court de la lacune (ex. "ser / estar", "accord en genre", "present perfect vs prétérit", "prépositions", "faux amis", "vocabulaire manquant").
+2. "better" : 0 à 2 formulations correctes mais améliorables (plus naturel, plus précis, plus riche) adaptées à son niveau : {"said","better","why" (EN ${LANGS[l].name.toUpperCase()}, simple)}.
+3. "vocab_gaps" : les mots qui lui ont manqué ou qu'il devrait apprendre d'après cette réponse : mots dits en français, contournements, mot trop basique à enrichir, mot mal choisi. {"word" (en ${LANGS[l].name.toLowerCase()}, avec article pour un nom ${l === "es" ? "espagnol" : ""}),"meaning" (définition très simple EN ${LANGS[l].name.toUpperCase()}, jamais en français),"example" (phrase courte d'exemple)}. Maximum 3.
 4. "used_targets" : les mots cibles qu'il a employés correctement.
 5. "level" : le niveau CECRL que cette intervention démontre (${LEVELS.join(", ")}). Juge sur ce qui est réellement produit : complexité, exactitude, étendue du vocabulaire. Une phrase très courte et simple ne prouve pas un niveau élevé.
-Si l'intervention est en français, considère que l'élève ne savait pas le dire : propose la phrase correcte en "corrections" (original = sa phrase en français) et les mots manquants en "vocab_gaps".
+Si l'intervention est en français, considère que l'élève ne savait pas le dire : propose la phrase en ${LANGS[l].name.toLowerCase()} en "corrections" (original = sa phrase en français) et les mots manquants en "vocab_gaps".
+Tout le texte destiné à l'élève (explanation, why, meaning) est EN ${LANGS[l].name.toUpperCase()}, jamais en français.
 
 Réponds uniquement en JSON :
 {"corrections":[{"original":"","corrected":"","explanation":"","category":""}],"better":[{"said":"","better":"","why":""}],"vocab_gaps":[{"word":"","meaning":"","example":""}],"used_targets":[],"level":"B1"}`;
@@ -861,8 +869,8 @@ function soundCheckPanel(l) {
   const heard = h("p", { class: "muted", style: "margin:0;font-size:14px", hidden: true });
   const testVoice = h("button", { class: "btn sm", text: "Tester la voix d'Elena", onclick: async () => {
     status.className = "status"; status.textContent = "Lecture en cours… tu dois entendre Elena.";
-    const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! ¿Me oyes bien?` }, { lang: "fr", text: "Si tu m'entends, tout est prêt." }]
-                             : [{ lang: "en", text: `Hi ${S.profile.name}! Can you hear me clearly?` }, { lang: "fr", text: "Si tu m'entends, tout est prêt." }];
+    const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! ¿Me oyes bien? Si me oyes, todo está listo.` }]
+                             : [{ lang: "en", text: `Hi ${S.profile.name}! Can you hear me clearly? If you can, we're all set.` }];
     let spoke = false; const prev = Voice.stateCb; Voice.stateCb = on => { if (on) spoke = true; };
     await Voice.speak(parts, l);
     Voice.stateCb = prev;
@@ -922,6 +930,11 @@ function lev(a, b) {
   for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
   return prev[n];
 }
+function blankOut(ex, w) {
+  const core = vocabKey(w);
+  const re = new RegExp(core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig");
+  return re.test(ex) ? ex.replace(re, "_____") : ex;
+}
 function flashcards(l) {
   const queue = dueWords(l, 15).slice();
   if (!queue.length) return;
@@ -939,7 +952,7 @@ function flashcards(l) {
         h("button", { class: "btn primary", onclick: close, text: "Fermer" }));
       return;
     }
-    const input = h("input", { id: "flash-answer", autocomplete: "off", autocapitalize: "off", spellcheck: "false", placeholder: `En ${LANGS[l].name.toLowerCase()}…`, "aria-label": "Ta réponse" });
+    const input = h("input", { id: "flash-answer", autocomplete: "off", autocapitalize: "off", spellcheck: "false", placeholder: l === "es" ? "Escribe la palabra…" : "Type the word…", "aria-label": "Ta réponse" });
     const res = h("div", { class: "res", hidden: true });
     const listen = h("button", { class: "btn sm", type: "button", hidden: true, onclick: () => Voice.speak([{ lang: l, text: v.w + (v.ex ? ". " + v.ex : "") }], l), text: "Écouter" });
     const nextBtn = h("button", { class: "btn primary", type: "button", hidden: true, onclick: show, text: "Suivant" });
@@ -963,7 +976,8 @@ function flashcards(l) {
       nextBtn.focus();
     }
     const form = h("form", { onsubmit: e => { e.preventDefault(); if (!input.disabled) { if (input.value.trim()) judge(false); else input.focus(); } }, style: "display:flex;flex-direction:column;gap:12px" },
-      h("span", { class: "label", text: "Comment dit-on…" }),
+      h("span", { class: "label", text: l === "es" ? "¿Qué palabra es?" : "Which word is it?" }),
+      v.ex ? h("p", { class: "muted", style: "margin:0", text: blankOut(v.ex, v.w) }) : null,
       h("div", { class: "prompt", text: v.m || "?" }),
       input, res,
       h("div", { class: "row" }, checkBtn, skip, listen, nextBtn));
@@ -1033,7 +1047,7 @@ ${profileContext(l)}
 DEVOIR : "${hw.title}" — objectif : ${hw.focus}
 ${hw.exercises.map((ex, i) => `${i + 1}. [${ex.type}] ${ex.prompt}${ex.options ? " (choix : " + ex.options.join(" / ") + ")" : ""}${ex.expected ? "\n   Réponse attendue : " + ex.expected : ""}\n   Réponse de l'élève : ${str(ex.answer) || "(pas de réponse)"}`).join("\n")}
 
-Pour chaque exercice, dans l'ordre : "correct" (true si juste ou acceptable, accepte les variantes correctes même si différentes de la réponse attendue), "feedback" en français (1-2 phrases : la bonne réponse et pourquoi ; pour une production écrite, réécris la version corrigée et note les fautes). Puis : note sur 10, commentaire encourageant (2 phrases) adressé à ${S.profile.name}, mise à jour des lacunes, et les mots de vocabulaire qu'il ne connaissait pas (max 5).
+Pour chaque exercice, dans l'ordre : "correct" (true si juste ou acceptable, accepte les variantes correctes même si différentes de la réponse attendue), "feedback" EN ${LANGS[l].name.toUpperCase()} simple, jamais en français (1-2 phrases : la bonne réponse et pourquoi ; pour une production écrite, réécris la version corrigée et note les fautes). Puis : note sur 10, commentaire encourageant (2 phrases, EN ${LANGS[l].name.toUpperCase()} simple) adressé à ${S.profile.name}, mise à jour des lacunes, et les mots de vocabulaire qu'il ne connaissait pas (max 5, "meaning" = définition simple EN ${LANGS[l].name.toUpperCase()}).
 Réponds uniquement en JSON :
 {"results":[{"correct":true,"feedback":"..."}],"score":7,"comment":"...","weakness_updates":[{"label":"libellé existant ou nouveau","delta":1,"note":"court"}],"strengths":["..."],"vocab_gaps":[{"word":"","meaning":"","example":""}]}
 delta = +1 si l'erreur persiste, -1 si le point est maîtrisé.`;
@@ -1073,7 +1087,7 @@ function addStrengths(l, list) {
    The call
    ========================================================= */
 const C = { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], targets: [], used: new Set(), liveLevel: null,
-            start: 0, timer: 0, busy: false, ctl: null, finals: [], showTr: true, captions: true, listening: false, lastSay: null, lastTeacherText: "", pending: null, open: false, micOffs: [] };
+            start: 0, timer: 0, busy: false, ctl: null, finals: [], captions: true, listening: false, lastSay: null, lastTeacherText: "", pending: null, open: false, micOffs: [] };
 
 function startCall() {
   const l = S.cur, d = S.data[l];
@@ -1101,16 +1115,17 @@ function startCall() {
         h("div", { class: "side-head" }, h("span", { class: "label", text: "Transcription & corrections" }),
           h("div", { class: "toggles" },
             h("button", { class: "tgl", "aria-pressed": String(C.captions), onclick: e => { C.captions = !C.captions; e.currentTarget.setAttribute("aria-pressed", String(C.captions)); $("#captions").hidden = !C.captions; }, text: "Sous-titres" }),
-            h("button", { class: "tgl", "aria-pressed": String(C.showTr), onclick: e => { C.showTr = !C.showTr; e.currentTarget.setAttribute("aria-pressed", String(C.showTr)); document.querySelectorAll(".tr,.captions small").forEach(x => x.hidden = !C.showTr); }, text: "Traduction" }))),
+            h("span", { class: "label", style: "text-transform:none;letter-spacing:0", text: l === "es" ? "Toca una palabra de Elena para entenderla" : "Tap any word Elena says to understand it" }))),
         h("div", { class: "log", id: "log", "aria-live": "polite" }),
         h("form", { class: "compose", onsubmit: e => { e.preventDefault(); const i = $("#typed"); const v = i.value.trim(); if (v) { i.value = ""; userSays(v, false); } } },
-          h("input", { id: "typed", placeholder: l === "es" ? "Escribe aquí… (ou en français si tu bloques)" : "Type here…", autocomplete: "off", maxlength: "1200" }),
+          h("input", { id: "typed", placeholder: l === "es" ? "Escribe aquí…" : "Type here…", autocomplete: "off", maxlength: "1200" }),
           h("button", { type: "submit", text: "Envoyer" })))),
     h("div", { class: "controls" },
       mk("repeat", ICON.repeat, "Répéter", () => { if (C.lastSay) Voice.speak(C.lastSay, l); }),
       mk("slow", ICON.slow, "Plus lent", () => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? "Elena parlera plus lentement." : "Vitesse normale."); }),
       h("div", { class: "cbtn-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Parler" : "Micro indisponible" })),
-      mk("help", ICON.help, "Je bloque", () => userSays(l === "es" ? "(Je ne sais pas comment dire ça. Aide-moi : donne-moi un exemple de réponse simple à répéter.)" : "(I'm stuck. Give me a hint or a model answer.)", false, true)),
+      mk("lost", ICON.repeat.replace("<svg", '<svg style="transform:scaleX(-1)"'), l === "es" ? "No entiendo" : "I'm lost", () => userSays(l === "es" ? "(No entiendo. ¿Puedes decirlo con palabras más fáciles y un ejemplo?)" : "(I don't understand. Can you say it with simpler words and an example?)", false, true)),
+      mk("help", ICON.help, l === "es" ? "Ayúdame" : "Help me", () => userSays(l === "es" ? "(No sé cómo decirlo. Dame un ejemplo de respuesta para repetir.)" : "(I'm stuck. Give me a model answer I can repeat.)", false, true)),
       mk("mute", ICON.mute, "Son", () => { Voice.muted = !Voice.muted; if (Voice.muted) Voice.stop(); const b = $("#mute"); b.style.opacity = Voice.muted ? ".45" : ""; b.nextSibling.textContent = Voice.muted ? "Muet" : "Son"; }),
       h("div", { class: "cbtn-wrap" }, endBtn, h("span", { text: "Raccrocher" }))));
   document.body.append(view);
@@ -1230,7 +1245,7 @@ async function analyse(content, bubble) {
   if (gaps.length) {
     const n = addVocab(l, gaps, "lacune");
     C.gaps.push(...gaps.map(g => ({ word: str(g.word), meaning: str(g.meaning) })));
-    bubble.append(h("div", { class: "words" }, gaps.map(g => h("span", { class: "gap-chip", text: `+ ${str(g.word)} = ${str(g.meaning)}` }))));
+    bubble.append(h("div", { class: "words" }, gaps.map(g => h("span", { class: "gap-chip", text: `+ ${str(g.word)} : ${str(g.meaning)}` }))));
     if (n) saveLang(l);
   }
   arr(r.used_targets).forEach(w => C.used.add(str(w)));
@@ -1262,22 +1277,22 @@ async function teacherTurn(content, userBubble) {
     const r = await askJSON(input, { modelTier: "quick", signal: ctl.signal });
     if (!C.open) return;
     typing.remove();
-    let say = arr(r.say).map(p => ({ lang: p?.lang === "fr" ? "fr" : l, text: str(p?.text) })).filter(p => p.text);
+    const rawSay = arr(r.say).filter(p => str(p?.text));
+    const noFr = rawSay.filter(p => p?.lang !== "fr");   // immersion: drop any French part the model slips in
+    let say = (noFr.length ? noFr : rawSay).map(p => ({ lang: l, text: str(p.text) }));
     if (!say.length && str(r.reply)) say = [{ lang: l, text: str(r.reply) }];
     if (!say.length) throw { code: "invalid_json" };
     const text = say.map(p => p.text).join(" ");
-    const tr = str(r.translation);
     const words = arr(r.new_words).filter(w => str(w?.word)).slice(0, 4);
     C.turns.push({ role: "assistant", content: text });
     C.lastSay = say; C.lastTeacherText = text;
     words.forEach(w => C.words.push({ word: str(w.word), meaning: str(w.meaning) }));
     C.log.push({ who: "teacher", text });
-    const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: "Elena" }), h("div", { class: "bubble", text }),
-      tr ? h("div", { class: "tr", hidden: !C.showTr, text: tr }) : null,
-      words.length ? h("div", { class: "words" }, words.map(w => h("span", { text: `${str(w.word)} = ${str(w.meaning)}` }))) : null);
+    const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: "Elena" }), wordBubble(text, l),
+      words.length ? h("div", { class: "words" }, words.map(w => h("span", { text: `${str(w.word)} : ${str(w.meaning)}` }))) : null);
     $("#log")?.append(msg); scrollLog();
     const cap = $("#captions");
-    if (cap) cap.replaceChildren(h("span", { text }), tr ? h("small", { hidden: !C.showTr }, h("span", { text: tr })) : "");
+    if (cap) cap.replaceChildren(h("span", { text }));
     C.busy = false;
     Avatar.set({ thinking: false });
     flushPending();
@@ -1292,6 +1307,53 @@ async function teacherTurn(content, userBubble) {
     $("#log")?.append(errBox); scrollLog();
     if (e?.code === "not_granted") { const m = $("#mic"); if (m) m.disabled = true; }
     else flushPending();
+  }
+}
+
+/* Tap a word Elena said: monolingual explanation, never a translation */
+const DEF_CACHE = new Map();
+function wordBubble(text, l) {
+  const b = h("div", { class: "bubble" });
+  for (const part of text.split(/([\p{L}\p{M}'’-]+)/u)) {
+    if (!part) continue;
+    if (/^[\p{L}\p{M}'’-]+$/u.test(part) && /\p{L}/u.test(part)) {
+      const sp = h("span", { class: "w", tabindex: "0", role: "button", text: part });
+      const go = () => defineWord(l, part, text, sp);
+      sp.addEventListener("click", go);
+      sp.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+      b.append(sp);
+    } else b.append(document.createTextNode(part));
+  }
+  return b;
+}
+async function defineWord(l, word, sentence, span) {
+  const msg = span.closest(".msg"); if (!msg || !CAP.sample) return;
+  msg.querySelector(".def")?.remove();
+  document.querySelectorAll(".bubble .w.sel").forEach(x => x.classList.remove("sel"));
+  span.classList.add("sel");
+  const box = h("div", { class: "def", "aria-live": "polite" }, h("b", { text: word }), h("p", { class: "ex", text: "…" }));
+  msg.append(box); scrollLog();
+  const key = l + "|" + word.toLowerCase() + "|" + sentence;
+  const L = LANGS[l].name.toUpperCase();
+  try {
+    let r = DEF_CACHE.get(key);
+    if (!r) {
+      r = await askJSON(`Un apprenant de ${LANGS[l].name.toLowerCase()} (niveau ${C.liveLevel || S.data[l].level}, francophone) ne comprend pas le mot « ${word} » dans cette phrase : « ${sentence} ».
+Explique-le UNIQUEMENT EN ${L}, avec des mots plus simples que le mot lui-même (synonyme, définition courte, contraire si utile). INTERDIT : le français et toute traduction.
+Réponds uniquement en JSON : {"lemma":"forme de dictionnaire (avec article pour un nom)","definition":"définition simple en ${LANGS[l].name.toLowerCase()}","example":"autre phrase d'exemple très simple"}`, { modelTier: "quick" });
+      DEF_CACHE.set(key, r);
+    }
+    if (!box.isConnected) return;
+    const lemma = str(r.lemma) || word, def = str(r.definition), ex = str(r.example);
+    const inBank = S.data[l].vocab.some(v => vocabKey(v.w) === vocabKey(lemma));
+    const add = h("button", { type: "button", text: inBank ? (l === "es" ? "Ya está en tu vocabulario" : "Already in your words") : (l === "es" ? "+ Añadir a mi vocabulario" : "+ Add to my words"), disabled: inBank });
+    add.onclick = () => { addVocab(l, [{ word: lemma, meaning: def, example: ex }], "lacune"); saveLang(l); add.textContent = l === "es" ? "Añadida ✓" : "Added ✓"; add.disabled = true; };
+    box.replaceChildren(h("b", { text: lemma }), def ? h("p", { text: def }) : null, ex ? h("p", { class: "ex", text: ex }) : null,
+      h("div", { class: "row" }, h("button", { type: "button", onclick: () => { if (!C.listening) Voice.speak([{ lang: l, text: lemma + ". " + ex }], l); }, text: l === "es" ? "Escuchar" : "Listen" }), add,
+        h("button", { type: "button", onclick: () => { box.remove(); span.classList.remove("sel"); }, text: "✕", "aria-label": "Fermer" })));
+    scrollLog();
+  } catch (e) {
+    if (box.isConnected) box.replaceChildren(h("b", { text: word }), h("p", { text: errCopy(e) }));
   }
 }
 function flushPending() {
@@ -1353,14 +1415,14 @@ NIVEAUX OBSERVÉS RÉPLIQUE PAR RÉPLIQUE : ${signals}
 
 À FAIRE
 1. "summary" : 1 phrase en français pour l'historique.
-2. "message" : 2-3 phrases chaleureuses et honnêtes adressées à ${S.profile.name} en français.
+2. "message" : 2-3 phrases chaleureuses et honnêtes adressées à ${S.profile.name}, EN ${LANGS[l].name.toUpperCase()} adapté à son niveau réel (jamais en français).
 3. "level" : son VRAI niveau CECRL (${LEVELS.join(", ")}) d'après ce qu'il a réellement produit, pas d'après son auto-évaluation (${d.declared})${d.assessed ? ` ni par inertie (niveau précédent : ${d.level} ; ne bouge que d'un cran au maximum, sauf preuve nette)` : ""}. "level_note" : la justification en une phrase courte (ex. "phrases simples au présent, peu de connecteurs").
 4. "skills" : notes de 0 à 100 pour grammaire, vocabulaire, aisance, comprehension, relatives à un locuteur natif cultivé (100).
-5. "top_mistakes" : 3 à 5 erreurs les plus importantes à retenir.
+5. "top_mistakes" : 3 à 5 erreurs les plus importantes à retenir ("rule" expliquée EN ${LANGS[l].name.toUpperCase()} simple).
 6. "weakness_updates" : mise à jour des lacunes. Réutilise les libellés existants. delta = occurrences aujourd'hui, ou -1 pour une lacune bien maîtrisée aujourd'hui.
 7. "strengths" : 0 à 3 points forts précis.
-8. "vocab_gaps" : 0 à 6 mots ou expressions supplémentaires qu'il devrait apprendre vu ce qu'il a voulu dire (avec article pour les noms, traduction, exemple court).
-9. "homework" : 6 à 8 exercices CIBLÉS : la moitié sur ses lacunes les plus fréquentes, au moins 2 sur le vocabulaire (mots qui lui ont manqué et mots à réviser), et 1 production écrite ("write") de ${isBeginner ? "2-3 phrases simples" : "80-120 mots"} qui oblige à réemployer ces mots. Types : "fill" (phrase à trous ___), "translate" (du français vers la langue du cours), "qcm" (3 "options"), "write". "expected" = réponse attendue (sauf "write"). Consignes en français, difficulté adaptée au niveau RÉEL.
+8. "vocab_gaps" : 0 à 6 mots ou expressions supplémentaires qu'il devrait apprendre vu ce qu'il a voulu dire (avec article pour les noms ; "meaning" = définition simple EN ${LANGS[l].name.toUpperCase()}, jamais de traduction ; exemple court).
+9. "homework" : 6 à 8 exercices CIBLÉS : la moitié sur ses lacunes les plus fréquentes, au moins 2 sur le vocabulaire (mots qui lui ont manqué et mots à réviser), et 1 production écrite ("write") de ${isBeginner ? "2-3 phrases simples" : "80-120 mots"} qui oblige à réemployer ces mots. Types : "fill" (phrase à trous ___), "answer" (répondre à une question avec une phrase complète), "rephrase" (reformuler une phrase avec un mot ou une structure imposée), "qcm" (3 "options"), "write". AUCUNE traduction et AUCUN français : toutes les consignes et indices EN ${LANGS[l].name.toUpperCase()}, simples. "expected" = réponse attendue (sauf "write"). Difficulté adaptée au niveau RÉEL.
 10. "next_goal" : objectif du prochain cours, en une phrase.
 
 Réponds uniquement en JSON :
@@ -1387,8 +1449,8 @@ Réponds uniquement en JSON :
     d.homework.push({ id: uid(), date: today(), title: str(hwIn.title) || "Devoirs", focus: str(hwIn.focus), status: "todo",
       exercises: exs.map(ex => {
         const opts = arr(ex.options).map(str).filter(Boolean).slice(0, 5);
-        const type = ["fill", "translate", "qcm", "write"].includes(ex.type) ? ex.type : "translate";
-        return { type: type === "qcm" && opts.length < 2 ? "translate" : type, prompt: str(ex.prompt), hint: str(ex.hint), options: opts.length >= 2 ? opts : undefined, expected: str(ex.expected) };
+        const type = ["fill", "answer", "rephrase", "translate", "qcm", "write"].includes(ex.type) ? ex.type : "answer";
+        return { type: type === "qcm" && opts.length < 2 ? "answer" : type, prompt: str(ex.prompt), hint: str(ex.hint), options: opts.length >= 2 ? opts : undefined, expected: str(ex.expected) };
       }) });
     d.homework = d.homework.slice(-12);
   }
