@@ -71,7 +71,7 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .panel h2{font-size:20px}
 .join{background:var(--call);color:var(--call-fg);border:none;overflow:hidden;position:relative}
 .join .label{color:var(--call-muted)}
-.join-stage{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:center}
+.join-stage{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:560px){.join-stage{grid-template-columns:1fr}}
 .join-stage canvas{width:100%;max-width:200px;aspect-ratio:1;border-radius:16px;background:var(--call-2)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -221,6 +221,25 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .log .mic-help{background:#2b1f1d;color:#f1e6e3;border:1px solid rgba(255,138,122,.3)}
 .log .mic-help .btn{background:#eef2ef;color:#121a1d;border:none}
 .heard{margin:0;font-size:15px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.type-pill{font:500 11px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:#f0c05a;color:#121a1d}
+.type-pill.role{background:#8fd0e0}.type-pill.debate{background:#ff9d90}.type-pill.listen{background:#b9a6f0}.type-pill.grammar{background:#9fe0b4}.type-pill.vocab{background:#f3d48f}.type-pill.review{background:#d8d2c6}.type-pill.story{background:#f2b8d0}
+.type-pill.light{font-size:10px;padding:4px 6px}
+.dur{font:500 12px var(--f-mono);color:var(--call-muted)}
+.linkbtn{background:none;border:none;color:var(--call-fg);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:13px;padding:4px 0;opacity:.85}
+.custom{display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,.12);padding-top:12px}
+.custom .label{color:var(--call-muted)}
+.custom-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;color:var(--call-fg)}
+.prog{display:flex;flex-direction:column}
+.prog-row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding-block:10px;border-top:1px solid var(--line)}
+.prog-row:first-child{border-top:none}
+.prog-n{font:500 12px var(--f-mono);color:var(--muted)}
+.prog-topic{font-weight:600;overflow-wrap:anywhere}
+.prog-actions{display:flex;gap:6px}
+.time-track{height:3px;background:rgba(255,255,255,.08);margin:0 max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-radius:2px;overflow:hidden}
+.time-track i{display:block;height:100%;width:0;background:#58d68d;transition:width 1s linear}
+.rec.over{color:#f0c05a}
+.timeup{background:#2b261a;border:1px solid rgba(240,192,90,.35);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.timeup p{margin:0;color:#e8dfc8}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -339,17 +358,15 @@ const Store = {
    Data model
    ========================================================= */
 const LANGS = {
-  es: { name: "Espagnol", native: "Español", tts: "es", stt: "es-ES",
-        topics: ["Me presento", "Mi día", "La comida", "De viaje", "Mi familia", "Tema libre"] },
-  en: { name: "Anglais", native: "English", tts: "en", stt: "en-GB",
-        topics: ["Free talk", "Debate: AI at work", "Job interview role-play", "Your last trip", "Current affairs", "Idioms & phrasal verbs"] }
+  es: { name: "Espagnol", native: "Español", tts: "es", stt: "es-ES" },
+  en: { name: "Anglais", native: "English", tts: "en", stt: "en-GB" }
 };
 const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
 const LEVEL_LABEL = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A2 · élémentaire", B1: "B1 · intermédiaire", B2: "B2 · avancé", C1: "C1 · autonome", C2: "C2 · maîtrise" };
 const SKILLS = [["grammaire", "Grammaire"], ["vocabulaire", "Vocabulaire"], ["aisance", "Aisance orale"], ["comprehension", "Compréhension"]];
 const BOX_DAYS = [0, 1, 2, 4, 8, 16, 35];
 function newLang(declared) {
-  return { declared, level: declared, assessed: false, levelNote: "", skills: {}, weaknesses: [], sessions: [], homework: [], vocab: [], strengths: [] };
+  return { declared, level: declared, assessed: false, levelNote: "", skills: {}, weaknesses: [], sessions: [], homework: [], vocab: [], strengths: [], plan: [], cycleIdx: 0 };
 }
 function migrate(d, declared) {
   if (!d) return newLang(declared);
@@ -357,7 +374,7 @@ function migrate(d, declared) {
   d.level = LEVELS.includes(d.level) ? d.level : d.declared;
   if (d.assessed == null) d.assessed = false;
   d.skills = d.skills && typeof d.skills === "object" ? d.skills : {};
-  for (const k of ["weaknesses", "sessions", "homework", "vocab", "strengths"]) d[k] = arr(d[k]);
+  for (const k of ["weaknesses", "sessions", "homework", "vocab", "strengths", "plan"]) d[k] = arr(d[k]);
   d.vocab = d.vocab.map(v => ({ w: str(v.w || v.word), m: str(v.m || v.meaning), ex: str(v.ex), box: Number(v.box) || 0, due: Number(v.due) || 0, ok: Number(v.ok) || 0, ko: Number(v.ko) || 0, src: v.src || "cours", added: v.added || today() })).filter(v => v.w);
   return d;
 }
@@ -401,6 +418,94 @@ function markUsed(l, words) {
     if (v) grade(v, "good");
   }
 }
+
+
+/* =========================================================
+   Programme: session types, topic banks, durations, adaptive planner
+   ========================================================= */
+const DURATIONS = [5, 10, 15, 20, 30, 45];
+const TYPES = {
+  diag:    { name: "Diagnostic", min: 15, short: "Mesure de ton vrai niveau",
+             how: L => `SÉANCE DE DIAGNOSTIC : découvre le VRAI niveau de l'élève sans te fier à son auto-évaluation. Commence simple, monte la difficulté toutes les 2 répliques tant qu'il réussit (passé, futur, conditionnel, subjonctif, vocabulaire abstrait, idiomes), redescends dès qu'il peine. Varie les sujets pour tester l'étendue du vocabulaire. Reste naturelle : une conversation, pas un examen.` },
+  conv:    { name: "Conversation", min: 15, short: "Parler librement d'un thème",
+             how: L => `CONVERSATION sur le thème donné : vraie discussion, questions ouvertes, partage d'anecdotes. Pousse l'élève à développer ses réponses (pourquoi ? un exemple ? et toi ?).` },
+  role:    { name: "Jeu de rôle", min: 10, short: "Une situation réelle à jouer",
+             how: L => `JEU DE RÔLE : tu joues un personnage dans la situation donnée (serveur, réceptionniste, recruteur, médecin…). Au début, plante le décor en une phrase et donne à l'élève une mission concrète avec une petite complication (allergie, chambre sale, retard, budget serré…). Reste dans ton rôle, réagis de façon réaliste, ajoute un imprévu au milieu. Ne sors du rôle qu'à la fin pour féliciter.` },
+  debate:  { name: "Débat", min: 20, short: "Défendre ses idées",
+             how: L => `DÉBAT : annonce la question, demande à l'élève sa position, puis défends la position OPPOSÉE avec de vrais arguments. Exige des arguments, des exemples, des connecteurs logiques et des concessions. Contre-argumente, pose des questions pièges, change de camp à mi-parcours pour le faire argumenter dans l'autre sens.` },
+  story:   { name: "Raconte-moi", min: 15, short: "Raconter au passé",
+             how: L => `RÉCIT : l'élève raconte (une expérience, un souvenir, un week-end, un voyage, selon le thème). Fais-le raconter au passé (au présent pour un débutant complet), relance avec des questions précises (quand ? avec qui ? et après ? qu'as-tu ressenti ?), demande des détails et des émotions pour enrichir son vocabulaire.` },
+  listen:  { name: "Compréhension", min: 15, short: "Écouter et comprendre",
+             how: L => `COMPRÉHENSION ORALE : raconte une courte histoire ou une petite actualité sur le thème (40 à 60 mots pour un débutant, 100 à 150 pour un avancé), adaptée au niveau, en 2 répliques maximum. Puis pose des questions de compréhension une par une (du concret vers l'interprétation), puis ouvre une discussion sur le sujet. Si l'élève ne comprend pas, reformule plus simplement, jamais de traduction.` },
+  grammar: { name: "Grammaire en action", min: 15, short: "Un point de grammaire, en parlant",
+             how: L => `GRAMMAIRE EN ACTION sur le point donné : sans faire de cours magistral, crée des situations et des questions qui OBLIGENT l'élève à utiliser cette structure, encore et encore. Commence par un exemple très clair, puis augmente la difficulté. Glisse des mini-défis (« dis-moi trois choses que… », « transforme cette phrase… »). Félicite chaque emploi correct.` },
+  vocab:   { name: "Vocabulaire", min: 10, short: "Apprendre les mots d'un thème",
+             how: L => `VOCABULAIRE THÉMATIQUE : introduis 8 à 10 mots utiles du thème, un ou deux à la fois, rendus clairs par le contexte (mets-les dans "new_words"). Fais-les réutiliser tout de suite par l'élève, puis joue : devinettes à partir d'une définition, « quel est le contraire de… », phrases à compléter. Termine par un petit défi qui réemploie tous les mots.` },
+  review:  { name: "Révision", min: 10, short: "Tes mots à revoir et tes erreurs",
+             how: L => `RÉVISION : fais retravailler à l'élève ses lacunes suivies et les mots à réactiver (listés plus haut), sous forme de quiz oral rapide et vivant : questions directes, phrases à compléter, « comment dit-on… » avec une définition, mini-situations. Reviens sur les erreurs des derniers devoirs.` },
+};
+const BANK = {
+  es: {
+    low:  ["Me presento", "Mi familia", "La comida", "Mi casa", "Mi día", "El tiempo libre", "De compras", "La ciudad", "El tiempo y las estaciones", "Los viajes", "El trabajo y los estudios", "La salud", "Las fiestas", "Los animales", "La ropa", "El fin de semana"],
+    high: ["Las redes sociales", "El medio ambiente", "La cultura española", "Viajar por Latinoamérica", "El cine y las series", "La tecnología", "La educación", "El futuro del trabajo", "La gastronomía", "La música", "La vida en la ciudad o en el campo", "Los recuerdos de infancia"],
+    role: ["Pedir en un restaurante", "Reservar una habitación de hotel", "Comprar ropa en una tienda", "Pedir direcciones en la calle", "En la farmacia", "Comprar un billete de tren", "Conocer a alguien en una fiesta", "Alquilar un piso", "En el mercado", "En el aeropuerto", "Llamar al médico", "Una entrevista de trabajo"],
+    debate: ["¿Es mejor vivir en la ciudad o en el campo?", "¿Las redes sociales nos hacen más felices?", "¿Hay que prohibir los coches en el centro?", "¿Viajar es la mejor forma de aprender?", "¿El teletrabajo es el futuro?"],
+    gramLow: ["ser y estar", "los verbos en presente", "gustar", "artículos y género", "hay y está", "los posesivos", "ir a + infinitivo", "las preguntas"],
+    gramHigh: ["pretérito indefinido o imperfecto", "el subjuntivo presente", "por y para", "el condicional", "el pretérito perfecto", "los pronombres de complemento", "ser y estar avanzado"],
+  },
+  en: {
+    low:  ["Introducing yourself", "Daily routine", "Food and cooking", "Hobbies", "Travel", "Work and studies", "Family and friends", "Shopping"],
+    high: ["AI and the future of work", "Remote work vs the office", "Social media and democracy", "Climate policy", "Startups and entrepreneurship", "Cinema and series", "Ethics of technology", "Personal finance", "Health and wellbeing", "Education systems", "Cities of the future", "Culture shock", "Sport and society", "A book that changed you", "Travel stories", "The news this week"],
+    role: ["Job interview for your dream job", "Negotiating a pay rise", "Complaining about a hotel room", "Pitching a startup to an investor", "Dealing with a cancelled flight", "Doctor's appointment", "Small talk at a networking event", "Calling customer service about a wrong bill", "Renting a flat in London", "Handling an angry client"],
+    debate: ["Should AI be allowed to replace teachers?", "Is a four-day week realistic?", "Should social media be banned for under-16s?", "Is tourism destroying the places we love?", "Is university still worth it?", "Should billionaires exist?"],
+    gramLow: ["present simple vs continuous", "past simple", "questions", "can / have to", "comparatives"],
+    gramHigh: ["mixed conditionals", "inversion for emphasis", "advanced phrasal verbs", "modal verbs of deduction", "articles and determiners", "reported speech", "present perfect vs past simple", "wish / if only", "collocations", "formal vs informal register"],
+  }
+};
+const CYCLE_LOW  = ["conv", "vocab", "role", "grammar", "listen", "story", "review"];
+const CYCLE_HIGH = ["debate", "role", "listen", "grammar", "story", "vocab", "conv", "review"];
+const isLow = l => LEVELS.indexOf(S.data[l].level) <= 2;
+const pick = (list, avoid) => { const fresh = list.filter(x => !avoid.includes(x)); const pool = fresh.length ? fresh : list; return pool[Math.floor(Math.random() * pool.length)]; };
+function topicFor(l, type, avoid = []) {
+  const b = BANK[l], low = isLow(l), d = S.data[l];
+  if (type === "diag") return l === "es" ? "Conocerse" : "Getting to know you";
+  if (type === "role") return pick(b.role, avoid);
+  if (type === "debate") return pick(low ? b.high : b.debate, avoid);
+  if (type === "review") return l === "es" ? "Tus palabras y tus errores" : "Your words and your mistakes";
+  if (type === "grammar") {
+    const weak = weakLabels(l).map(w => w.label).filter(x => !avoid.includes(x));
+    return weak[0] || pick(low ? b.gramLow : b.gramHigh, avoid);
+  }
+  return pick(low ? b.low : b.high, avoid);
+}
+function recentTopics(l) { const d = S.data[l]; return [...d.sessions.slice(-12).map(s => s.topic), ...arr(d.plan).map(p => p.topic)].filter(Boolean); }
+function nextType(l) {
+  const d = S.data[l];
+  const recent = [...d.sessions.slice(-4).map(s => s.type), ...arr(d.plan).map(p => p.type)].filter(Boolean);
+  const last3 = recent.slice(-3);
+  if (dueWords(l, 999).length >= 12 && !last3.includes("review")) return "review";
+  if ((weakLabels(l)[0]?.count || 0) >= 3 && !last3.includes("grammar")) return "grammar";
+  const cyc = isLow(l) ? CYCLE_LOW : CYCLE_HIGH;
+  let t;
+  do { d.cycleIdx = ((d.cycleIdx || 0) + 1) % cyc.length; t = cyc[d.cycleIdx]; }
+  while ((t === "debate" && isLow(l)) || (last3.slice(-1)[0] === t));
+  return t;
+}
+function makeSession(l, type, topic, minutes) {
+  type = TYPES[type] ? type : "conv";
+  return { id: uid(), type, topic: topic || topicFor(l, type, recentTopics(l)), minutes: DURATIONS.includes(minutes) ? minutes : TYPES[type].min };
+}
+function ensurePlan(l) {
+  const d = S.data[l];
+  d.plan = arr(d.plan).filter(p => p && TYPES[p.type]);
+  if (!d.assessed && d.plan[0]?.type !== "diag") d.plan.unshift(makeSession(l, "diag"));
+  if (d.assessed) d.plan = d.plan.filter(p => p.type !== "diag");
+  let changed = false;
+  while (d.plan.length < 6) { d.plan.push(makeSession(l, nextType(l))); changed = true; }
+  d.plan.length = 6;
+  return changed;
+}
+function sessionTitle(sp) { return `${TYPES[sp.type].name} · ${sp.topic}`; }
 
 /* =========================================================
    Teacher avatar (canvas) — Elena
@@ -685,15 +790,25 @@ function adaptHint() {
   else if (errs <= .5 && a.length >= 2) action = "MONTE d'un cran : structures plus complexes, vocabulaire plus précis, questions plus ouvertes";
   return `Mesure en direct (${a.length} dernières interventions) : ${errs.toFixed(1)} erreur(s) par intervention en moyenne${obs ? ", niveau observé ≈ " + obs : ""}. → ${action}.`;
 }
+function phaseHint() {
+  const sp = C.spec, el = (now() - C.start) / 60000, tot = sp.minutes, left = tot - el;
+  if (el < Math.max(1, tot * .15)) return `début (${Math.round(el)} min sur ${tot}) : salutation et échauffement très courts, puis lance l'activité.`;
+  if (left > Math.max(1.5, tot * .15)) return `cœur de la séance (${Math.round(el)} min sur ${tot}, il reste environ ${Math.round(left)} min). Rythme adapté à cette durée.`;
+  if (left > 0) return `fin dans ${Math.max(1, Math.round(left))} min : commence à conclure et fais réemployer les mots et structures vus aujourd'hui.`;
+  return `le temps prévu (${tot} min) est écoulé : conclus MAINTENANT en 1 ou 2 phrases (mini récapitulatif, au revoir) et mets "done": true.`;
+}
 function convRules(l) {
   const d = S.data[l];
   const due = C.targets.map(v => `${v.w} (${v.m})`).join(", ");
   const diag = !d.assessed;
-  return `Tu es Elena, professeure particulière d'espagnol et d'anglais (née à Séville, a vécu 10 ans à Londres), chaleureuse, drôle et exigeante. Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.${S.topic ? ` Thème : ${S.topic}.` : ""}
+  return `Tu es Elena, professeure particulière d'espagnol et d'anglais (née à Séville, a vécu 10 ans à Londres), chaleureuse, drôle et exigeante. Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.
+
+FORMAT DE LA SÉANCE : ${TYPES[C.spec.type].name} · ${C.spec.topic} · durée prévue ${C.spec.minutes} min
+${TYPES[C.spec.type].how()}
+TEMPS : ${phaseHint()}
 
 ${profileContext(l)}
 
-${diag ? `SÉANCE DE DIAGNOSTIC : ton objectif est de découvrir le VRAI niveau de ${S.profile.name}, sans te fier à son auto-évaluation. Commence ${l === "es" && LEVELS.indexOf(d.declared) <= 1 ? "par les bases absolues (saluer, se présenter)" : "à un niveau intermédiaire"}, puis monte la difficulté toutes les 2 répliques tant qu'il réussit (temps du passé, futur, conditionnel, subjonctif, vocabulaire abstrait, idiomes), et redescends dès qu'il peine. Varie les thèmes pour tester l'étendue du vocabulaire. Reste naturelle : ça doit ressembler à une conversation, pas à un examen.\n` : ""}
 ADAPTATION EN DIRECT
 ${adaptHint()}
 ${levelBehaviour(l, C.liveLevel || d.level)}
@@ -711,7 +826,7 @@ RÈGLES
 - AUCUNE traduction, AUCUN mot de français, quoi qu'il arrive. Si l'élève dit « (No entiendo) » ou équivalent, redis la même idée avec des mots plus simples et un exemple. S'il demande de l'aide, donne-lui un modèle de réponse en ${LANGS[l].name.toLowerCase()} à répéter.
 
 FORMAT : uniquement un objet JSON :
-{"say":[{"lang":"${l}","text":"ta réplique, uniquement en ${LANGS[l].name.toLowerCase()}"}],"new_words":[{"word":"mot nouveau","meaning":"définition très simple EN ${LANGS[l].name.toUpperCase()} (jamais en français), avec des mots plus faciles que le mot lui-même"}]}`;
+{"say":[{"lang":"${l}","text":"ta réplique, uniquement en ${LANGS[l].name.toLowerCase()}"}],"done":false,"new_words":[{"word":"mot nouveau","meaning":"définition très simple EN ${LANGS[l].name.toUpperCase()} (jamais en français), avec des mots plus faciles que le mot lui-même"}]}`;
 }
 function analysisPrompt(l, teacherLine, said) {
   const d = S.data[l];
@@ -787,22 +902,18 @@ function renderLobby() {
   const due = dueWords(l, 999).length;
 
   const tab = code => h("button", {
-    class: "lang-tab " + code, "aria-pressed": String(code === l), onclick: () => { S.profile.cur = code; S.topic = null; saveProfile(); renderLobby(); }
+    class: "lang-tab " + code, "aria-pressed": String(code === l), onclick: () => { S.profile.cur = code; S.custom = null; saveProfile(); renderLobby(); }
   }, h("span", { class: "label", text: LANGS[code].name }), h("b", { text: LANGS[code].native }),
      h("span", { class: "muted", text: S.data[code].assessed ? "Niveau " + S.data[code].level : "Niveau à évaluer" }));
 
-  const topics = h("div", { class: "chips", role: "group", "aria-label": "Thème" },
-    LANGS[l].topics.map(tp => h("button", { class: "chip", "aria-pressed": String(S.topic === tp), onclick: () => {
-      S.topic = S.topic === tp ? null : tp;
-      topics.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c.textContent === S.topic)));
-    }, text: tp })));
+  if (ensurePlan(l)) saveLang(l);
 
   const greet = l === "es" ? `¡Hola, ${S.profile.name}!` : `Hi ${S.profile.name}!`;
   const bits = [];
   if (!d.assessed) bits.push(`Premier cours de ${LANGS[l].name.toLowerCase()} : Elena va évaluer ton vrai niveau en discutant avec toi.`);
   if (pending.length) bits.push(`${pending.length} devoir${pending.length > 1 ? "s" : ""} à rendre.`);
   if (due) bits.push(`${due} mot${due > 1 ? "s" : ""} à réviser.`);
-  if (!bits.length) bits.push(`Dernière séance le ${fmtDate(d.sessions.at(-1)?.date)}. Prêt pour la suivante ?`);
+  if (!bits.length) bits.push(d.sessions.length ? `Dernière séance le ${fmtDate(d.sessions.at(-1).date)}. Ta prochaine séance est prête.` : "Ta première séance est prête.");
 
   root.append(h("div", { class: "wrap" },
     h("header", { class: "top" },
@@ -815,12 +926,10 @@ function renderLobby() {
         h("section", { class: "panel join" },
           h("div", { class: "join-stage" }, joinCv,
             h("div", { style: "display:flex;flex-direction:column;gap:12px;min-width:0" },
-              h("div", { class: "row" }, h("span", { class: "label", text: "Elena est en ligne" }), !d.assessed ? h("span", { class: "diag", text: "Diagnostic" }) : null),
-              h("h2", { text: l === "es" ? "Rejoins ta séance d'espagnol" : "Rejoins ta séance d'anglais" }),
-              h("p", { style: "margin:0;color:var(--call-muted)", text: "Choisis un thème ou laisse Elena décider." }),
-              topics,
-              h("button", { class: "btn primary", id: "join", onclick: () => startCall(), disabled: !CAP.sample, text: "Rejoindre l'appel" }),
+              h("span", { class: "label", text: "Elena est en ligne · séance du jour" }),
+              joinBlock(l),
               !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec Elena." : "Ouvre cette page dans Claude pour lancer la visio." }) : null))),
+        programPanel(l),
         soundCheckPanel(l),
         homeworkPanel(l)),
       h("div", { style: "display:flex;flex-direction:column;gap:20px;min-width:0" },
@@ -829,13 +938,74 @@ function renderLobby() {
         h("section", { class: "panel" },
           h("h2", { text: "Historique" }),
           d.sessions.length ? h("div", { class: "hist" }, d.sessions.slice(-6).reverse().map(s =>
-            h("div", { class: "hist-item" }, h("time", { text: `${fmtDate(s.date)} · ${s.minutes} min · ${s.errors} erreur${s.errors > 1 ? "s" : ""}` }), h("p", { style: "margin:2px 0 0", text: s.summary }))))
+            h("div", { class: "hist-item" }, h("time", { text: `${fmtDate(s.date)} · ${s.type && TYPES[s.type] ? TYPES[s.type].name + " · " : ""}${s.minutes} min · ${s.errors} erreur${s.errors > 1 ? "s" : ""}` }), h("p", { style: "margin:2px 0 0", text: s.summary }))))
             : h("p", { class: "empty", text: "Tes séances apparaîtront ici, avec le résumé d'Elena." }),
           h("div", { class: "row" },
             h("button", { class: "btn sm", onclick: e => renameFlow(e), text: "Changer de prénom" }),
             d.assessed ? h("button", { class: "btn sm", onclick: () => { d.assessed = false; saveLang(l); renderLobby(); toast("Le prochain cours sera un nouveau diagnostic."); }, text: "Refaire un diagnostic" }) : null)))
     )));
   Avatar.mount(brandCv); Avatar.mount(joinCv);
+}
+
+/* ---------- séance du jour + sur mesure ---------- */
+function joinBlock(l) {
+  const d = S.data[l];
+  const sp = d.plan[0];
+  const wrap = h("div", { style: "display:flex;flex-direction:column;gap:12px;min-width:0" });
+  const custom = h("div", { class: "custom", hidden: !S.custom });
+  const head = h("div", { style: "display:flex;flex-direction:column;gap:6px" },
+    h("div", { class: "row" }, h("span", { class: "type-pill " + sp.type, text: TYPES[sp.type].name }), h("span", { class: "dur", text: sp.minutes + " min" })),
+    h("h2", { text: sp.topic }),
+    h("p", { style: "margin:0;color:var(--call-muted)", text: TYPES[sp.type].short }));
+  const go = h("button", { class: "btn primary", id: "join", onclick: () => startCall(sp), disabled: !CAP.sample, text: "Rejoindre l'appel" });
+  const toggle = h("button", { class: "linkbtn", type: "button", text: S.custom ? "Fermer la séance sur mesure" : "Choisir une autre séance (type, thème, durée)", onclick: () => {
+    S.custom = S.custom ? null : { type: sp.type === "diag" ? "conv" : sp.type, minutes: sp.minutes, topic: "" };
+    renderLobby();
+  } });
+  wrap.append(head, h("div", { class: "row" }, go, toggle), custom);
+  if (S.custom) buildCustom(l, custom);
+  return wrap;
+}
+function buildCustom(l, box) {
+  const c = S.custom;
+  const chipRow = (items, isOn, onPick, label) => h("div", { class: "chips", role: "group", "aria-label": label }, items.map(([val, text]) =>
+    h("button", { class: "chip", type: "button", "aria-pressed": String(isOn(val)), onclick: () => { onPick(val); renderLobby(); }, text })));
+  const types = Object.keys(TYPES).filter(t => t !== "diag" && !(t === "debate" && isLow(l)));
+  const suggestions = (() => {
+    const b = BANK[l], low = isLow(l);
+    const src = c.type === "role" ? b.role : c.type === "debate" ? (low ? b.high : b.debate) : c.type === "grammar" ? [...weakLabels(l).map(w => w.label), ...(low ? b.gramLow : b.gramHigh)] : c.type === "review" ? [topicFor(l, "review")] : (low ? b.low : b.high);
+    return [...new Set(src)].slice(0, 12);
+  })();
+  const input = h("input", { id: "custom-topic", class: "custom-input", placeholder: l === "es" ? "…ou écris ton propre thème" : "…ou écris ton propre thème", value: c.topic && !suggestions.includes(c.topic) ? c.topic : "", maxlength: "80" });
+  input.addEventListener("input", () => { c.topic = input.value.trim(); });
+  box.append(
+    h("span", { class: "label", text: "Type de séance" }),
+    chipRow(types.map(t => [t, TYPES[t].name]), v => c.type === v, v => { c.type = v; c.topic = ""; c.minutes = TYPES[v].min; }, "Type"),
+    h("span", { class: "label", text: "Durée" }),
+    chipRow(DURATIONS.map(m => [m, m + " min"]), v => c.minutes === v, v => { c.minutes = v; }, "Durée"),
+    h("span", { class: "label", text: c.type === "role" ? "Situation" : c.type === "grammar" ? "Point de grammaire" : c.type === "debate" ? "Question du débat" : "Thème" }),
+    chipRow(suggestions.map(t => [t, t]), v => c.topic === v, v => { c.topic = c.topic === v ? "" : v; }, "Thème"),
+    input,
+    h("button", { class: "btn primary", type: "button", disabled: !CAP.sample, onclick: () => {
+      const sp = makeSession(l, c.type, c.topic || topicFor(l, c.type, recentTopics(l)), c.minutes);
+      S.custom = null; startCall(sp);
+    }, text: "Lancer cette séance" }));
+}
+function programPanel(l) {
+  const d = S.data[l];
+  const rows = d.plan.slice(1).map((sp, i) => h("div", { class: "prog-row" },
+    h("span", { class: "prog-n", text: "J+" + (i + 1) }),
+    h("div", { style: "min-width:0" },
+      h("div", { class: "row", style: "gap:6px" }, h("span", { class: "type-pill light " + sp.type, text: TYPES[sp.type].name }), h("span", { class: "muted", style: "font-size:13px", text: sp.minutes + " min" })),
+      h("div", { class: "prog-topic", text: sp.topic })),
+    h("div", { class: "prog-actions" },
+      h("button", { class: "btn sm", type: "button", title: "Autre thème", "aria-label": "Autre thème pour cette séance", onclick: () => { sp.topic = topicFor(l, sp.type, [sp.topic, ...recentTopics(l)]); saveLang(l); renderLobby(); }, text: "↻" }),
+      h("button", { class: "btn sm", type: "button", disabled: !CAP.sample, onclick: () => startCall(sp), text: "Lancer" }))));
+  return h("section", { class: "panel" },
+    h("div", { class: "vocab-head" }, h("h2", { text: "Ton programme" }),
+      h("button", { class: "btn sm", type: "button", onclick: () => { d.plan = d.plan.slice(0, 1); ensurePlan(l); saveLang(l); renderLobby(); toast("Programme régénéré."); }, text: "Nouveau programme" })),
+    h("p", { class: "lvl-note", text: "Tes prochaines séances, une par jour. Elena varie les formats et les thèmes, et ajoute une séance de révision ou de grammaire dès que tes mots à revoir ou une lacune s'accumulent. Tu peux lancer n'importe laquelle, changer son thème, ou en créer une sur mesure." }),
+    h("div", { class: "prog" }, rows));
 }
 function progressPanel(l, minutes) {
   const d = S.data[l];
@@ -1144,8 +1314,9 @@ function addStrengths(l, list) {
 const C = { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], targets: [], used: new Set(), liveLevel: null,
             start: 0, timer: 0, busy: false, ctl: null, finals: [], captions: true, listening: false, lastSay: null, lastTeacherText: "", pending: null, open: false, micOffs: [] };
 
-function startCall() {
+function startCall(spec) {
   const l = S.cur, d = S.data[l];
+  C.spec = { ...spec }; C.timeUp = false;
   Object.assign(C, { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], used: new Set(),
     targets: dueWords(l, 6), liveLevel: d.assessed ? d.level : null,
     start: now(), busy: false, finals: [], listening: false, lastSay: null, lastTeacherText: "", pending: null, open: true, micOffs: [] });
@@ -1159,8 +1330,9 @@ function startCall() {
   const view = h("div", { class: "call", role: "dialog", "aria-label": "Visio avec Elena" },
     h("div", { class: "call-top" },
       h("div", null, h("div", { style: "font:600 16px var(--f-display)", text: `Elena · ${LANGS[l].native}` }),
-        h("span", { class: "label", text: (!d.assessed ? "Diagnostic · " : "") + (S.topic || (l === "es" ? "Conversación" : "Conversation")) })),
-      h("div", { class: "rec" }, h("span", { id: "live-level", class: "label", style: "color:var(--call-muted)" }), h("i"), h("span", { id: "clock", text: "00:00" }))),
+        h("span", { class: "label", text: `${TYPES[C.spec.type].name} · ${C.spec.topic}` })),
+      h("div", { class: "rec" }, h("span", { id: "live-level", class: "label", style: "color:var(--call-muted)" }), h("i"), h("span", { id: "clock", text: `00:00 / ${String(C.spec.minutes).padStart(2, "0")}:00` }))),
+    h("div", { class: "time-track" }, h("i", { id: "time-bar" })),
     h("div", { class: "call-body" },
       h("div", { class: "stage" }, cv,
         h("div", { class: "self", id: "self" }, h("div", { class: "avatar", text: initials }), h("small", { text: S.profile.name })),
@@ -1190,10 +1362,16 @@ function startCall() {
     tag.className = "tag" + (on ? " speaking" : C.busy ? " thinking" : "");
     $("#tag-text").textContent = on ? "Elena parle…" : C.busy ? "Elena réfléchit…" : C.listening ? "Elena t'écoute" : "Elena";
   };
-  C.timer = setInterval(() => { const s = Math.floor((now() - C.start) / 1000); const c = $("#clock"); if (c) c.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }, 1000);
+  const mmss = x => String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
+  C.timer = setInterval(() => {
+    const s = Math.floor((now() - C.start) / 1000), tot = C.spec.minutes * 60;
+    const c = $("#clock"); if (c) { c.textContent = mmss(s) + " / " + mmss(tot); c.parentElement.classList.toggle("over", s >= tot); }
+    const bar = $("#time-bar"); if (bar) bar.style.width = Math.min(100, s / tot * 100) + "%";
+    if (s >= tot && !C.timeUp) showTimeUp();
+  }, 1000);
   setupMic(micBtn);
   document.addEventListener("keydown", spaceKey);
-  teacherTurn(`[La séance commence. Salue ${S.profile.name} par son prénom, comme au début d'une visio. ${d.homework.at(-1)?.status === "todo" ? "Demande brièvement s'il a pu faire ses devoirs. " : ""}Puis lance la conversation${S.topic ? " sur le thème « " + S.topic + " »" : " sur un sujet adapté"}.]`, null);
+  teacherTurn(`[La séance commence : ${TYPES[C.spec.type].name}, « ${C.spec.topic} », ${C.spec.minutes} minutes. Salue ${S.profile.name} par son prénom comme au début d'une visio, annonce en une phrase ce qu'on va faire aujourd'hui${d.homework.at(-1)?.status === "todo" ? ", demande d'un mot s'il a pu faire ses devoirs" : ""}, puis lance directement l'activité.]`, null);
 }
 function spaceKey(e) {
   if (e.code !== "Space" || e.repeat || !C.open) return;
@@ -1353,6 +1531,7 @@ async function teacherTurn(content, userBubble) {
     const words = arr(r.new_words).filter(w => str(w?.word)).slice(0, 4);
     C.turns.push({ role: "assistant", content: text });
     C.lastSay = say; C.lastTeacherText = text;
+    if (r.done === true && !C.timeUp && (now() - C.start) / 60000 >= C.spec.minutes * .8) showTimeUp();
     words.forEach(w => C.words.push({ word: str(w.word), meaning: str(w.meaning) }));
     C.log.push({ who: "teacher", text });
     const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: "Elena" }), wordBubble(text, l),
@@ -1423,6 +1602,17 @@ Réponds uniquement en JSON : {"lemma":"forme de dictionnaire (avec article pour
     if (box.isConnected) box.replaceChildren(h("b", { text: word }), h("p", { text: errCopy(e) }));
   }
 }
+function showTimeUp() {
+  C.timeUp = true;
+  const log = $("#log"); if (!log) return;
+  const box = h("div", { class: "timeup" },
+    h("strong", { text: `Les ${C.spec.minutes} minutes sont écoulées.` }),
+    h("p", { text: "Elena va conclure. Tu peux terminer maintenant pour ton bilan et tes devoirs, ou prolonger." }),
+    h("div", { class: "row" },
+      h("button", { class: "retry", type: "button", onclick: () => endCall(), text: "Terminer et voir mon bilan" }),
+      h("button", { class: "retry", type: "button", onclick: () => { C.spec.minutes += 5; C.timeUp = false; box.remove(); toast("5 minutes de plus."); }, text: "Prolonger de 5 min" })));
+  log.append(box); scrollLog();
+}
 function flushPending() {
   if (!C.pending || C.busy || !C.open) return;
   const p = C.pending; C.pending = null;
@@ -1445,12 +1635,15 @@ async function endCall() {
   const l = S.cur, d = S.data[l];
   const minutes = Math.max(1, Math.round((now() - C.start) / 60000));
   const studentTurns = C.log.filter(x => x.who === "student").length;
+  const spec = { ...C.spec };
   const snapshot = { log: C.log.slice(), errors: C.errors.slice(), betters: C.betters.slice(), gaps: C.gaps.slice(), words: C.words.slice(), used: [...C.used], analyses: C.analyses.slice(), live: C.liveLevel };
   closeCall();
   // vocabulary bookkeeping happens even without a report
   addVocab(l, snapshot.words, "cours");
   markUsed(l, snapshot.used);
-  if (studentTurns < 2) { saveLang(l); toast("Cours trop court pour un bilan. À bientôt !"); renderLobby(); return; }
+  if (studentTurns < 2) { saveLang(l); toast("Cours trop court pour un bilan. La séance reste dans ton programme."); renderLobby(); return; }
+  // the session counts: take it off the programme and top the programme up
+  d.plan = arr(d.plan).filter(p => p.id !== spec.id);
   const card = h("div", { class: "report", role: "dialog", "aria-label": "Bilan de séance" },
     h("div", { style: "display:flex;gap:14px;align-items:center" }, h("div", { class: "spinner" }),
       h("div", null, h("h2", { text: "Elena prépare ton bilan" }), h("p", { class: "muted", style: "margin:0", text: "Niveau réel, lacunes, vocabulaire et devoirs ciblés. Ça peut prendre une minute." }))));
@@ -1463,7 +1656,7 @@ async function endCall() {
   const dueList = dueWords(l, 12).map(v => `${v.w} (${v.m})`).join(", ") || "aucun";
   const signals = snapshot.analyses.map(a => a.level).filter(Boolean).join(", ") || "aucun";
   const isBeginner = LEVELS.indexOf(snapshot.live || d.level) <= 1;
-  const prompt = `Tu es Elena, professeure particulière de ${LANGS[l].name.toLowerCase()}. Le cours en visio avec ${S.profile.name} vient de se terminer (${minutes} min). Rédige le bilan et les devoirs.
+  const prompt = `Tu es Elena, professeure particulière de ${LANGS[l].name.toLowerCase()}. Le cours en visio avec ${S.profile.name} vient de se terminer : ${TYPES[spec.type].name}, « ${spec.topic} », ${minutes} min (prévu ${spec.minutes}). Rédige le bilan et les devoirs.
 
 ${profileContext(l)}
 
@@ -1497,7 +1690,7 @@ Réponds uniquement en JSON :
   let r;
   try { r = await askJSON(prompt, {}); }
   catch (e) {
-    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `Conversation${S.topic ? " : " + S.topic : ""} (bilan non généré)` });
+    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `${sessionTitle(spec)} (bilan non généré)`, type: spec.type, topic: spec.topic });
     applyWeakness(l, Object.entries(snapshot.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
     saveLang(l);
     card.replaceChildren(h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs et les mots qui t'ont manqué ont quand même été enregistrés." }),
@@ -1508,7 +1701,7 @@ Réponds uniquement en JSON :
   if (LEVELS.includes(r.level)) { d.level = r.level; d.assessed = true; d.levelNote = str(r.level_note).slice(0, 160); }
   if (r.skills && typeof r.skills === "object") for (const [k] of SKILLS) { const v = Number(r.skills[k]); if (Number.isFinite(v)) d.skills[k] = Math.round(Math.max(0, Math.min(100, v))); }
   applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune");
-  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || "Conversation", next: str(r.next_goal) });
+  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || sessionTitle(spec), next: str(r.next_goal), type: spec.type, topic: spec.topic });
   d.sessions = d.sessions.slice(-30);
   const hwIn = r.homework && typeof r.homework === "object" ? r.homework : null;
   const exs = arr(hwIn?.exercises).filter(ex => str(ex?.prompt)).slice(0, 8);
