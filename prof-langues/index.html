@@ -215,6 +215,12 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .def p{margin:0;color:#dfe6e3}
 .def .ex{color:var(--call-muted);font-style:italic}
 .def .row button{background:transparent;border:1px solid rgba(255,255,255,.25);color:var(--call-fg);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+.mic-help{background:var(--err-bg);color:var(--fg);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.mic-help p{margin:0}
+.mic-help .btn{align-self:flex-start;margin-top:4px}
+.log .mic-help{background:#2b1f1d;color:#f1e6e3;border:1px solid rgba(255,138,122,.3)}
+.log .mic-help .btn{background:#eef2ef;color:#121a1d;border:none}
+.heard{margin:0;font-size:15px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -271,7 +277,7 @@ const ICON = {
 /* =========================================================
    Capabilities
    ========================================================= */
-const CAP = { sample: null, tts: null, dictation: null, db: null, user: null };
+const CAP = { sample: null, tts: null, dictation: null, db: null, user: null, permissions: null };
 async function initCaps() {
   if (!window.claude?.use) return;
   const names = Object.keys(CAP);
@@ -863,47 +869,96 @@ function weakList(d) {
     h("div", { class: "bar", title: w.count + " occurrences" }, h("i", { style: `width:${Math.max(8, w.count / max * 100)}%` })))));
 }
 
+/* =========================================================
+   Microphone helper: language fallback + plain-French diagnosis
+   ========================================================= */
+const Mic = {
+  langMode: (() => { try { return JSON.parse(localStorage.getItem("elena:micLang")) || {}; } catch { return {}; } })(),
+  opts(l) { const m = this.langMode[l] || 0; return m === 0 ? { language: LANGS[l].stt } : m === 1 ? { language: l } : undefined; },
+  bump(l) {
+    const m = this.langMode[l] || 0; if (m >= 2) return false;
+    this.langMode[l] = m + 1; try { localStorage.setItem("elena:micLang", JSON.stringify(this.langMode)); } catch {}
+    return true;
+  },
+  // must be called synchronously inside the click / key handler
+  start(l) { return CAP.dictation.start(this.opts(l)); },
+  async permState() { try { return CAP.permissions ? await CAP.permissions.state("dictation") : null; } catch { return null; } },
+  // returns a DOM block explaining the problem and how to fix it
+  help(code, l) {
+    const box = h("div", { class: "mic-help", role: "alert" });
+    const unblock = () => h("button", { class: "btn sm", type: "button", text: "Débloquer le micro", onclick: async () => {
+      try { await CAP.permissions.manage(); toast("Appuie à nouveau sur le micro."); }
+      catch { toast("Ouvre le menu Permissions de la page (en haut) et active la dictée."); }
+    } });
+    const P = t => h("p", { text: t });
+    if (!CAP.dictation) box.append(
+      h("strong", { text: "Le micro n'est pas proposé dans cette fenêtre." }),
+      P("Claude ne donne le micro aux pages que dans Google Chrome, Edge, Brave ou Arc sur ordinateur (sur claude.ai), ou dans la fenêtre principale de l'app Claude pour ordinateur, mise à jour."),
+      P("Il ne marche pas dans Safari, Firefox ni l'app Claude sur téléphone. Ouvre ce lien dans Chrome sur ton ordi : le micro apparaîtra."));
+    else if (code === "not_granted") box.append(
+      h("strong", { text: "Le micro est bloqué." }),
+      P("1. Clique sur « Débloquer le micro » et active la dictée pour cette page."),
+      P("2. Si ça ne suffit pas : clique sur le cadenas à gauche de l'adresse claude.ai, mets Microphone sur « Autoriser », puis recharge la page."),
+      P("3. Sur Mac : Réglages Système → Confidentialité et sécurité → Microphone → coche ton navigateur. Sur Windows : Paramètres → Confidentialité → Microphone → autorise les applis de bureau."),
+      CAP.permissions ? unblock() : null);
+    else if (code === "dismissed") box.append(h("strong", { text: "Tu as fermé la demande d'autorisation." }), P("Appuie à nouveau sur le micro et choisis « Autoriser »."));
+    else if (code === "unavailable") { const bumped = Mic.bump(l); box.append(h("strong", { text: bumped ? "J'ai ajusté le réglage de langue du micro." : "La dictée n'est pas disponible pour ton compte en ce moment." }),
+      P(bumped ? "Appuie encore une fois sur le micro." : "Tu peux écrire tes réponses en attendant.")); }
+    else if (code === "upstream_error") box.append(h("strong", { text: "Le micro ne répond pas." }),
+      P("Ferme les applis qui peuvent l'utiliser (Zoom, Teams, Discord, FaceTime…), vérifie le micro choisi par ton ordinateur, puis réessaie."));
+    else if (code === "rate_limited") box.append(h("strong", { text: "Micro occupé." }), P("Attends quelques secondes et réessaie."));
+    else if (code === "no_sound") box.append(h("strong", { text: "Je n'ai rien entendu." }),
+      P("Parle plus près de l'ordinateur. Si rien ne s'affiche quand tu parles, vérifie que le bon micro est choisi (Réglages Son de ton ordinateur) et qu'il n'est pas coupé."));
+    else box.append(h("strong", { text: "Le micro n'a pas démarré." }), P("Réessaie. Si ça recommence, recharge la page."));
+    return box;
+  }
+};
+
 /* ---------- sound & mic check ---------- */
 function soundCheckPanel(l) {
-  const status = h("p", { class: "status", text: `${Voice.label()} · ${CAP.dictation ? "micro disponible" : "micro indisponible ici (Chrome ou l'app Claude sur ordinateur)"}` });
-  const heard = h("p", { class: "muted", style: "margin:0;font-size:14px", hidden: true });
+  const status = h("p", { class: "status", text: `${Voice.label()} · ${CAP.dictation ? "micro disponible" : "micro non proposé dans cette fenêtre"}` });
+  const heard = h("p", { class: "heard", hidden: true });
+  const helpSlot = h("div");
   const testVoice = h("button", { class: "btn sm", text: "Tester la voix d'Elena", onclick: async () => {
     status.className = "status"; status.textContent = "Lecture en cours… tu dois entendre Elena.";
     const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! ¿Me oyes bien? Si me oyes, todo está listo.` }]
                              : [{ lang: "en", text: `Hi ${S.profile.name}! Can you hear me clearly? If you can, we're all set.` }];
-    let spoke = false; const prev = Voice.stateCb; Voice.stateCb = on => { if (on) spoke = true; };
     await Voice.speak(parts, l);
-    Voice.stateCb = prev;
-    status.className = "status " + (spoke || Voice.engine === "claude" ? "ok" : "bad");
+    status.className = "status " + (Voice.engine === "none" ? "bad" : "ok");
     status.textContent = Voice.engine === "none" ? "Aucune voix disponible dans ce navigateur : tu liras les sous-titres." : `${Voice.label()} : si tu n'as rien entendu, monte le volume et vérifie que l'onglet n'est pas en sourdine.`;
   } });
-  const testMic = h("button", { class: "btn sm", text: "Tester mon micro", disabled: !CAP.dictation });
+  const testMic = h("button", { class: "btn sm primary", text: "Tester mon micro" });
   let offs = [], timer = 0, txt = [];
   const finish = () => { offs.forEach(f => { try { f(); } catch {} }); offs = []; clearTimeout(timer); testMic.textContent = "Tester mon micro"; };
+  const fail = code => { finish(); helpSlot.replaceChildren(Mic.help(code, l)); status.className = "status bad"; status.textContent = "Micro : pas encore prêt (voir ci-dessous)."; };
   testMic.onclick = () => {
-    const dd = CAP.dictation; if (!dd) return;
+    const dd = CAP.dictation;
+    helpSlot.replaceChildren();
+    if (!dd) { fail(null); return; }
     if (dd.active()) { dd.stop().catch(() => {}); return; }
     Voice.stop(); txt = [];
-    heard.hidden = false; heard.textContent = l === "es" ? "Dis par exemple : « Hola, me llamo… »" : "Say for example: “Hello, my name is…”";
+    heard.hidden = false; heard.textContent = l === "es" ? "Parle maintenant, par exemple : « Hola, me llamo… »" : "Parle maintenant, par exemple : “Hello, my name is…”";
     offs = [
       dd.onPartial(({ text }) => { heard.textContent = "J'entends : " + [...txt, text].join(" "); }),
-      dd.onFinal(({ text }) => { if (text.trim()) txt.push(text.trim()); heard.textContent = "J'entends : " + txt.join(" "); }),
+      dd.onFinal(({ text }) => { if (str(text)) txt.push(str(text)); heard.textContent = "J'entends : " + txt.join(" "); clearTimeout(timer); timer = setTimeout(() => dd.stop().catch(() => {}), 1500); }),
       dd.onState(({ state, reason }) => {
         if (state === "listening") testMic.textContent = "Arrêter le test";
         if (state === "idle") {
-          finish();
-          if (reason === "not_granted") { status.className = "status bad"; status.textContent = "Micro refusé : autorise-le depuis le menu Permissions de la page, sinon tu écriras tes réponses."; }
-          else if (txt.length) { status.className = "status ok"; status.textContent = "Micro OK : Elena t'entend bien."; }
-          else { status.className = "status bad"; status.textContent = "Je n'ai rien entendu. Vérifie le micro choisi par ton navigateur et réessaie."; }
+          if (txt.length) { finish(); helpSlot.replaceChildren(); status.className = "status ok"; status.textContent = "Micro OK : Elena t'entend bien."; }
+          else if (["not_granted", "dismissed", "unavailable", "upstream_error", "rate_limited"].includes(reason)) fail(reason);
+          else fail("no_sound");
         }
       })
     ];
-    dd.start({ language: LANGS[l].stt }).catch(e => { finish(); status.className = "status bad"; status.textContent = e?.code === "not_granted" ? "Micro refusé : tu pourras écrire tes réponses." : "Le micro n'a pas démarré. Réessaie."; });
+    Mic.start(l).catch(e => { if (e?.code !== "stopped") fail(e?.code); });
     timer = setTimeout(() => { if (dd.active()) dd.stop().catch(() => {}); }, 9000);
   };
+  // show a blocked microphone right away, without asking anything
+  Mic.permState().then(st => { if (st === "denied") { helpSlot.replaceChildren(Mic.help("not_granted", l)); status.className = "status bad"; status.textContent = "Micro bloqué pour cette page."; } });
+  if (!CAP.dictation) helpSlot.append(Mic.help(null, l));
   return h("section", { class: "panel" },
     h("h2", { text: "Son et micro" }),
-    h("div", { class: "check" }, testVoice, testMic, status), heard);
+    h("div", { class: "check" }, testVoice, testMic, status), heard, helpSlot);
 }
 
 /* ---------- vocabulary ---------- */
@@ -1096,7 +1151,7 @@ function startCall() {
     start: now(), busy: false, finals: [], listening: false, lastSay: null, lastTeacherText: "", pending: null, open: true, micOffs: [] });
   const cv = h("canvas", { class: "teacher" });
   const initials = S.profile.name.trim().slice(0, 2).toUpperCase();
-  const micBtn = h("button", { class: "cbtn mic", id: "mic", "aria-label": "Parler (barre d'espace)", disabled: !CAP.dictation });
+  const micBtn = h("button", { class: "cbtn mic", id: "mic", "aria-label": "Parler (barre d'espace)" });
   micBtn.innerHTML = ICON.mic;
   const mk = (id, icon, label, fn) => { const b = h("button", { class: "cbtn", id, "aria-label": label, onclick: fn }); b.innerHTML = icon; return h("div", { class: "cbtn-wrap" }, b, h("span", { text: label })); };
   const endBtn = h("button", { class: "cbtn end", "aria-label": "Raccrocher", onclick: endCall }); endBtn.innerHTML = ICON.end;
@@ -1123,7 +1178,7 @@ function startCall() {
     h("div", { class: "controls" },
       mk("repeat", ICON.repeat, "Répéter", () => { if (C.lastSay) Voice.speak(C.lastSay, l); }),
       mk("slow", ICON.slow, "Plus lent", () => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? "Elena parlera plus lentement." : "Vitesse normale."); }),
-      h("div", { class: "cbtn-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Parler" : "Micro indisponible" })),
+      h("div", { class: "cbtn-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Appuie et parle" : "Micro : aide" })),
       mk("lost", ICON.repeat.replace("<svg", '<svg style="transform:scaleX(-1)"'), l === "es" ? "No entiendo" : "I'm lost", () => userSays(l === "es" ? "(No entiendo. ¿Puedes decirlo con palabras más fáciles y un ejemplo?)" : "(I don't understand. Can you say it with simpler words and an example?)", false, true)),
       mk("help", ICON.help, l === "es" ? "Ayúdame" : "Help me", () => userSays(l === "es" ? "(No sé cómo decirlo. Dame un ejemplo de respuesta para repetir.)" : "(I'm stuck. Give me a model answer I can repeat.)", false, true)),
       mk("mute", ICON.mute, "Son", () => { Voice.muted = !Voice.muted; if (Voice.muted) Voice.stop(); const b = $("#mute"); b.style.opacity = Voice.muted ? ".45" : ""; b.nextSibling.textContent = Voice.muted ? "Muet" : "Son"; }),
@@ -1147,48 +1202,60 @@ function spaceKey(e) {
 }
 
 function setupMic(btn) {
-  const d = CAP.dictation; if (!d) return;
+  const d = CAP.dictation;
+  const lab = () => $("#mic-label");
+  if (!d) { btn.disabled = false; btn.onclick = () => showMicHelp(null); return; }
   const self = $("#self");
-  let partialEl = null;
+  let partialEl = null, silenceT = 0, noSpeechT = 0;
+  const clearT = () => { clearTimeout(silenceT); clearTimeout(noSpeechT); };
+  // auto-send: once the student stops talking, stop listening and send
+  const armSilence = ms => { clearTimeout(silenceT); silenceT = setTimeout(() => { if (C.listening && d.active()) d.stop().catch(() => {}); }, ms); };
   C.micOffs = [
     d.onPartial(({ text }) => {
       if (!C.open) return;
+      if (str(text)) { clearTimeout(noSpeechT); armSilence(2200); }
       if (!partialEl) { partialEl = h("div", { class: "partial" }); $("#log")?.append(partialEl); }
       partialEl.textContent = [...C.finals, text].join(" ");
       scrollLog();
     }),
-    d.onFinal(({ text }) => { if (!C.open) return; if (str(text)) C.finals.push(str(text)); if (partialEl) partialEl.textContent = C.finals.join(" "); }),
+    d.onFinal(({ text }) => {
+      if (!C.open) return;
+      if (str(text)) { C.finals.push(str(text)); clearTimeout(noSpeechT); armSilence(1400); }
+      if (partialEl) partialEl.textContent = C.finals.join(" ");
+    }),
     d.onState(({ state, reason }) => {
       if (!C.open) return;
       const live = state === "listening" || state === "starting" || state === "finishing";
       C.listening = live;
       btn.classList.toggle("live", live); btn.innerHTML = live ? ICON.stop : ICON.mic;
-      btn.setAttribute("aria-label", live ? "Arrêter et envoyer" : "Parler (barre d'espace)");
-      const lab = $("#mic-label"); if (lab) lab.textContent = state === "finishing" ? "Envoi…" : live ? "J'écoute… appuie pour envoyer" : "Parler";
+      btn.setAttribute("aria-label", live ? "Envoyer maintenant" : "Parler (barre d'espace)");
+      const lb = lab(); if (lb) lb.textContent = state === "starting" ? "Connexion…" : state === "finishing" ? "Envoi…" : live ? "Je t'écoute, parle" : "Appuie et parle";
       self?.classList.toggle("live", live);
       Avatar.set({ listening: live });
       Voice.stateCb?.(false);
+      if (state === "listening") { clearTimeout(noSpeechT); noSpeechT = setTimeout(() => { if (d.active() && !C.finals.length) d.stop().catch(() => {}); }, 12000); }
       if (state === "idle") {
+        clearT();
         partialEl?.remove(); partialEl = null;
         const said = C.finals.join(" ").trim(); C.finals = [];
-        if (said) userSays(said, true);
-        else if (reason === "stopped" || reason === "viewer_stopped") toast("Je n'ai rien entendu. Parle un peu plus fort ou écris ta réponse.");
-        if (reason === "not_granted") { btn.disabled = true; if (lab) lab.textContent = "Micro refusé"; toast("Micro refusé : tu peux écrire tes réponses."); }
-        if (reason === "time_limit") toast("Durée d'écoute maximale atteinte : ce que tu as dit a été envoyé.");
+        if (said) { userSays(said, true); return; }
+        if (["not_granted", "dismissed", "unavailable", "upstream_error", "rate_limited"].includes(reason)) showMicHelp(reason);
+        else if (reason === "stopped" || reason === "viewer_stopped") showMicHelp("no_sound");
       }
     })
   ];
   btn.onclick = () => {
-    if (C.listening) { d.stop().catch(() => {}); return; }
+    if (C.listening) { clearT(); d.stop().catch(() => {}); return; }
     Voice.stop();
     C.finals = [];
-    d.start({ language: LANGS[S.cur].stt }).catch(e => {
-      if (e?.code === "not_granted") { btn.disabled = true; toast("Micro refusé : tu peux écrire tes réponses."); }
-      else if (e?.code === "dismissed") toast("Autorise le micro pour parler avec Elena.");
-      else if (e?.code === "rate_limited") toast("Micro momentanément indisponible. Réessaie dans quelques secondes.");
-      else if (e?.code !== "stopped") toast("Le micro n'a pas démarré. Réessaie ou écris ta réponse.");
-    });
+    document.querySelectorAll(".log .mic-help").forEach(x => x.remove());
+    Mic.start(S.cur).catch(e => { if (e?.code !== "stopped") showMicHelp(e?.code); });
   };
+}
+function showMicHelp(code) {
+  const log = $("#log"); if (!log) return;
+  log.querySelectorAll(".mic-help").forEach(x => x.remove());
+  log.append(Mic.help(code, S.cur)); scrollLog();
 }
 function scrollLog() { const lg = $("#log"); if (lg) lg.scrollTop = lg.scrollHeight; }
 
