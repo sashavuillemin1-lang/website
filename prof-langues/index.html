@@ -1,0 +1,1029 @@
+<title>Clase con Elena</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a video-call room. Lobby = carnet de l'élève (progress, devoirs); Call = video tile + live transcript with correction slips. */
+:root{
+  --bg:#f3f1ec; --surface:#ffffff; --surface-2:#ebe8e1; --line:#d9d4c9;
+  --fg:#1d2427; --muted:#5f686b;
+  --accent:#c6531f;        /* pimentón */
+  --accent-ink:#ffffff;
+  --sky:#1f5a6b;           /* english teal */
+  --ok:#2f8a5b; --warn:#b5761a; --err:#c23b3b;
+  --err-bg:#fbe9e6; --ok-bg:#e5f3ea;
+  --call:#121a1d; --call-2:#1b2629; --call-fg:#eef2ef; --call-muted:#94a3a6;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13181a; --surface:#1b2225; --surface-2:#232c30; --line:#334046;
+  --fg:#e8ecea; --muted:#9aa6a9; --accent:#ef7a45; --accent-ink:#1a0f09; --sky:#6cb6c9;
+  --ok:#5fc78f; --warn:#e3a649; --err:#ff8a7a; --err-bg:#3a2220; --ok-bg:#1d3327;
+  --call:#0c1214; --call-2:#162024; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13181a; --surface:#1b2225; --surface-2:#232c30; --line:#334046;
+  --fg:#e8ecea; --muted:#9aa6a9; --accent:#ef7a45; --accent-ink:#1a0f09; --sky:#6cb6c9;
+  --ok:#5fc78f; --warn:#e3a649; --err:#ff8a7a; --err-bg:#3a2220; --ok-bg:#1d3327;
+  --call:#0c1214; --call-2:#162024; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.label{font:500 11px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 18px;cursor:pointer;font-weight:600;transition:transform .12s, background .12s}
+.btn:hover{background:var(--surface-2)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field input,.field select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.muted{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:50;max-width:calc(100% - 32px);font-weight:500}
+
+/* ---------- onboarding ---------- */
+.onb{min-height:100%;display:grid;place-items:center;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.onb-card{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:18px}
+.onb-card h1{font-size:clamp(28px,5vw,38px)}
+.onb-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.onb-row{grid-template-columns:1fr}}
+
+/* ---------- lobby ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand canvas{width:48px;height:48px;border-radius:50%;background:var(--call)}
+.brand h1{font-size:22px}
+.hello{font-size:clamp(30px,5vw,48px);margin-bottom:6px}
+.lang-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.lang-tab{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;min-width:150px;text-align:left}
+.lang-tab b{font-family:var(--f-display);font-size:18px}
+.lang-tab[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.lang-tab.en[aria-pressed="true"]{border-color:var(--sky);box-shadow:inset 0 0 0 1px var(--sky)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;margin-top:20px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h2{font-size:20px}
+.join{background:var(--call);color:var(--call-fg);border:none;overflow:hidden;position:relative}
+.join .label{color:var(--call-muted)}
+.join-stage{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:center}
+@media (max-width:560px){.join-stage{grid-template-columns:1fr}}
+.join-stage canvas{width:100%;max-width:200px;aspect-ratio:1;border-radius:16px;background:var(--call-2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--call-fg);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--call-fg);color:var(--call)}
+.join .btn.primary{margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:10px;padding:12px}
+.stat b{display:block;font:700 24px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.weak{display:flex;flex-direction:column;gap:10px}
+.weak-row{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:10px;align-items:center}
+.weak-row .bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.weak-row .bar i{display:block;height:100%;background:var(--err)}
+.weak-row.better .bar i{background:var(--ok)}
+.weak-row small{color:var(--muted);display:block}
+.hw{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.hw-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.pill{font:500 11px/1 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;padding:5px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill.todo{background:var(--err-bg);color:var(--err)}
+.pill.done{background:var(--ok-bg);color:var(--ok)}
+.ex{display:flex;flex-direction:column;gap:6px;padding-block:10px;border-top:1px dashed var(--line)}
+.ex textarea{min-height:44px;resize:vertical;width:100%}
+.ex .fb{font-size:14px;border-radius:8px;padding:8px 10px}
+.ex .fb.good{background:var(--ok-bg)}
+.ex .fb.bad{background:var(--err-bg)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts label{border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.hist{display:flex;flex-direction:column;gap:10px}
+.hist-item{border-left:3px solid var(--line);padding-left:12px}
+.hist-item time{font:12px var(--f-mono);color:var(--muted)}
+.empty{color:var(--muted);font-size:14px;padding:12px;border:1px dashed var(--line);border-radius:10px}
+.vocab{display:flex;flex-wrap:wrap;gap:6px}
+.vocab span{background:var(--surface-2);border-radius:8px;padding:4px 8px;font-size:13px}
+.vocab span em{color:var(--muted);font-style:normal}
+
+/* ---------- call ---------- */
+.call{position:fixed;inset:0;background:var(--call);color:var(--call-fg);display:flex;flex-direction:column;z-index:20;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.call-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px))}
+.call-top .label{color:var(--call-muted)}
+.rec{display:flex;align-items:center;gap:8px;font:13px var(--f-mono);font-variant-numeric:tabular-nums}
+.rec i{width:8px;height:8px;border-radius:50%;background:#58d68d;box-shadow:0 0 0 3px rgba(88,214,141,.2)}
+.call-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr);gap:12px;padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+@media (max-width:820px){.call-body{grid-template-columns:1fr;grid-template-rows:minmax(200px,42%) minmax(0,1fr)}}
+.stage{position:relative;border-radius:18px;overflow:hidden;background:var(--call-2);min-height:0}
+.stage canvas.teacher{position:absolute;inset:0;width:100%;height:100%}
+.tag{position:absolute;left:12px;bottom:12px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;padding:5px 10px;font-size:13px;display:flex;align-items:center;gap:8px}
+.tag .dot{width:7px;height:7px;border-radius:50%;background:var(--call-muted)}
+.tag.speaking .dot{background:#58d68d}
+.tag.thinking .dot{background:#f0c05a;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.captions{position:absolute;left:50%;transform:translateX(-50%);bottom:52px;width:min(88%,640px);text-align:center;font-size:clamp(15px,2vw,19px);line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.captions span{background:rgba(0,0,0,.6);padding:2px 8px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.captions small{display:block;margin-top:6px;font-size:.8em;opacity:.8}
+.self{position:absolute;right:12px;top:12px;width:clamp(96px,18%,160px);aspect-ratio:4/3;border-radius:12px;background:linear-gradient(135deg,#2b3a3f,#1e2a2e);border:1px solid rgba(255,255,255,.12);display:grid;place-items:center;overflow:hidden}
+.self .avatar{width:44%;aspect-ratio:1;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:700 clamp(14px,2vw,22px) var(--f-display);transition:box-shadow .15s}
+.self.live .avatar{box-shadow:0 0 0 4px rgba(88,214,141,.5),0 0 0 9px rgba(88,214,141,.18);animation:breathe 1.2s infinite}
+@keyframes breathe{50%{box-shadow:0 0 0 6px rgba(88,214,141,.35),0 0 0 14px rgba(88,214,141,.1)}}
+.self small{position:absolute;left:8px;bottom:6px;font-size:11px;color:var(--call-muted)}
+.side{display:flex;flex-direction:column;min-height:0;background:var(--call-2);border-radius:18px;overflow:hidden}
+.side-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);gap:8px;flex-wrap:wrap}
+.side-head .label{color:var(--call-muted)}
+.toggles{display:flex;gap:6px;flex-wrap:wrap}
+.tgl{background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--call-fg);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.tgl[aria-pressed="true"]{background:var(--call-fg);color:var(--call)}
+.log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.msg{max-width:92%;display:flex;flex-direction:column;gap:6px}
+.msg .bubble{padding:9px 12px;border-radius:14px;line-height:1.45;overflow-wrap:anywhere}
+.msg.t{align-self:flex-start}
+.msg.t .bubble{background:rgba(255,255,255,.07);border-top-left-radius:4px}
+.msg.t .tr{font-size:13px;color:var(--call-muted);padding-left:12px}
+.msg.u{align-self:flex-end;align-items:flex-end}
+.msg.u .bubble{background:#2a4f58;border-top-right-radius:4px}
+.msg .who{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted)}
+.fix{background:#2b1f1d;border:1px solid rgba(255,138,122,.3);border-radius:10px;padding:8px 10px;font-size:13.5px;display:flex;flex-direction:column;gap:3px;width:100%;text-align:left}
+.fix del{color:#ff9d90;text-decoration-thickness:1.5px}
+.fix ins{color:#8be3b0;text-decoration:none;font-weight:600}
+.fix p{margin:0;color:#d8cfcc}
+.fix.ok{background:#1b2e24;border-color:rgba(139,227,176,.3)}
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.words span{font-size:12px;background:rgba(240,192,90,.12);color:#f3d48f;border-radius:6px;padding:2px 7px}
+.typing{color:var(--call-muted);font-size:13px;font-style:italic}
+.partial{align-self:flex-end;color:var(--call-muted);font-style:italic;font-size:14px;max-width:92%}
+.compose{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.08)}
+.compose input{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:10px 14px;color:var(--call-fg)}
+.compose button{border-radius:999px;border:none;background:var(--call-fg);color:var(--call);padding:0 16px;font-weight:600;cursor:pointer}
+.controls{display:flex;justify-content:center;align-items:center;gap:14px;padding:14px 16px 16px;flex-wrap:wrap}
+.cbtn{width:56px;height:56px;border-radius:50%;border:none;background:#2a3639;color:var(--call-fg);display:grid;place-items:center;cursor:pointer;transition:transform .12s,background .15s}
+.cbtn:hover{background:#34444a}
+.cbtn:active{transform:scale(.94)}
+.cbtn svg{width:24px;height:24px}
+.cbtn.mic{width:68px;height:68px;background:#e8ecea;color:#121a1d}
+.cbtn.mic.live{background:#58d68d}
+.cbtn.end{background:#d64545;color:#fff;width:64px}
+.cbtn.end:hover{background:#e25555}
+.cbtn:disabled{opacity:.4;cursor:default}
+.cbtn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--call-muted)}
+
+/* ---------- report ---------- */
+.overlay{position:fixed;inset:0;background:rgba(10,14,16,.6);z-index:30;display:grid;place-items:center;padding:16px;overflow-y:auto}
+.report{background:var(--surface);color:var(--fg);border-radius:20px;max-width:720px;width:100%;padding:26px;display:flex;flex-direction:column;gap:16px;max-height:calc(100% - 16px);overflow-y:auto}
+.report h2{font-size:28px}
+.report ul{margin:0;padding-left:20px}
+.spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--surface-2);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.notice{background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:14px}
+@media (max-width:820px){
+  .captions{display:none}
+  .controls{gap:8px;padding:10px 8px 12px;flex-wrap:nowrap}
+  .cbtn{width:46px;height:46px}.cbtn.mic{width:58px;height:58px}.cbtn.end{width:52px}
+  .cbtn-wrap{font-size:10px;max-width:64px;text-align:center}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"><div class="onb"><div class="spinner" aria-label="Chargement"></div></div></div>
+
+<script>
+"use strict";
+/* =========================================================
+   Utilities
+   ========================================================= */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "text") el.textContent = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return el;
+}
+const uid = () => Math.random().toString(36).slice(2, 10);
+const today = () => new Date().toISOString();
+const fmtDate = iso => { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch { return ""; } };
+let toastTimer;
+function toast(msg) {
+  document.querySelector(".toast")?.remove();
+  const t = h("div", { class: "toast", role: "status", text: msg });
+  document.body.append(t);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 3800);
+}
+const ICON = {
+  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>',
+  end: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-3.3 0-6.3 1-8.6 2.7-.6.4-.8 1.2-.4 1.8l1.4 2.2c.4.6 1.1.8 1.7.5l2.5-1.1c.5-.2.8-.7.8-1.3v-1.6c.8-.3 1.7-.4 2.6-.4s1.8.1 2.6.4v1.6c0 .6.3 1.1.8 1.3l2.5 1.1c.6.3 1.3.1 1.7-.5l1.4-2.2c.4-.6.2-1.4-.4-1.8C18.3 10 15.3 9 12 9z"/></svg>',
+  repeat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg>',
+  slow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>',
+  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>'
+};
+
+/* =========================================================
+   Capabilities
+   ========================================================= */
+const CAP = { sample: null, tts: null, dictation: null, db: null, user: null };
+async function initCaps() {
+  if (!window.claude?.use) return;
+  const names = Object.keys(CAP);
+  const res = await Promise.all(names.map(n => window.claude.use(n).catch(() => null)));
+  names.forEach((n, i) => CAP[n] = res[i]);
+}
+const SAMPLE_ERR = {
+  not_granted: "Tu as refusé l'accès à Claude : Elena ne peut pas répondre. Recharge la page pour réessayer.",
+  rate_limited: "Trop de demandes d'un coup. Attends quelques secondes puis renvoie ton message.",
+  sampling_disabled: "L'accès à Claude est désactivé sur ce compte.",
+  prompt_too_large: "La séance est trop longue. Termine-la pour obtenir ton bilan.",
+  invalid_json: "Réponse illisible. Renvoie ton message.",
+};
+const errCopy = e => SAMPLE_ERR[e?.code] || "Elena n'a pas pu répondre. Renvoie ton message.";
+
+/* =========================================================
+   Storage: private per-viewer documents in db, localStorage fallback
+   ========================================================= */
+const Store = {
+  uidVal: null,
+  async init() {
+    if (CAP.db && CAP.user) {
+      try { this.uidVal = await CAP.user.id(); } catch { this.uidVal = null; }
+    }
+  },
+  get online() { return !!(CAP.db && this.uidVal); },
+  ref(k) { return CAP.db.collection("data/users/" + this.uidVal).doc(k); },
+  async get(k) {
+    if (this.online) {
+      try {
+        const snap = await Promise.race([this.ref(k).get(), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10000))]);
+        if (snap.exists) return JSON.parse(JSON.stringify(snap.data()));
+      } catch (e) { console.warn("db get", e); }
+    }
+    try { return JSON.parse(localStorage.getItem("elena:" + k)); } catch { return null; }
+  },
+  queue: {},
+  async set(k, v) {
+    try { localStorage.setItem("elena:" + k, JSON.stringify(v)); } catch {}
+    if (!this.online) return;
+    // one write at a time per doc; keep only the latest pending value
+    const q = this.queue[k] || (this.queue[k] = { busy: false, next: null });
+    q.next = v;
+    if (q.busy) return;
+    q.busy = true;
+    while (q.next) {
+      const val = q.next; q.next = null;
+      try { await this.ref(k).set(val); }
+      catch (e) { console.warn("db set", e); toast("Sauvegarde en ligne impossible. Tes progrès sont gardés sur cet appareil."); }
+    }
+    q.busy = false;
+  }
+};
+
+/* =========================================================
+   Data model
+   ========================================================= */
+const LANGS = {
+  es: { name: "Espagnol", native: "Español", flagWord: "ES", tts: "es", stt: "es-ES",
+        topics: ["Me presento", "Mi día", "La comida", "De viaje", "Mi familia", "Tema libre"] },
+  en: { name: "Anglais", native: "English", flagWord: "EN", tts: "en", stt: "en-GB",
+        topics: ["Free talk", "Debate: AI at work", "Job interview role-play", "Your last trip", "Current affairs", "Idioms & phrasal verbs"] }
+};
+const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
+function newLang(level) { return { level, weaknesses: [], sessions: [], homework: [], vocab: [], strengths: [] }; }
+const S = {
+  profile: null,         // {name, cur}
+  data: { es: null, en: null },
+  cur: "es",
+  topic: null,
+};
+async function loadAll() {
+  S.profile = await Store.get("profile");
+  S.data.es = await Store.get("es");
+  S.data.en = await Store.get("en");
+}
+function saveLang(l) { Store.set(l, S.data[l]); }
+function saveProfile() { Store.set("profile", S.profile); }
+
+/* =========================================================
+   Teacher avatar (canvas) — Elena
+   ========================================================= */
+const Avatar = (() => {
+  const st = { speaking: false, thinking: false, listening: false, mouth: 0, blink: 0, nextBlink: 2, lookX: 0, lookY: 0, tLook: 0 };
+  const canvases = new Set();
+  let bgCache = new Map();
+  function noise(t) { return (Math.sin(t * 2.1) + Math.sin(t * 3.7 + 1.3) + Math.sin(t * 5.9 + 2.1)) / 3; }
+  function drawBg(w, h) {
+    const key = w + "x" + h;
+    if (bgCache.has(key)) return bgCache.get(key);
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const x = c.getContext("2d");
+    const g = x.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, "#d9cbb4"); g.addColorStop(1, "#b9a68a");
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    // window with daylight
+    x.fillStyle = "#f4ead2"; x.fillRect(w * .66, h * .08, w * .26, h * .42);
+    x.fillStyle = "#cfe0e6"; x.fillRect(w * .68, h * .11, w * .1, h * .17); x.fillRect(w * .8, h * .11, w * .1, h * .17);
+    x.fillRect(w * .68, h * .3, w * .1, h * .17); x.fillRect(w * .8, h * .3, w * .1, h * .17);
+    // bookshelf
+    x.fillStyle = "#7a5a3c"; x.fillRect(w * .04, h * .1, w * .26, h * .7);
+    const cols = ["#b5462a", "#2e5e6e", "#d6a03c", "#4f6b3a", "#8a3f5a", "#e7dcc6", "#3c3a5e"];
+    let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for (let row = 0; row < 4; row++) {
+      const y = h * (.12 + row * .17), hh = h * .14;
+      x.fillStyle = "#5e432b"; x.fillRect(w * .04, y + hh, w * .26, h * .02);
+      let bx = w * .055;
+      while (bx < w * .28) {
+        const bw = w * (.012 + rnd() * .014), bh = hh * (.7 + rnd() * .3);
+        x.fillStyle = cols[Math.floor(rnd() * cols.length)];
+        x.fillRect(bx, y + hh - bh, bw, bh); bx += bw + w * .003;
+      }
+    }
+    // plant
+    x.fillStyle = "#9c5b3b"; x.fillRect(w * .84, h * .62, w * .08, h * .1);
+    x.fillStyle = "#4e7a45";
+    for (let i = 0; i < 7; i++) { x.beginPath(); x.ellipse(w * (.83 + i * .016), h * (.58 - (i % 3) * .04), w * .025, h * .06, (i - 3) * .3, 0, Math.PI * 2); x.fill(); }
+    const out = document.createElement("canvas"); out.width = w; out.height = h;
+    const o = out.getContext("2d");
+    try { o.filter = "blur(" + Math.max(2, w / 160) + "px)"; } catch {}
+    o.drawImage(c, 0, 0);
+    o.filter = "none";
+    o.fillStyle = "rgba(20,26,28,.12)"; o.fillRect(0, 0, w, h);
+    bgCache.set(key, out);
+    if (bgCache.size > 6) bgCache.delete(bgCache.keys().next().value);
+    return out;
+  }
+  function drawOne(cv, t, dt) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = cv.getBoundingClientRect();
+    if (!rect.width) return;
+    const w = Math.round(rect.width * dpr), hgt = Math.round(rect.height * dpr);
+    if (cv.width !== w || cv.height !== hgt) { cv.width = w; cv.height = hgt; }
+    const x = cv.getContext("2d");
+    x.drawImage(drawBg(w, hgt), 0, 0);
+    const portrait = cv.dataset.mode === "portrait";
+    const s = portrait ? Math.min(w, hgt) / 300 : Math.min(w / 520, hgt / 360);
+    const cx = w / 2 + (st.listening ? 0 : Math.sin(t * .7) * 2 * s);
+    const bob = Math.sin(t * (st.speaking ? 3.2 : 1.1)) * (st.speaking ? 2.2 : 1) * s + (st.listening ? Math.max(0, Math.sin(t * 2.4)) * 3 * s : 0);
+    const cy = (portrait ? hgt * .48 : hgt * .5) + bob;
+    x.save(); x.translate(cx, cy); x.scale(s, s);
+    // hair back
+    x.fillStyle = "#2d1c14";
+    x.beginPath(); x.ellipse(0, -8, 82, 96, 0, 0, Math.PI * 2); x.fill();
+    x.fillRect(-82, -8, 164, 120);
+    // shoulders / sweater
+    x.fillStyle = "#1f5a6b";
+    x.beginPath(); x.moveTo(-170, 260); x.bezierCurveTo(-160, 150, -90, 118, 0, 116); x.bezierCurveTo(90, 118, 160, 150, 170, 260); x.closePath(); x.fill();
+    x.fillStyle = "#c6531f"; // scarf
+    x.beginPath(); x.moveTo(-46, 112); x.quadraticCurveTo(0, 150, 46, 112); x.lineTo(40, 132); x.quadraticCurveTo(0, 168, -40, 132); x.closePath(); x.fill();
+    // neck
+    x.fillStyle = "#c98d6b"; x.fillRect(-22, 60, 44, 58);
+    x.fillStyle = "rgba(0,0,0,.08)"; x.fillRect(-22, 60, 44, 16);
+    // face
+    x.fillStyle = "#dca07c";
+    x.beginPath(); x.ellipse(0, 0, 62, 76, 0, 0, Math.PI * 2); x.fill();
+    // ears + earrings
+    x.beginPath(); x.ellipse(-62, 6, 9, 15, 0, 0, Math.PI * 2); x.ellipse(62, 6, 9, 15, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = "#e3b341"; x.beginPath(); x.arc(-63, 26, 4, 0, Math.PI * 2); x.arc(63, 26, 4, 0, Math.PI * 2); x.fill();
+    // hair front (fringe swept)
+    x.fillStyle = "#2d1c14";
+    x.beginPath(); x.moveTo(-66, -10); x.bezierCurveTo(-70, -80, -10, -96, 20, -84); x.bezierCurveTo(60, -78, 72, -40, 66, -6);
+    x.bezierCurveTo(50, -46, 20, -58, -8, -50); x.bezierCurveTo(-34, -44, -54, -30, -66, -10); x.fill();
+    // cheeks
+    x.fillStyle = "rgba(214,96,80,.18)";
+    x.beginPath(); x.ellipse(-34, 22, 14, 9, 0, 0, Math.PI * 2); x.ellipse(34, 22, 14, 9, 0, 0, Math.PI * 2); x.fill();
+    // eyes
+    st.nextBlink -= dt;
+    if (st.nextBlink <= 0) { st.blink = 1; st.nextBlink = 2.5 + Math.random() * 3; }
+    st.blink = Math.max(0, st.blink - dt * 7);
+    const open = 1 - Math.sin(Math.min(1, st.blink) * Math.PI);
+    st.tLook -= dt;
+    if (st.tLook <= 0) {
+      st.tLook = 1 + Math.random() * 2.5;
+      st.lookX = st.thinking ? 2.5 : (Math.random() - .5) * 2.4;
+      st.lookY = st.thinking ? -2.5 : (Math.random() - .5) * 1.2;
+    }
+    for (const ex of [-24, 24]) {
+      x.fillStyle = "#fbf6ef";
+      x.beginPath(); x.ellipse(ex, -6, 11, 7.5 * open + .3, 0, 0, Math.PI * 2); x.fill();
+      if (open > .2) {
+        x.fillStyle = "#4a2e1f"; x.beginPath(); x.arc(ex + st.lookX, -6 + st.lookY, 5.2 * Math.min(1, open + .2), 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#120a06"; x.beginPath(); x.arc(ex + st.lookX, -6 + st.lookY, 2.4, 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#fff"; x.beginPath(); x.arc(ex + st.lookX + 1.6, -7.6 + st.lookY, 1.1, 0, Math.PI * 2); x.fill();
+      }
+      x.strokeStyle = "#2d1c14"; x.lineWidth = 2.2; x.lineCap = "round";
+      x.beginPath(); x.ellipse(ex, -6, 11.5, 7.5 * open + .3, 0, Math.PI * 1.05, Math.PI * 1.95); x.stroke();
+    }
+    // brows
+    const browLift = st.speaking ? Math.max(0, noise(t * 1.3)) * 3 : st.listening ? 2 : 0;
+    x.strokeStyle = "#2d1c14"; x.lineWidth = 3.4;
+    x.beginPath(); x.moveTo(-36, -22 - browLift); x.quadraticCurveTo(-24, -29 - browLift, -12, -24 - browLift); x.stroke();
+    x.beginPath(); x.moveTo(12, -24 - browLift); x.quadraticCurveTo(24, -29 - browLift, 36, -22 - browLift); x.stroke();
+    // nose
+    x.strokeStyle = "rgba(120,64,40,.45)"; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(1, 2); x.quadraticCurveTo(6, 16, 0, 20); x.stroke();
+    // mouth
+    const target = st.speaking ? Math.max(0, .45 + .55 * noise(t * 9)) : 0;
+    st.mouth += (target - st.mouth) * Math.min(1, dt * 18);
+    const m = st.mouth;
+    if (m > .06) {
+      x.fillStyle = "#6e2a25";
+      x.beginPath(); x.ellipse(0, 40, 15 - m * 3, 3 + m * 10, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "#f5eee6"; x.fillRect(-9, 36 - m * 6, 18, 3.2);
+      x.strokeStyle = "#b5524a"; x.lineWidth = 2.6;
+      x.beginPath(); x.ellipse(0, 40, 15.5 - m * 3, 3.5 + m * 10, 0, 0, Math.PI * 2); x.stroke();
+    } else {
+      x.strokeStyle = "#a8453e"; x.lineWidth = 3; x.lineCap = "round";
+      x.beginPath(); x.moveTo(-15, 38); x.quadraticCurveTo(0, st.thinking ? 41 : 47, 15, 38); x.stroke();
+    }
+    x.restore();
+  }
+  let last = performance.now(), raf = 0;
+  function loop(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const t = now / 1000;
+    for (const cv of canvases) if (cv.isConnected) drawOne(cv, t, dt); else canvases.delete(cv);
+    raf = canvases.size ? requestAnimationFrame(loop) : 0;
+  }
+  return {
+    st,
+    mount(cv) { canvases.add(cv); if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } },
+    set(p) { Object.assign(st, p); }
+  };
+})();
+
+/* =========================================================
+   Voice: TTS (Claude voice, browser fallback) + dictation
+   ========================================================= */
+const Voice = {
+  slow: false,
+  stateCb: null,
+  init() {
+    if (CAP.tts) CAP.tts.onState(({ state }) => this._state(state === "speaking" || state === "starting"));
+  },
+  _state(on) { Avatar.set({ speaking: on }); this.stateCb?.(on); },
+  async speak(text, lang) {
+    if (!text) return;
+    const rate = this.slow ? .78 : 1;
+    if (CAP.tts) {
+      try { await CAP.tts.speak(text.slice(0, 2000), { voice: "airy", rate, language: LANGS[lang].tts }); return; }
+      catch (e) { if (e?.code === "stopped" || e?.code === "busy") return; console.warn("tts", e); }
+    }
+    if ("speechSynthesis" in window) {
+      return new Promise(res => {
+        try {
+          speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = LANGS[lang].stt; u.rate = rate * .95;
+          const v = speechSynthesis.getVoices().find(v => v.lang?.startsWith(LANGS[lang].tts));
+          if (v) u.voice = v;
+          u.onstart = () => this._state(true);
+          u.onend = u.onerror = () => { this._state(false); res(); };
+          speechSynthesis.speak(u);
+        } catch { this._state(false); res(); }
+      });
+    }
+  },
+  stop() {
+    try { CAP.tts?.stop(); } catch {}
+    try { speechSynthesis?.cancel(); } catch {}
+    this._state(false);
+  }
+};
+
+/* =========================================================
+   Prompts
+   ========================================================= */
+function profileContext(l) {
+  const d = S.data[l];
+  const weak = d.weaknesses.filter(w => w.count > 0).sort((a, b) => b.count - a.count).slice(0, 8)
+    .map(w => `- ${w.label} (vu ${w.count} fois${w.note ? " ; " + w.note : ""})`).join("\n") || "- aucun encore";
+  const strong = d.strengths.slice(-6).join(", ") || "aucun noté";
+  const last = d.sessions.slice(-3).map(s => `- ${fmtDate(s.date)} : ${s.summary}`).join("\n") || "- première séance";
+  const hw = d.homework.slice(-2).map(hw => `- "${hw.title}" (${hw.status === "done" ? "fait, score " + hw.score + "/10" : "pas encore fait"}) : ${hw.focus}`).join("\n") || "- aucun";
+  const vocab = d.vocab.slice(-25).map(v => v.word).join(", ") || "aucun";
+  return `PROFIL DE L'ÉLÈVE
+Prénom : ${S.profile.name}
+Langue maternelle : français
+Niveau actuel en ${LANGS[l].name.toLowerCase()} : ${d.level}
+Points faibles suivis (réutilise ces libellés exacts dans "category" quand ça correspond) :
+${weak}
+Points forts : ${strong}
+Dernières séances :
+${last}
+Derniers devoirs :
+${hw}
+Vocabulaire déjà vu récemment : ${vocab}`;
+}
+function levelBehaviour(l) {
+  const lvl = S.data[l].level, i = LEVELS.indexOf(lvl);
+  if (l === "es" && i <= 1) return `Niveau débutant complet. Parle en espagnol très simple : phrases de 3 à 8 mots, présent de l'indicatif, vocabulaire du quotidien. Mets TOUJOURS la traduction française de ta réplique dans "translation". Explique la grammaire en français, en une phrase. Introduis au maximum 2 mots nouveaux par réplique et liste-les dans "new_words". Si ${S.profile.name} répond en français ou bloque, donne-lui la phrase espagnole à répéter. Pose des questions fermées ou à choix ("¿Te gusta el café o el té?") pour l'aider à produire. Félicite chaque progrès, sans en faire trop.`;
+  if (i <= 3) return `Niveau ${lvl}. Parle en ${l === "es" ? "espagnol" : "anglais"} clair et naturel, phrases courtes à moyennes, en introduisant progressivement de nouveaux temps et tournures. Donne la traduction française dans "translation" seulement pour les phrases difficiles, sinon "". Explications en français.`;
+  return `Niveau avancé (${lvl}). Parle en ${l === "es" ? "espagnol" : "anglais"} natif, riche et idiomatique, comme avec un collègue cultivé : débats, nuances, humour, expressions idiomatiques, phrasal verbs, registres. "translation" = "". Corrige aussi ce qui est correct mais pas naturel : collocations, prépositions, faux amis, calques du français, registre, ordre des mots. Explique en français, de façon concise et précise. Pousse ${S.profile.name} vers un niveau C2.`;
+}
+function rules(l) {
+  return `Tu es Elena, professeure particulière d'espagnol et d'anglais (née à Séville, a vécu 10 ans à Londres), chaleureuse, drôle et exigeante. Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. La séance d'aujourd'hui est en ${LANGS[l].name.toLowerCase()}.${S.topic ? ` Thème choisi : ${S.topic}.` : ""}
+
+${profileContext(l)}
+
+COMMENT TU ENSEIGNES
+${levelBehaviour(l)}
+- Tu mènes une vraie conversation : réagis à ce que dit ${S.profile.name}, partage un peu de toi, puis relance avec UNE question.
+- "reply" est dit à voix haute : 1 à 4 phrases, pas de markdown, pas d'emoji, pas de listes. Appelle ${S.profile.name} par son prénom de temps en temps (pas à chaque réplique).
+- Corrige CHAQUE erreur de la dernière intervention de ${S.profile.name} dans "corrections" (tableau vide s'il n'y en a aucune). Une entrée par erreur : "original" = le passage fautif exact, "corrected" = la version correcte, "explanation" = la règle en français (1 phrase), "category" = libellé court et réutilisable du type d'erreur (ex. "ser / estar", "accord en genre", "present perfect vs prétérit", "prépositions", "faux amis").
+- Dans "reply", tu peux reprendre naturellement la bonne formulation (reformulation implicite), sans faire la leçon.
+- Les messages qui commencent par [oral] viennent de la reconnaissance vocale : ignore ponctuation, majuscules et accents manquants, mais corrige les vraies erreurs de grammaire et de vocabulaire.
+- Si ${S.profile.name} écrit en français, réponds-lui quand même dans la langue du cours et aide-le à le dire.
+- Fais le lien avec ses points faibles et ses devoirs quand c'est naturel : crée des occasions de pratiquer ces points.
+
+FORMAT : réponds uniquement avec un objet JSON :
+{"reply":"...","translation":"... ou \\"\\"","corrections":[{"original":"...","corrected":"...","explanation":"...","category":"..."}],"new_words":[{"word":"...","meaning":"traduction française"}]}`;
+}
+
+/* =========================================================
+   Router
+   ========================================================= */
+const app = () => $("#app");
+function render() {
+  if (!S.profile?.name) return renderOnboarding();
+  renderLobby();
+}
+
+/* ---------- onboarding ---------- */
+function renderOnboarding() {
+  const root = app(); root.replaceChildren();
+  const cv = h("canvas", { "data-mode": "portrait", style: "width:120px;height:120px;border-radius:50%;background:var(--call)" });
+  const form = h("form", { class: "onb-card", onsubmit: e => {
+      e.preventDefault();
+      const name = $("#onb-name").value.trim();
+      if (!name) { $("#onb-name").focus(); return; }
+      S.profile = { name, cur: "es" };
+      S.data.es = newLang($("#onb-es").value);
+      S.data.en = newLang($("#onb-en").value);
+      saveProfile(); saveLang("es"); saveLang("en");
+      render();
+    } },
+    cv,
+    h("div", null,
+      h("p", { class: "label", text: "Ta prof : Elena · Español & English" }),
+      h("h1", { text: "¡Hola! Comment tu t'appelles ?" })),
+    h("p", { class: "muted", text: "Elena te parle en visio, corrige chacune de tes erreurs et te donne des devoirs adaptés à tes points faibles à la fin de chaque séance." }),
+    h("div", { class: "field" }, h("label", { for: "onb-name", text: "Ton prénom" }), h("input", { id: "onb-name", autocomplete: "given-name", placeholder: "Ton prénom", required: true })),
+    h("div", { class: "onb-row" },
+      h("div", { class: "field" }, h("label", { for: "onb-en", text: "Niveau en anglais" }), levelSelect("onb-en", "C1")),
+      h("div", { class: "field" }, h("label", { for: "onb-es", text: "Niveau en espagnol" }), levelSelect("onb-es", "A0"))),
+    h("button", { class: "btn primary", type: "submit", text: "Commencer avec Elena" }),
+    !window.claude?.use ? h("p", { class: "notice", text: "Ouvre cette page dans Claude pour qu'Elena puisse parler : hors de Claude, elle n'a ni voix ni cerveau." }) : null
+  );
+  root.append(h("div", { class: "onb" }, form));
+  Avatar.mount(cv);
+  $("#onb-name").focus();
+}
+function levelSelect(id, val) {
+  const labels = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A2 · élémentaire", B1: "B1 · intermédiaire", B2: "B2 · avancé", C1: "C1 · autonome", C2: "C2 · maîtrise" };
+  return h("select", { id }, LEVELS.map(l => h("option", { value: l, selected: l === val, text: labels[l] })));
+}
+
+/* ---------- lobby ---------- */
+function renderLobby() {
+  const l = S.cur = S.profile.cur || "es";
+  const d = S.data[l];
+  const root = app(); root.replaceChildren();
+  const brandCv = h("canvas", { "data-mode": "portrait" });
+  const joinCv = h("canvas", { "data-mode": "portrait" });
+  const minutes = d.sessions.reduce((a, s) => a + (s.minutes || 0), 0);
+  const pending = d.homework.filter(x => x.status !== "done");
+
+  const tab = (code) => h("button", {
+    class: "lang-tab " + code, "aria-pressed": String(code === l), onclick: () => { S.profile.cur = code; S.topic = null; saveProfile(); renderLobby(); }
+  }, h("span", { class: "label", text: LANGS[code].name }), h("b", { text: LANGS[code].native }), h("span", { class: "muted", text: "Niveau " + S.data[code].level }));
+
+  const topics = h("div", { class: "chips", role: "group", "aria-label": "Thème" },
+    LANGS[l].topics.map(tp => h("button", { class: "chip", "aria-pressed": String(S.topic === tp), onclick: e => {
+      S.topic = S.topic === tp ? null : tp;
+      topics.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c.textContent === S.topic)));
+    }, text: tp })));
+
+  const greet = l === "es" ? `¡Hola, ${S.profile.name}!` : `Hi ${S.profile.name}!`;
+  const sub = d.sessions.length
+    ? (pending.length ? `Tu as ${pending.length} devoir${pending.length > 1 ? "s" : ""} à rendre en ${LANGS[l].name.toLowerCase()}.` : `Dernière séance le ${fmtDate(d.sessions.at(-1).date)}. Prêt pour la suivante ?`)
+    : `Première séance de ${LANGS[l].name.toLowerCase()} avec Elena.`;
+
+  root.append(h("div", { class: "wrap" },
+    h("header", { class: "top" },
+      h("div", { class: "brand" }, brandCv, h("div", null, h("h1", { text: "Clase con Elena" }), h("span", { class: "label", text: Store.online ? "Progrès sauvegardés sur ton compte" : "Progrès sauvegardés sur cet appareil" }))),
+      h("div", { class: "lang-tabs" }, tab("es"), tab("en"))),
+    h("h2", { class: "hello", text: greet }),
+    h("p", { class: "muted", text: sub }),
+    h("div", { class: "grid" },
+      h("div", { style: "display:flex;flex-direction:column;gap:20px;min-width:0" },
+        h("section", { class: "panel join" },
+          h("div", { class: "join-stage" }, joinCv,
+            h("div", { style: "display:flex;flex-direction:column;gap:12px;min-width:0" },
+              h("span", { class: "label", text: "Elena est en ligne" }),
+              h("h2", { text: l === "es" ? "Rejoins ta séance d'espagnol" : "Rejoins ta séance d'anglais" }),
+              h("p", { style: "margin:0;color:var(--call-muted)", text: "Choisis un thème ou laisse Elena décider." }),
+              topics,
+              h("button", { class: "btn primary", onclick: startCall, disabled: !CAP.sample, text: "Rejoindre l'appel" }),
+              !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec Elena." : "Ouvre cette page dans Claude pour lancer la visio." }) : null,
+              !CAP.dictation && CAP.sample ? h("p", { style: "margin:0;color:var(--call-muted);font-size:13px", text: "Micro indisponible dans ce navigateur : tu pourras écrire tes réponses. Pour parler, utilise Chrome ou l'app Claude sur ordinateur." }) : null))),
+        homeworkPanel(l)),
+      h("div", { style: "display:flex;flex-direction:column;gap:20px;min-width:0" },
+        h("section", { class: "panel" },
+          h("div", { style: "display:flex;justify-content:space-between;align-items:center;gap:8px" },
+            h("h2", { text: "Ta progression" }),
+            levelEditor(l)),
+          h("div", { class: "stats" },
+            h("div", { class: "stat" }, h("b", { text: d.level }), h("span", { class: "label", text: "Niveau" })),
+            h("div", { class: "stat" }, h("b", { text: d.sessions.length }), h("span", { class: "label", text: "Séances" })),
+            h("div", { class: "stat" }, h("b", { text: minutes }), h("span", { class: "label", text: "Minutes" }))),
+          h("h3", { style: "font-size:15px;margin-top:4px", text: "Points faibles suivis" }),
+          weakList(d),
+          d.strengths.length ? h("div", null, h("h3", { style: "font-size:15px;margin-bottom:6px", text: "Points forts" }), h("p", { style: "margin:0", class: "muted", text: d.strengths.slice(-8).join(" · ") })) : null,
+          d.vocab.length ? h("div", null, h("h3", { style: "font-size:15px;margin-bottom:8px", text: `Vocabulaire (${d.vocab.length} mots)` }),
+            h("div", { class: "vocab" }, d.vocab.slice(-24).reverse().map(v => h("span", null, v.word + " ", h("em", { text: v.meaning }))))) : null),
+        h("section", { class: "panel" },
+          h("h2", { text: "Historique" }),
+          d.sessions.length ? h("div", { class: "hist" }, d.sessions.slice(-6).reverse().map(s =>
+            h("div", { class: "hist-item" }, h("time", { text: `${fmtDate(s.date)} · ${s.minutes} min · ${s.errors} erreur${s.errors > 1 ? "s" : ""}` }), h("p", { style: "margin:2px 0 0", text: s.summary }))))
+            : h("p", { class: "empty", text: "Tes séances apparaîtront ici, avec le résumé d'Elena." }),
+          h("button", { class: "btn", style: "align-self:flex-start", onclick: e => renameFlow(e), text: "Changer de prénom" })))
+    )));
+  Avatar.mount(brandCv); Avatar.mount(joinCv);
+}
+function levelEditor(l) {
+  const sel = levelSelect("lvl-" + l, S.data[l].level);
+  sel.style.cssText = "background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 8px";
+  sel.setAttribute("aria-label", "Modifier le niveau");
+  sel.onchange = () => { S.data[l].level = sel.value; saveLang(l); renderLobby(); toast("Niveau mis à jour : Elena va s'adapter."); };
+  return sel;
+}
+function renameFlow(ev) {
+  const panel = ev.target.closest(".panel");
+  if (panel.querySelector(".rename")) return;
+  const input = h("input", { id: "rename-name", value: S.profile.name, "aria-label": "Nouveau prénom" });
+  const f = h("form", { class: "rename field", onsubmit: e => { e.preventDefault(); const v = input.value.trim(); if (v) { S.profile.name = v; saveProfile(); renderLobby(); } } },
+    input, h("button", { class: "btn primary", type: "submit", text: "Enregistrer" }));
+  panel.append(f); input.focus();
+}
+function weakList(d) {
+  const list = d.weaknesses.filter(w => w.count > 0 || w.trend === "better").sort((a, b) => b.count - a.count).slice(0, 7);
+  if (!list.length) return h("p", { class: "empty", text: "Elena repère tes erreurs récurrentes pendant les séances et les suit ici." });
+  const max = Math.max(...list.map(w => w.count), 1);
+  return h("div", { class: "weak" }, list.map(w => h("div", { class: "weak-row" + (w.trend === "better" ? " better" : "") },
+    h("div", { style: "min-width:0" }, h("span", { text: w.label }), h("small", { text: (w.trend === "better" ? "En progrès · " : "") + (w.note || `${w.count} occurrence${w.count > 1 ? "s" : ""}`) })),
+    h("div", { class: "bar", title: w.count + " occurrences" }, h("i", { style: `width:${Math.max(8, w.count / max * 100)}%` })))));
+}
+
+/* ---------- homework ---------- */
+function homeworkPanel(l) {
+  const d = S.data[l];
+  const list = d.homework.slice().reverse().slice(0, 4);
+  return h("section", { class: "panel" },
+    h("h2", { text: "Devoirs" }),
+    list.length ? list.map(hw => homeworkCard(l, hw)) : h("p", { class: "empty", text: "À la fin de chaque séance, Elena te prépare des exercices ciblés sur tes erreurs. Ils arriveront ici." }));
+}
+function homeworkCard(l, hw) {
+  const open = hw.status !== "done" && hw === S.data[l].homework.filter(x => x.status !== "done").at(-1);
+  const body = h("div", { hidden: !open });
+  const card = h("article", { class: "hw" },
+    h("div", { class: "hw-head" },
+      h("div", { style: "min-width:0" }, h("h3", { style: "font-size:17px", text: hw.title }), h("p", { class: "muted", style: "margin:2px 0 0;font-size:14px", text: hw.focus })),
+      h("span", { class: "pill " + (hw.status === "done" ? "done" : "todo"), text: hw.status === "done" ? `Fait · ${hw.score}/10` : `À rendre · ${fmtDate(hw.date)}` })),
+    h("button", { class: "btn", style: "align-self:flex-start;padding:6px 12px;font-size:13px", "aria-expanded": String(open), onclick: e => {
+      body.hidden = !body.hidden; e.target.setAttribute("aria-expanded", String(!body.hidden)); e.target.textContent = body.hidden ? "Voir les exercices" : "Masquer";
+    }, text: open ? "Masquer" : "Voir les exercices" }),
+    body);
+  hw.exercises.forEach((ex, i) => {
+    const id = `ex-${hw.id}-${i}`;
+    let input;
+    if (ex.type === "qcm" && Array.isArray(ex.options)) {
+      input = h("div", { class: "opts", role: "radiogroup" }, ex.options.map((o, j) => h("label", null,
+        h("input", { type: "radio", name: id, value: o, checked: ex.answer === o, disabled: hw.status === "done" }), o)));
+    } else {
+      input = h("textarea", { id, rows: ex.type === "write" ? 4 : 1, placeholder: ex.hint || "Ta réponse", disabled: hw.status === "done" });
+      input.value = ex.answer || "";
+      input.addEventListener("input", () => { ex.answer = input.value; saveDraft(l); });
+    }
+    if (ex.type === "qcm") input.addEventListener("change", e => { ex.answer = e.target.value; saveDraft(l); });
+    body.append(h("div", { class: "ex" },
+      h("label", { for: id, style: "font-weight:600" }, `${i + 1}. `, ex.prompt),
+      ex.hint && ex.type !== "write" ? h("small", { class: "muted", text: "Indice : " + ex.hint }) : null,
+      input,
+      ex.feedback ? h("div", { class: "fb " + (ex.correct ? "good" : "bad") }, ex.correct ? "Correct. " : "À revoir. ", ex.feedback) : null));
+  });
+  if (hw.status !== "done") {
+    const btn = h("button", { class: "btn primary", style: "align-self:flex-start;margin-top:6px", text: "Rendre mes devoirs à Elena" });
+    btn.onclick = () => gradeHomework(l, hw, btn);
+    body.append(btn);
+  } else if (hw.comment) body.append(h("p", { class: "notice", text: "Elena : " + hw.comment }));
+  return card;
+}
+let draftTimer;
+function saveDraft(l) { clearTimeout(draftTimer); draftTimer = setTimeout(() => saveLang(l), 900); }
+async function gradeHomework(l, hw, btn) {
+  if (!CAP.sample) { toast("Ouvre cette page dans Claude pour faire corriger tes devoirs."); return; }
+  if (hw.exercises.every(ex => !ex.answer?.trim())) { toast("Réponds à au moins un exercice avant de rendre."); return; }
+  btn.disabled = true; btn.textContent = "Elena corrige…";
+  const prompt = `Tu es Elena, professeure de ${LANGS[l].name.toLowerCase()} de ${S.profile.name} (niveau ${S.data[l].level}, francophone). Corrige ses devoirs.
+
+${profileContext(l)}
+
+DEVOIR : "${hw.title}" — objectif : ${hw.focus}
+${hw.exercises.map((ex, i) => `${i + 1}. [${ex.type}] ${ex.prompt}${ex.options ? " (choix : " + ex.options.join(" / ") + ")" : ""}${ex.expected ? "\n   Réponse attendue : " + ex.expected : ""}\n   Réponse de l'élève : ${ex.answer?.trim() || "(pas de réponse)"}`).join("\n")}
+
+Pour chaque exercice : "correct" (true si juste ou acceptable), "feedback" en français (1-2 phrases : la bonne réponse et pourquoi ; pour une production écrite, réécris la version corrigée). Puis une note globale sur 10, un commentaire encourageant en français adressé à ${S.profile.name} (2 phrases), et la mise à jour des points faibles.
+Réponds uniquement en JSON :
+{"results":[{"correct":true,"feedback":"..."}],"score":7,"comment":"...","weakness_updates":[{"label":"libellé existant ou nouveau","delta":1,"note":"court"}],"strengths":["..."]}
+delta = +1 si l'erreur persiste, -1 si le point est maîtrisé.`;
+  try {
+    const r = await CAP.sample.json(prompt, { cache: false });
+    (r.results || []).forEach((res, i) => { if (hw.exercises[i]) { hw.exercises[i].correct = !!res.correct; hw.exercises[i].feedback = String(res.feedback || ""); } });
+    hw.score = Math.max(0, Math.min(10, Math.round(Number(r.score) || 0)));
+    hw.comment = String(r.comment || "");
+    hw.status = "done"; hw.doneAt = today();
+    applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths);
+    saveLang(l); renderLobby(); toast(`Devoirs corrigés : ${hw.score}/10`);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Rendre mes devoirs à Elena"; toast(errCopy(e));
+  }
+}
+function applyWeakness(l, ups) {
+  const d = S.data[l];
+  for (const u of Array.isArray(ups) ? ups : []) {
+    const label = String(u.label || "").trim(); if (!label) continue;
+    let w = d.weaknesses.find(x => x.label.toLowerCase() === label.toLowerCase());
+    if (!w) { w = { label, count: 0, first: today() }; d.weaknesses.push(w); }
+    const delta = Number(u.delta) || 0;
+    w.count = Math.max(0, w.count + delta);
+    w.trend = delta < 0 ? "better" : delta > 0 ? "worse" : w.trend;
+    if (u.note) w.note = String(u.note).slice(0, 120);
+    w.last = today();
+  }
+  d.weaknesses = d.weaknesses.filter(w => w.count > 0 || w.trend === "better").slice(-40);
+}
+function addStrengths(l, arr) {
+  const d = S.data[l];
+  for (const s of Array.isArray(arr) ? arr : []) { const v = String(s).trim(); if (v && !d.strengths.includes(v)) d.strengths.push(v); }
+  d.strengths = d.strengths.slice(-20);
+}
+
+/* =========================================================
+   The call
+   ========================================================= */
+const C = { turns: [], log: [], errors: [], words: [], start: 0, timer: 0, busy: false, ctl: null, finals: [], showTr: true, captions: true, listening: false, lastReply: null };
+
+function startCall() {
+  Object.assign(C, { turns: [], log: [], errors: [], words: [], start: Date.now(), busy: false, finals: [], listening: false, lastReply: null });
+  const l = S.cur;
+  const cv = h("canvas", { class: "teacher" });
+  const initials = S.profile.name.trim().slice(0, 2).toUpperCase();
+  const micBtn = h("button", { class: "cbtn mic", id: "mic", "aria-label": "Parler", disabled: !CAP.dictation });
+  micBtn.innerHTML = ICON.mic;
+  const mk = (id, icon, label, fn) => { const b = h("button", { class: "cbtn", id, "aria-label": label, onclick: fn }); b.innerHTML = icon; return h("div", { class: "cbtn-wrap" }, b, h("span", { text: label })); };
+  const endBtn = h("button", { class: "cbtn end", "aria-label": "Raccrocher", onclick: endCall }); endBtn.innerHTML = ICON.end;
+
+  const view = h("div", { class: "call", role: "dialog", "aria-label": "Visio avec Elena" },
+    h("div", { class: "call-top" },
+      h("div", null, h("div", { style: "font:600 16px var(--f-display)", text: `Elena · ${LANGS[l].native}` }), h("span", { class: "label", text: S.topic || (l === "es" ? "Conversación" : "Conversation") })),
+      h("div", { class: "rec" }, h("i"), h("span", { id: "clock", text: "00:00" }))),
+    h("div", { class: "call-body" },
+      h("div", { class: "stage" }, cv,
+        h("div", { class: "self", id: "self" }, h("div", { class: "avatar", text: initials }), h("small", { text: S.profile.name })),
+        h("div", { class: "captions", id: "captions", "aria-live": "off" }),
+        h("div", { class: "tag", id: "tag" }, h("i", { class: "dot" }), h("span", { id: "tag-text", text: "Elena" }))),
+      h("aside", { class: "side" },
+        h("div", { class: "side-head" }, h("span", { class: "label", text: "Transcription & corrections" }),
+          h("div", { class: "toggles" },
+            h("button", { class: "tgl", "aria-pressed": String(C.captions), onclick: e => { C.captions = !C.captions; e.target.setAttribute("aria-pressed", String(C.captions)); $("#captions").hidden = !C.captions; }, text: "Sous-titres" }),
+            h("button", { class: "tgl", "aria-pressed": String(C.showTr), onclick: e => { C.showTr = !C.showTr; e.target.setAttribute("aria-pressed", String(C.showTr)); document.querySelectorAll(".tr,.captions small").forEach(x => x.hidden = !C.showTr); }, text: "Traduction" }))),
+        h("div", { class: "log", id: "log", "aria-live": "polite" }),
+        h("form", { class: "compose", onsubmit: e => { e.preventDefault(); const i = $("#typed"); const v = i.value.trim(); if (v) { i.value = ""; userSays(v, false); } } },
+          h("input", { id: "typed", placeholder: l === "es" ? "Escribe aquí… (ou en français si tu bloques)" : "Type here…", autocomplete: "off" }),
+          h("button", { type: "submit", text: "Envoyer" })))),
+    h("div", { class: "controls" },
+      mk("repeat", ICON.repeat, "Répéter", () => { if (C.lastReply) Voice.speak(C.lastReply, l); }),
+      mk("slow", ICON.slow, "Plus lent", e => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? "Elena parlera plus lentement." : "Vitesse normale."); }),
+      h("div", { class: "cbtn-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Parler" : "Micro indisponible" })),
+      mk("help", ICON.help, "Je bloque", () => userSays(l === "es" ? "(Je ne sais pas comment dire ça, aide-moi : donne-moi un exemple de réponse simple à répéter.)" : "(I'm stuck, give me a hint or a model answer.)", false, true)),
+      h("div", { class: "cbtn-wrap" }, endBtn, h("span", { text: "Raccrocher" }))));
+  document.body.append(view);
+  Avatar.mount(cv);
+  Voice.stateCb = on => {
+    const tag = $("#tag"); if (!tag) return;
+    tag.className = "tag" + (on ? " speaking" : C.busy ? " thinking" : "");
+    $("#tag-text").textContent = on ? "Elena parle…" : C.busy ? "Elena réfléchit…" : "Elena";
+  };
+  C.timer = setInterval(() => { const s = Math.floor((Date.now() - C.start) / 1000); const c = $("#clock"); if (c) c.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }, 1000);
+  setupMic(micBtn);
+  teacherTurn(`[La séance commence. Salue ${S.profile.name} par son prénom, comme au début d'une visio. Si un devoir a été donné, demande brièvement comment ça s'est passé. Puis lance la conversation${S.topic ? " sur le thème « " + S.topic + " »" : " sur un sujet adapté à son niveau et à ses points faibles"}. Pas de correction pour ce message.]`, true);
+}
+
+function setupMic(btn) {
+  const d = CAP.dictation; if (!d) return;
+  const self = $("#self");
+  let partialEl = null;
+  const offs = [
+    d.onPartial(({ text }) => {
+      if (!partialEl) { partialEl = h("div", { class: "partial" }); $("#log")?.append(partialEl); }
+      partialEl.textContent = [...C.finals, text].join(" ");
+      scrollLog();
+    }),
+    d.onFinal(({ text }) => { if (text.trim()) C.finals.push(text.trim()); if (partialEl) partialEl.textContent = C.finals.join(" "); }),
+    d.onState(({ state, reason }) => {
+      const live = state === "listening" || state === "starting";
+      C.listening = live;
+      btn.classList.toggle("live", live); btn.innerHTML = live ? ICON.stop : ICON.mic;
+      btn.setAttribute("aria-label", live ? "Arrêter et envoyer" : "Parler");
+      const lab = $("#mic-label"); if (lab) lab.textContent = live ? "J'écoute… (appuie pour envoyer)" : "Parler";
+      self?.classList.toggle("live", live);
+      Avatar.set({ listening: live });
+      if (state === "idle") {
+        partialEl?.remove(); partialEl = null;
+        const said = C.finals.join(" ").trim(); C.finals = [];
+        if (said) userSays(said, true);
+        if (reason === "not_granted") { btn.disabled = true; if (lab) lab.textContent = "Micro refusé"; toast("Micro refusé : tu peux écrire tes réponses."); }
+      }
+    })
+  ];
+  C.micOffs = offs;
+  btn.onclick = () => {
+    if (C.listening) { d.stop().catch(() => {}); return; }
+    Voice.stop();
+    C.finals = [];
+    d.start({ language: LANGS[S.cur].stt }).catch(e => {
+      if (e?.code === "not_granted") { btn.disabled = true; toast("Micro refusé : tu peux écrire tes réponses."); }
+      else if (e?.code === "dismissed") toast("Autorise le micro pour parler avec Elena.");
+      else if (e?.code !== "stopped") toast("Le micro n'a pas démarré. Réessaie ou écris ta réponse.");
+    });
+  };
+}
+
+function scrollLog() { const lg = $("#log"); if (lg) lg.scrollTop = lg.scrollHeight; }
+
+function userSays(text, oral, isHelp) {
+  if (C.busy) { toast("Attends qu'Elena ait répondu."); return; }
+  const bubble = h("div", { class: "msg u" + (isHelp ? " help" : "") }, h("span", { class: "who", text: S.profile.name }), h("div", { class: "bubble", text: text }));
+  $("#log")?.append(bubble); scrollLog();
+  if (!isHelp) C.log.push({ who: "student", text });
+  teacherTurn((oral ? "[oral] " : "") + text, false, bubble);
+}
+
+async function teacherTurn(content, opening, userBubble) {
+  const l = S.cur;
+  C.busy = true;
+  Avatar.set({ thinking: true }); Voice.stateCb?.(false);
+  const typing = h("div", { class: "typing", text: "Elena réfléchit…" });
+  $("#log")?.append(typing); scrollLog();
+  C.turns.push({ role: "user", content });
+  // keep the conversation compact: instructions + last 24 turns
+  const recent = C.turns.slice(-24);
+  while (recent.length && recent[0].role !== "user") recent.shift();
+  const input = [{ role: "user", content: rules(l) }, ...recent];
+  input[input.length - 1] = { role: "user", content: input.at(-1).content + "\n\n(Réponds avec l'objet JSON demandé.)" };
+  if (input.length >= 2 && input[1].role === "user") input.splice(0, 2, { role: "user", content: input[0].content + "\n\n---\n\n" + input[1].content });
+  C.ctl = new AbortController();
+  try {
+    const r = await CAP.sample.json(input, { modelTier: "quick", cache: false, signal: C.ctl.signal });
+    typing.remove();
+    const reply = String(r?.reply || "").trim() || "…";
+    const tr = String(r?.translation || "").trim();
+    const fixes = (Array.isArray(r?.corrections) ? r.corrections : []).filter(c => c && c.original && c.corrected && String(c.original).trim() !== String(c.corrected).trim());
+    const words = (Array.isArray(r?.new_words) ? r.new_words : []).filter(w => w && w.word);
+    C.turns.push({ role: "assistant", content: reply });
+    C.lastReply = reply;
+    if (userBubble && !opening && !userBubble.classList.contains("help")) {
+      if (fixes.length) fixes.forEach(f => {
+        userBubble.append(h("div", { class: "fix" },
+          h("div", null, h("del", { text: f.original }), "  →  ", h("ins", { text: f.corrected })),
+          f.explanation ? h("p", { text: f.explanation }) : null));
+        C.errors.push({ original: String(f.original), corrected: String(f.corrected), explanation: String(f.explanation || ""), category: String(f.category || "divers") });
+      });
+      else if (C.log.length) userBubble.append(h("div", { class: "fix ok" }, h("p", { text: l === "es" ? "¡Perfecto! Aucune erreur." : "Spot on. No mistakes." })));
+    }
+    words.forEach(w => C.words.push({ word: String(w.word), meaning: String(w.meaning || "") }));
+    C.log.push({ who: "teacher", text: reply });
+    const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: "Elena" }), h("div", { class: "bubble", text: reply }),
+      tr ? h("div", { class: "tr", hidden: !C.showTr, text: tr }) : null,
+      words.length ? h("div", { class: "words" }, words.map(w => h("span", { text: `${w.word} = ${w.meaning}` }))) : null);
+    $("#log")?.append(msg); scrollLog();
+    const cap = $("#captions");
+    if (cap) { cap.replaceChildren(h("span", { text: reply }), tr ? h("small", { hidden: !C.showTr }, h("span", { text: tr })) : ""); }
+    C.busy = false;
+    Avatar.set({ thinking: false });
+    await Voice.speak(reply, l);
+  } catch (e) {
+    typing.remove();
+    C.turns.pop();
+    C.busy = false; Avatar.set({ thinking: false }); Voice.stateCb?.(false);
+    if (e?.code === "cancelled") return;
+    $("#log")?.append(h("div", { class: "typing", text: errCopy(e) })); scrollLog();
+    if (e?.code === "not_granted") { $("#mic") && ($("#mic").disabled = true); }
+  }
+}
+
+function closeCall() {
+  clearInterval(C.timer);
+  C.ctl?.abort();
+  Voice.stop();
+  try { if (CAP.dictation?.active()) CAP.dictation.stop(); } catch {}
+  (C.micOffs || []).forEach(f => { try { f(); } catch {} });
+  Avatar.set({ listening: false, thinking: false, speaking: false });
+  document.querySelector(".call")?.remove();
+}
+
+async function endCall() {
+  const l = S.cur;
+  const minutes = Math.max(1, Math.round((Date.now() - C.start) / 60000));
+  const studentTurns = C.log.filter(x => x.who === "student").length;
+  closeCall();
+  if (studentTurns < 2) { toast("Séance trop courte pour un bilan. À bientôt !"); renderLobby(); return; }
+  const card = h("div", { class: "report", role: "dialog", "aria-label": "Bilan de séance" },
+    h("div", { style: "display:flex;gap:14px;align-items:center" }, h("div", { class: "spinner" }),
+      h("div", null, h("h2", { text: "Elena prépare ton bilan" }), h("p", { class: "muted", style: "margin:0", text: "Résumé, erreurs à retenir et devoirs adaptés à tes points faibles. Ça peut prendre une minute." }))));
+  const ov = h("div", { class: "overlay" }, card);
+  document.body.append(ov);
+  const d = S.data[l];
+  const transcript = C.log.map(x => (x.who === "student" ? S.profile.name : "Elena") + " : " + x.text).join("\n").slice(-14000);
+  const errs = C.errors.map(e => `- « ${e.original} » → « ${e.corrected} » [${e.category}] ${e.explanation}`).join("\n").slice(-6000) || "- aucune erreur relevée";
+  const prompt = `Tu es Elena, professeure particulière de ${LANGS[l].name.toLowerCase()}. La séance en visio avec ${S.profile.name} vient de se terminer (${minutes} min). Rédige le bilan et les devoirs.
+
+${profileContext(l)}
+
+TRANSCRIPTION
+${transcript}
+
+ERREURS CORRIGÉES PENDANT LA SÉANCE
+${errs}
+
+À FAIRE
+1. "summary" : 1 phrase en français, ce qu'on a fait (pour l'historique).
+2. "message" : 2-3 phrases chaleureuses adressées à ${S.profile.name} en français : ce qui s'est bien passé, ce qu'il faut travailler.
+3. "top_mistakes" : les 3 à 5 erreurs les plus importantes à retenir (forme correcte + règle courte).
+4. "weakness_updates" : mets à jour les points faibles. Réutilise les libellés existants quand c'est le même type d'erreur. delta = nombre d'occurrences aujourd'hui (positif), ou -1 pour un point faible existant que ${S.profile.name} a bien utilisé aujourd'hui.
+5. "strengths" : 0 à 3 points forts nouveaux et précis.
+6. "level" : niveau CECRL estimé (${LEVELS.join(", ")}). Ne change le niveau actuel (${d.level}) que si la séance le justifie clairement ; progression d'un cran maximum.
+7. "homework" : des devoirs CIBLÉS sur les points faibles les plus fréquents (anciens et nouveaux), adaptés au niveau : 5 à 7 exercices variés. Types : "fill" (phrase à trous avec ___), "translate" (traduire du français vers la langue du cours), "qcm" (avec "options", 3 choix), "write" (petite production : ${LEVELS.indexOf(d.level) <= 1 ? "2-3 phrases simples" : "un paragraphe de 80-120 mots"} sur un sujet lié à la séance). Mets la réponse attendue dans "expected" (sauf pour "write"). Consignes en français.
+8. "next_goal" : l'objectif de la prochaine séance, en une phrase.
+
+Réponds uniquement en JSON :
+{"summary":"...","message":"...","top_mistakes":[{"wrong":"...","right":"...","rule":"..."}],"weakness_updates":[{"label":"...","delta":2,"note":"..."}],"strengths":["..."],"level":"${d.level}","homework":{"title":"...","focus":"points travaillés","exercises":[{"type":"fill","prompt":"...","hint":"...","expected":"..."},{"type":"qcm","prompt":"...","options":["...","...","..."],"expected":"..."}]},"next_goal":"..."}`;
+  let r;
+  try { r = await CAP.sample.json(prompt, { cache: false }); }
+  catch (e) {
+    // keep a minimal record even without a report
+    d.sessions.push({ date: today(), minutes, errors: C.errors.length, summary: `Conversation${S.topic ? " : " + S.topic : ""} (bilan non généré)` });
+    applyWeakness(l, Object.entries(C.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
+    saveLang(l);
+    card.replaceChildren(h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs de la séance ont quand même été ajoutées à tes points faibles." }),
+      h("button", { class: "btn primary", onclick: () => { ov.remove(); renderLobby(); }, text: "Retour" }));
+    return;
+  }
+  const oldLevel = d.level;
+  if (LEVELS.includes(r.level)) d.level = r.level;
+  applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths);
+  const seen = new Set(d.vocab.map(v => v.word.toLowerCase()));
+  C.words.forEach(w => { if (!seen.has(w.word.toLowerCase())) { d.vocab.push(w); seen.add(w.word.toLowerCase()); } });
+  d.vocab = d.vocab.slice(-150);
+  d.sessions.push({ date: today(), minutes, errors: C.errors.length, summary: String(r.summary || "Conversation"), next: String(r.next_goal || "") });
+  d.sessions = d.sessions.slice(-30);
+  const hwIn = r.homework;
+  if (hwIn && Array.isArray(hwIn.exercises) && hwIn.exercises.length) {
+    d.homework.push({ id: uid(), date: today(), title: String(hwIn.title || "Devoirs"), focus: String(hwIn.focus || ""), status: "todo",
+      exercises: hwIn.exercises.slice(0, 8).map(ex => ({ type: ["fill", "translate", "qcm", "write"].includes(ex.type) ? ex.type : "translate", prompt: String(ex.prompt || ""), hint: ex.hint ? String(ex.hint) : "", options: Array.isArray(ex.options) ? ex.options.map(String).slice(0, 5) : undefined, expected: ex.expected ? String(ex.expected) : "" })) });
+    d.homework = d.homework.slice(-12);
+  }
+  saveLang(l);
+  const mistakes = Array.isArray(r.top_mistakes) ? r.top_mistakes : [];
+  card.replaceChildren(
+    h("span", { class: "label", text: `Bilan · ${minutes} min · ${C.errors.length} correction${C.errors.length > 1 ? "s" : ""}` }),
+    h("h2", { text: l === "es" ? `¡Buen trabajo, ${S.profile.name}!` : `Well done, ${S.profile.name}!` }),
+    h("p", { style: "margin:0", text: String(r.message || "") }),
+    d.level !== oldLevel ? h("p", { class: "notice", text: `Nouveau niveau estimé : ${oldLevel} → ${d.level}` }) : null,
+    mistakes.length ? h("div", null, h("h3", { style: "font-size:16px;margin-bottom:8px", text: "À retenir" }),
+      h("div", { style: "display:flex;flex-direction:column;gap:8px" }, mistakes.map(m => h("div", { class: "hw" },
+        h("div", null, h("del", { style: "color:var(--err)", text: String(m.wrong || "") }), "  →  ", h("strong", { style: "color:var(--ok)", text: String(m.right || "") })),
+        m.rule ? h("small", { class: "muted", text: String(m.rule) }) : null)))) : null,
+    hwIn?.exercises?.length ? h("p", { class: "notice", text: `Devoirs : « ${hwIn.title} », ${hwIn.exercises.length} exercices ciblés sur ${hwIn.focus}. Tu les trouveras dans ton carnet.` }) : null,
+    r.next_goal ? h("p", { class: "muted", style: "margin:0", text: "Prochaine séance : " + r.next_goal }) : null,
+    h("button", { class: "btn primary", style: "align-self:flex-start", onclick: () => { ov.remove(); renderLobby(); }, text: "Voir mes devoirs" }));
+}
+
+/* =========================================================
+   Boot
+   ========================================================= */
+(async function boot() {
+  await initCaps();
+  await Store.init();
+  await loadAll();
+  if (S.profile?.name) {
+    S.data.es = S.data.es || newLang("A0");
+    S.data.en = S.data.en || newLang("C1");
+  }
+  Voice.init();
+  render();
+})();
+</script>
