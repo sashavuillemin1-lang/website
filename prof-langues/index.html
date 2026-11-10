@@ -177,6 +177,38 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--surface-2);border-top-color:var(--accent);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .notice{background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:14px}
+/* skills, sound check, flashcards, analysis states */
+.skills{display:flex;flex-direction:column;gap:8px}
+.skill{display:grid;grid-template-columns:110px minmax(0,1fr) 34px;gap:10px;align-items:center;font-size:14px}
+.skill .bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.skill .bar i{display:block;height:100%;background:var(--sky)}
+.skill b{font:500 12px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.lvl-note{font-size:13px;color:var(--muted);margin:0}
+.check{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.check .status{font-size:13px;color:var(--muted);flex-basis:100%}
+.check .status.ok{color:var(--ok)}
+.check .status.bad{color:var(--err)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.vocab-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.box-dots{display:inline-flex;gap:2px;margin-left:4px;vertical-align:middle}
+.box-dots i{width:5px;height:5px;border-radius:50%;background:var(--line)}
+.box-dots i.on{background:var(--ok)}
+.flash{background:var(--surface);color:var(--fg);border-radius:20px;max-width:520px;width:100%;padding:24px;display:flex;flex-direction:column;gap:14px}
+.flash .prompt{font:700 clamp(22px,4vw,30px)/1.2 var(--f-display);text-wrap:balance}
+.flash input{font-size:18px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.flash .res{border-radius:10px;padding:10px 12px}
+.flash .res.good{background:var(--ok-bg)}
+.flash .res.bad{background:var(--err-bg)}
+.flash .res.mid{background:var(--surface-2)}
+.flash-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.checking{font-size:12px;color:var(--call-muted);font-style:italic}
+.fix.better{background:#2b261a;border-color:rgba(240,192,90,.3)}
+.fix.better ins{color:#f3d48f}
+.fix .k{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted)}
+.gap-chip{font-size:12px;background:rgba(108,182,201,.15);color:#a8d8e6;border-radius:6px;padding:2px 7px}
+.retry{align-self:flex-start;background:transparent;border:1px solid rgba(255,255,255,.25);color:var(--call-fg);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
+.diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
   .controls{gap:8px;padding:10px 8px 12px;flex-wrap:nowrap}
@@ -207,14 +239,17 @@ function h(tag, attrs, ...kids) {
   return el;
 }
 const uid = () => Math.random().toString(36).slice(2, 10);
+const now = () => Date.now();
 const today = () => new Date().toISOString();
+const str = v => (v == null ? "" : String(v)).trim();
+const arr = v => (Array.isArray(v) ? v : []);
 const fmtDate = iso => { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch { return ""; } };
 let toastTimer;
 function toast(msg) {
   document.querySelector(".toast")?.remove();
   const t = h("div", { class: "toast", role: "status", text: msg });
   document.body.append(t);
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 3800);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 4000);
 }
 const ICON = {
   mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
@@ -222,7 +257,8 @@ const ICON = {
   end: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-3.3 0-6.3 1-8.6 2.7-.6.4-.8 1.2-.4 1.8l1.4 2.2c.4.6 1.1.8 1.7.5l2.5-1.1c.5-.2.8-.7.8-1.3v-1.6c.8-.3 1.7-.4 2.6-.4s1.8.1 2.6.4v1.6c0 .6.3 1.1.8 1.3l2.5 1.1c.6.3 1.3.1 1.7-.5l1.4-2.2c.4-.6.2-1.4-.4-1.8C18.3 10 15.3 9 12 9z"/></svg>',
   repeat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg>',
   slow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>',
-  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>'
+  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>',
+  mute: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>'
 };
 
 /* =========================================================
@@ -232,17 +268,22 @@ const CAP = { sample: null, tts: null, dictation: null, db: null, user: null };
 async function initCaps() {
   if (!window.claude?.use) return;
   const names = Object.keys(CAP);
-  const res = await Promise.all(names.map(n => window.claude.use(n).catch(() => null)));
+  const res = await Promise.all(names.map(n => Promise.resolve().then(() => window.claude.use(n)).catch(() => null)));
   names.forEach((n, i) => CAP[n] = res[i]);
 }
 const SAMPLE_ERR = {
   not_granted: "Tu as refusé l'accès à Claude : Elena ne peut pas répondre. Recharge la page pour réessayer.",
-  rate_limited: "Trop de demandes d'un coup. Attends quelques secondes puis renvoie ton message.",
+  rate_limited: "Trop de demandes d'un coup. Attends quelques secondes puis réessaie.",
   sampling_disabled: "L'accès à Claude est désactivé sur ce compte.",
-  prompt_too_large: "La séance est trop longue. Termine-la pour obtenir ton bilan.",
-  invalid_json: "Réponse illisible. Renvoie ton message.",
+  prompt_too_large: "La séance est trop longue. Raccroche pour obtenir ton bilan.",
+  invalid_json: "Réponse illisible. Réessaie.",
 };
-const errCopy = e => SAMPLE_ERR[e?.code] || "Elena n'a pas pu répondre. Renvoie ton message.";
+const errCopy = e => SAMPLE_ERR[e?.code] || "Elena n'a pas pu répondre. Réessaie.";
+async function askJSON(input, opts) {
+  const r = await CAP.sample.json(input, { cache: false, ...opts });
+  if (!r || typeof r !== "object" || Array.isArray(r)) throw { code: "invalid_json" };
+  return r;
+}
 
 /* =========================================================
    Storage: private per-viewer documents in db, localStorage fallback
@@ -250,9 +291,7 @@ const errCopy = e => SAMPLE_ERR[e?.code] || "Elena n'a pas pu répondre. Renvoie
 const Store = {
   uidVal: null,
   async init() {
-    if (CAP.db && CAP.user) {
-      try { this.uidVal = await CAP.user.id(); } catch { this.uidVal = null; }
-    }
+    if (CAP.db && CAP.user) { try { this.uidVal = await CAP.user.id(); } catch { this.uidVal = null; } }
   },
   get online() { return !!(CAP.db && this.uidVal); },
   ref(k) { return CAP.db.collection("data/users/" + this.uidVal).doc(k); },
@@ -267,11 +306,11 @@ const Store = {
   },
   queue: {},
   async set(k, v) {
-    try { localStorage.setItem("elena:" + k, JSON.stringify(v)); } catch {}
+    const copy = JSON.parse(JSON.stringify(v));
+    try { localStorage.setItem("elena:" + k, JSON.stringify(copy)); } catch {}
     if (!this.online) return;
-    // one write at a time per doc; keep only the latest pending value
     const q = this.queue[k] || (this.queue[k] = { busy: false, next: null });
-    q.next = v;
+    q.next = copy;
     if (q.busy) return;
     q.busy = true;
     while (q.next) {
@@ -287,35 +326,77 @@ const Store = {
    Data model
    ========================================================= */
 const LANGS = {
-  es: { name: "Espagnol", native: "Español", flagWord: "ES", tts: "es", stt: "es-ES",
+  es: { name: "Espagnol", native: "Español", tts: "es", stt: "es-ES",
         topics: ["Me presento", "Mi día", "La comida", "De viaje", "Mi familia", "Tema libre"] },
-  en: { name: "Anglais", native: "English", flagWord: "EN", tts: "en", stt: "en-GB",
+  en: { name: "Anglais", native: "English", tts: "en", stt: "en-GB",
         topics: ["Free talk", "Debate: AI at work", "Job interview role-play", "Your last trip", "Current affairs", "Idioms & phrasal verbs"] }
 };
 const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
-function newLang(level) { return { level, weaknesses: [], sessions: [], homework: [], vocab: [], strengths: [] }; }
-const S = {
-  profile: null,         // {name, cur}
-  data: { es: null, en: null },
-  cur: "es",
-  topic: null,
-};
+const LEVEL_LABEL = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A2 · élémentaire", B1: "B1 · intermédiaire", B2: "B2 · avancé", C1: "C1 · autonome", C2: "C2 · maîtrise" };
+const SKILLS = [["grammaire", "Grammaire"], ["vocabulaire", "Vocabulaire"], ["aisance", "Aisance orale"], ["comprehension", "Compréhension"]];
+const BOX_DAYS = [0, 1, 2, 4, 8, 16, 35];
+function newLang(declared) {
+  return { declared, level: declared, assessed: false, levelNote: "", skills: {}, weaknesses: [], sessions: [], homework: [], vocab: [], strengths: [] };
+}
+function migrate(d, declared) {
+  if (!d) return newLang(declared);
+  d.declared = d.declared || d.level || declared;
+  d.level = LEVELS.includes(d.level) ? d.level : d.declared;
+  if (d.assessed == null) d.assessed = false;
+  d.skills = d.skills && typeof d.skills === "object" ? d.skills : {};
+  for (const k of ["weaknesses", "sessions", "homework", "vocab", "strengths"]) d[k] = arr(d[k]);
+  d.vocab = d.vocab.map(v => ({ w: str(v.w || v.word), m: str(v.m || v.meaning), ex: str(v.ex), box: Number(v.box) || 0, due: Number(v.due) || 0, ok: Number(v.ok) || 0, ko: Number(v.ko) || 0, src: v.src || "cours", added: v.added || today() })).filter(v => v.w);
+  return d;
+}
+const S = { profile: null, data: { es: null, en: null }, cur: "es", topic: null };
 async function loadAll() {
-  S.profile = await Store.get("profile");
-  S.data.es = await Store.get("es");
-  S.data.en = await Store.get("en");
+  const [p, es, en] = await Promise.all([Store.get("profile"), Store.get("es"), Store.get("en")]);
+  S.profile = p; S.data.es = es; S.data.en = en;
 }
 function saveLang(l) { Store.set(l, S.data[l]); }
 function saveProfile() { Store.set("profile", S.profile); }
+
+/* ---------- vocabulary bank (spaced repetition) ---------- */
+function vocabKey(w) { return str(w).toLowerCase().replace(/^(el|la|los|las|un|una|the|a|an|to)\s+/, ""); }
+function addVocab(l, items, src) {
+  const d = S.data[l]; let added = 0;
+  for (const it of arr(items)) {
+    const w = str(it.word || it.w), m = str(it.meaning || it.m);
+    if (!w || w.length > 80) continue;
+    const ex = d.vocab.find(v => vocabKey(v.w) === vocabKey(w));
+    if (ex) { if (src === "lacune") { ex.box = 0; ex.due = now(); ex.src = "lacune"; } if (!ex.ex && it.example) ex.ex = str(it.example); continue; }
+    d.vocab.push({ w, m, ex: str(it.example), box: 0, due: now(), ok: 0, ko: 0, src, added: today() });
+    added++;
+  }
+  // keep the bank bounded: drop the best-known words first
+  if (d.vocab.length > 400) { d.vocab.sort((a, b) => a.box - b.box); d.vocab.length = 400; }
+  return added;
+}
+function dueWords(l, n) {
+  const t = now();
+  return S.data[l].vocab.filter(v => v.due <= t).sort((a, b) => (a.src === "lacune" ? -1 : 0) - (b.src === "lacune" ? -1 : 0) || a.box - b.box || a.due - b.due).slice(0, n);
+}
+function grade(v, result) {
+  if (result === "good") { v.box = Math.min(6, v.box + 1); v.ok++; }
+  else if (result === "bad") { v.box = 0; v.ko++; }
+  v.due = now() + BOX_DAYS[v.box] * 864e5;
+}
+function markUsed(l, words) {
+  const d = S.data[l];
+  for (const w of arr(words)) {
+    const v = d.vocab.find(x => vocabKey(x.w) === vocabKey(w));
+    if (v) grade(v, "good");
+  }
+}
 
 /* =========================================================
    Teacher avatar (canvas) — Elena
    ========================================================= */
 const Avatar = (() => {
-  const st = { speaking: false, thinking: false, listening: false, mouth: 0, blink: 0, nextBlink: 2, lookX: 0, lookY: 0, tLook: 0 };
+  const st = { speaking: false, thinking: false, listening: false, mouth: 0, blink: 0, nextBlink: 2, lookX: 0, lookY: 0, tLook: 0, nod: 0 };
   const canvases = new Set();
-  let bgCache = new Map();
-  function noise(t) { return (Math.sin(t * 2.1) + Math.sin(t * 3.7 + 1.3) + Math.sin(t * 5.9 + 2.1)) / 3; }
+  const bgCache = new Map();
+  const noise = t => (Math.sin(t * 2.1) + Math.sin(t * 3.7 + 1.3) + Math.sin(t * 5.9 + 2.1)) / 3;
   function drawBg(w, h) {
     const key = w + "x" + h;
     if (bgCache.has(key)) return bgCache.get(key);
@@ -324,11 +405,9 @@ const Avatar = (() => {
     const g = x.createLinearGradient(0, 0, 0, h);
     g.addColorStop(0, "#d9cbb4"); g.addColorStop(1, "#b9a68a");
     x.fillStyle = g; x.fillRect(0, 0, w, h);
-    // window with daylight
     x.fillStyle = "#f4ead2"; x.fillRect(w * .66, h * .08, w * .26, h * .42);
-    x.fillStyle = "#cfe0e6"; x.fillRect(w * .68, h * .11, w * .1, h * .17); x.fillRect(w * .8, h * .11, w * .1, h * .17);
-    x.fillRect(w * .68, h * .3, w * .1, h * .17); x.fillRect(w * .8, h * .3, w * .1, h * .17);
-    // bookshelf
+    x.fillStyle = "#cfe0e6";
+    for (const [px, py] of [[.68, .11], [.8, .11], [.68, .3], [.8, .3]]) x.fillRect(w * px, h * py, w * .1, h * .17);
     x.fillStyle = "#7a5a3c"; x.fillRect(w * .04, h * .1, w * .26, h * .7);
     const cols = ["#b5462a", "#2e5e6e", "#d6a03c", "#4f6b3a", "#8a3f5a", "#e7dcc6", "#3c3a5e"];
     let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
@@ -342,7 +421,6 @@ const Avatar = (() => {
         x.fillRect(bx, y + hh - bh, bw, bh); bx += bw + w * .003;
       }
     }
-    // plant
     x.fillStyle = "#9c5b3b"; x.fillRect(w * .84, h * .62, w * .08, h * .1);
     x.fillStyle = "#4e7a45";
     for (let i = 0; i < 7; i++) { x.beginPath(); x.ellipse(w * (.83 + i * .016), h * (.58 - (i % 3) * .04), w * .025, h * .06, (i - 3) * .3, 0, Math.PI * 2); x.fill(); }
@@ -357,41 +435,57 @@ const Avatar = (() => {
     return out;
   }
   function drawOne(cv, t, dt) {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rect = cv.getBoundingClientRect();
-    if (!rect.width) return;
+    if (rect.width < 4 || rect.height < 4) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.round(rect.width * dpr), hgt = Math.round(rect.height * dpr);
     if (cv.width !== w || cv.height !== hgt) { cv.width = w; cv.height = hgt; }
     const x = cv.getContext("2d");
+    if (!x) return;
+    x.setTransform(1, 0, 0, 1, 0, 0);
     x.drawImage(drawBg(w, hgt), 0, 0);
     const portrait = cv.dataset.mode === "portrait";
     const s = portrait ? Math.min(w, hgt) / 300 : Math.min(w / 520, hgt / 360);
-    const cx = w / 2 + (st.listening ? 0 : Math.sin(t * .7) * 2 * s);
-    const bob = Math.sin(t * (st.speaking ? 3.2 : 1.1)) * (st.speaking ? 2.2 : 1) * s + (st.listening ? Math.max(0, Math.sin(t * 2.4)) * 3 * s : 0);
-    const cy = (portrait ? hgt * .48 : hgt * .5) + bob;
+    const sway = st.listening ? 0 : Math.sin(t * .7) * 2;
+    const bob = Math.sin(t * (st.speaking ? 3.2 : 1.1)) * (st.speaking ? 2.2 : 1) + (st.listening ? Math.max(0, Math.sin(t * 2.4)) * 3 : 0);
+    const breathe = 1 + Math.sin(t * 1.6) * .006;
+    const cx = w / 2 + sway * s, cy = (portrait ? hgt * .48 : hgt * .5);
     x.save(); x.translate(cx, cy); x.scale(s, s);
-    // hair back
-    x.fillStyle = "#2d1c14";
-    x.beginPath(); x.ellipse(0, -8, 82, 96, 0, 0, Math.PI * 2); x.fill();
-    x.fillRect(-82, -8, 164, 120);
-    // shoulders / sweater
+    // shoulders / sweater (breathing)
+    x.save(); x.translate(0, 120); x.scale(breathe, breathe); x.translate(0, -120);
     x.fillStyle = "#1f5a6b";
-    x.beginPath(); x.moveTo(-170, 260); x.bezierCurveTo(-160, 150, -90, 118, 0, 116); x.bezierCurveTo(90, 118, 160, 150, 170, 260); x.closePath(); x.fill();
-    x.fillStyle = "#c6531f"; // scarf
-    x.beginPath(); x.moveTo(-46, 112); x.quadraticCurveTo(0, 150, 46, 112); x.lineTo(40, 132); x.quadraticCurveTo(0, 168, -40, 132); x.closePath(); x.fill();
-    // neck
-    x.fillStyle = "#c98d6b"; x.fillRect(-22, 60, 44, 58);
-    x.fillStyle = "rgba(0,0,0,.08)"; x.fillRect(-22, 60, 44, 16);
+    x.beginPath(); x.moveTo(-175, 270); x.bezierCurveTo(-165, 150, -92, 118, 0, 116); x.bezierCurveTo(92, 118, 165, 150, 175, 270); x.closePath(); x.fill();
+    x.fillStyle = "rgba(0,0,0,.12)";
+    x.beginPath(); x.moveTo(-60, 270); x.quadraticCurveTo(-70, 180, -40, 128); x.lineTo(-30, 128); x.quadraticCurveTo(-56, 190, -48, 270); x.fill();
+    x.restore();
+    // head group (bob + tilt)
+    x.save(); x.translate(0, bob); x.rotate(Math.sin(t * .5) * .015 + (st.thinking ? .04 : 0));
+    // back hair, falling past shoulders
+    x.fillStyle = "#2d1c14";
+    x.beginPath(); x.moveTo(-70, -16);
+    x.bezierCurveTo(-92, -112, 92, -112, 70, -16);
+    x.bezierCurveTo(84, 40, 78, 96, 96, 128);
+    x.quadraticCurveTo(70, 140, 46, 118);
+    x.lineTo(-46, 118);
+    x.quadraticCurveTo(-70, 140, -96, 128);
+    x.bezierCurveTo(-78, 96, -84, 40, -70, -16);
+    x.fill();
+    // scarf + neck
+    x.fillStyle = "#c98d6b"; x.fillRect(-22, 58, 44, 64);
+    x.fillStyle = "rgba(0,0,0,.09)"; x.fillRect(-22, 58, 44, 18);
+    x.fillStyle = "#c6531f";
+    x.beginPath(); x.moveTo(-48, 112); x.quadraticCurveTo(0, 150, 48, 112); x.lineTo(42, 134); x.quadraticCurveTo(0, 170, -42, 134); x.closePath(); x.fill();
     // face
     x.fillStyle = "#dca07c";
     x.beginPath(); x.ellipse(0, 0, 62, 76, 0, 0, Math.PI * 2); x.fill();
-    // ears + earrings
     x.beginPath(); x.ellipse(-62, 6, 9, 15, 0, 0, Math.PI * 2); x.ellipse(62, 6, 9, 15, 0, 0, Math.PI * 2); x.fill();
     x.fillStyle = "#e3b341"; x.beginPath(); x.arc(-63, 26, 4, 0, Math.PI * 2); x.arc(63, 26, 4, 0, Math.PI * 2); x.fill();
-    // hair front (fringe swept)
+    // fringe
     x.fillStyle = "#2d1c14";
-    x.beginPath(); x.moveTo(-66, -10); x.bezierCurveTo(-70, -80, -10, -96, 20, -84); x.bezierCurveTo(60, -78, 72, -40, 66, -6);
-    x.bezierCurveTo(50, -46, 20, -58, -8, -50); x.bezierCurveTo(-34, -44, -54, -30, -66, -10); x.fill();
+    x.beginPath(); x.moveTo(-66, -8); x.bezierCurveTo(-72, -82, -10, -98, 20, -86); x.bezierCurveTo(62, -80, 74, -40, 66, -4);
+    x.bezierCurveTo(50, -46, 20, -58, -8, -50); x.bezierCurveTo(-34, -44, -54, -30, -66, -8); x.fill();
+    x.fillStyle = "rgba(255,255,255,.07)";
+    x.beginPath(); x.ellipse(10, -72, 26, 6, -.3, 0, Math.PI * 2); x.fill();
     // cheeks
     x.fillStyle = "rgba(214,96,80,.18)";
     x.beginPath(); x.ellipse(-34, 22, 14, 9, 0, 0, Math.PI * 2); x.ellipse(34, 22, 14, 9, 0, 0, Math.PI * 2); x.fill();
@@ -403,7 +497,7 @@ const Avatar = (() => {
     st.tLook -= dt;
     if (st.tLook <= 0) {
       st.tLook = 1 + Math.random() * 2.5;
-      st.lookX = st.thinking ? 2.5 : (Math.random() - .5) * 2.4;
+      st.lookX = st.thinking ? 2.5 : st.listening ? 0 : (Math.random() - .5) * 2.4;
       st.lookY = st.thinking ? -2.5 : (Math.random() - .5) * 1.2;
     }
     for (const ex of [-24, 24]) {
@@ -417,15 +511,13 @@ const Avatar = (() => {
       x.strokeStyle = "#2d1c14"; x.lineWidth = 2.2; x.lineCap = "round";
       x.beginPath(); x.ellipse(ex, -6, 11.5, 7.5 * open + .3, 0, Math.PI * 1.05, Math.PI * 1.95); x.stroke();
     }
-    // brows
     const browLift = st.speaking ? Math.max(0, noise(t * 1.3)) * 3 : st.listening ? 2 : 0;
     x.strokeStyle = "#2d1c14"; x.lineWidth = 3.4;
     x.beginPath(); x.moveTo(-36, -22 - browLift); x.quadraticCurveTo(-24, -29 - browLift, -12, -24 - browLift); x.stroke();
     x.beginPath(); x.moveTo(12, -24 - browLift); x.quadraticCurveTo(24, -29 - browLift, 36, -22 - browLift); x.stroke();
-    // nose
     x.strokeStyle = "rgba(120,64,40,.45)"; x.lineWidth = 2;
     x.beginPath(); x.moveTo(1, 2); x.quadraticCurveTo(6, 16, 0, 20); x.stroke();
-    // mouth
+    // mouth: driven by the real speaking state
     const target = st.speaking ? Math.max(0, .45 + .55 * noise(t * 9)) : 0;
     st.mouth += (target - st.mouth) * Math.min(1, dt * 18);
     const m = st.mouth;
@@ -439,13 +531,17 @@ const Avatar = (() => {
       x.strokeStyle = "#a8453e"; x.lineWidth = 3; x.lineCap = "round";
       x.beginPath(); x.moveTo(-15, 38); x.quadraticCurveTo(0, st.thinking ? 41 : 47, 15, 38); x.stroke();
     }
+    x.restore(); // head
     x.restore();
   }
   let last = performance.now(), raf = 0;
-  function loop(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now;
-    const t = now / 1000;
-    for (const cv of canvases) if (cv.isConnected) drawOne(cv, t, dt); else canvases.delete(cv);
+  function loop(nowT) {
+    const dt = Math.min(.05, Math.max(0, (nowT - last) / 1000)); last = nowT;
+    const t = nowT / 1000;
+    for (const cv of canvases) {
+      if (!cv.isConnected) { canvases.delete(cv); continue; }
+      try { drawOne(cv, t, dt); } catch (e) { console.warn("avatar", e); }
+    }
     raf = canvases.size ? requestAnimationFrame(loop) : 0;
   }
   return {
@@ -456,101 +552,181 @@ const Avatar = (() => {
 })();
 
 /* =========================================================
-   Voice: TTS (Claude voice, browser fallback) + dictation
+   Voice: Claude TTS, browser fallback, generation guard
    ========================================================= */
 const Voice = {
   slow: false,
+  muted: false,
+  engine: "none",           // "claude" | "browser" | "none"
+  gen: 0,
   stateCb: null,
+  _browserVoices: [],
   init() {
-    if (CAP.tts) CAP.tts.onState(({ state }) => this._state(state === "speaking" || state === "starting"));
-  },
-  _state(on) { Avatar.set({ speaking: on }); this.stateCb?.(on); },
-  async speak(text, lang) {
-    if (!text) return;
-    const rate = this.slow ? .78 : 1;
     if (CAP.tts) {
-      try { await CAP.tts.speak(text.slice(0, 2000), { voice: "airy", rate, language: LANGS[lang].tts }); return; }
-      catch (e) { if (e?.code === "stopped" || e?.code === "busy") return; console.warn("tts", e); }
-    }
+      this.engine = "claude";
+      try { CAP.tts.onState(({ state }) => this._state(state === "speaking" || state === "starting")); } catch {}
+    } else if ("speechSynthesis" in window) this.engine = "browser";
     if ("speechSynthesis" in window) {
-      return new Promise(res => {
-        try {
-          speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = LANGS[lang].stt; u.rate = rate * .95;
-          const v = speechSynthesis.getVoices().find(v => v.lang?.startsWith(LANGS[lang].tts));
-          if (v) u.voice = v;
-          u.onstart = () => this._state(true);
-          u.onend = u.onerror = () => { this._state(false); res(); };
-          speechSynthesis.speak(u);
-        } catch { this._state(false); res(); }
-      });
+      const load = () => { try { this._browserVoices = speechSynthesis.getVoices() || []; } catch {} };
+      load();
+      try { speechSynthesis.addEventListener("voiceschanged", load); } catch {}
     }
+  },
+  _state(on) { Avatar.set({ speaking: on }); try { this.stateCb?.(on); } catch {} },
+  // parts: [{lang: "es"|"en"|"fr", text}]
+  async speak(parts, fallbackLang) {
+    if (typeof parts === "string") parts = [{ lang: fallbackLang, text: parts }];
+    parts = arr(parts).map(p => ({ lang: ["es", "en", "fr"].includes(p.lang) ? p.lang : fallbackLang, text: str(p.text).replace(/[*_#`~<>]/g, "").slice(0, 1500) })).filter(p => p.text);
+    if (!parts.length || this.muted) return;
+    const myGen = ++this.gen;
+    const rate = this.slow ? .78 : 1;
+    if (this.engine === "claude") {
+      try {
+        await CAP.tts.speak(parts.map(p => ({ text: p.text, language: p.lang })), { voice: "airy", rate });
+        return;
+      } catch (e) {
+        if (["stopped", "busy"].includes(e?.code) || e?.reason === "replaced" || e?.reason === "viewer_stopped") return;
+        if (e?.code === "rate_limited") { await new Promise(r => setTimeout(r, Math.min(4000, e.retryAfterMs || 1500))); if (myGen !== this.gen) return; try { await CAP.tts.speak(parts.map(p => ({ text: p.text, language: p.lang })), { voice: "airy", rate }); return; } catch {} }
+        console.warn("tts", e);
+        if (e?.code === "not_granted" || e?.code === "unavailable") this.engine = ("speechSynthesis" in window) ? "browser" : "none";
+        if (myGen !== this.gen) return;
+      }
+    }
+    if ("speechSynthesis" in window && this.engine !== "none") return this._browser(parts, rate, myGen);
+  },
+  _browser(parts, rate, myGen) {
+    // split into sentences: Chrome cuts long utterances
+    const chunks = [];
+    for (const p of parts) for (const s of p.text.match(/[^.!?¡¿…]+[.!?…]*|[¡¿][^.!?]+[.!?]*/g) || [p.text]) if (s.trim()) chunks.push({ lang: p.lang, text: s.trim() });
+    const code = { es: "es-ES", en: "en-GB", fr: "fr-FR" };
+    return new Promise(resolve => {
+      try { speechSynthesis.cancel(); } catch {}
+      let i = 0;
+      const next = () => {
+        if (myGen !== this.gen || i >= chunks.length) { this._state(false); return resolve(); }
+        const c = chunks[i++];
+        const u = new SpeechSynthesisUtterance(c.text);
+        u.lang = code[c.lang]; u.rate = rate * .95;
+        const v = this._browserVoices.find(v => v.lang?.replace("_", "-").startsWith(code[c.lang])) || this._browserVoices.find(v => v.lang?.startsWith(c.lang));
+        if (v) u.voice = v;
+        u.onstart = () => this._state(true);
+        u.onend = () => next();
+        u.onerror = () => next();
+        try { speechSynthesis.speak(u); } catch { this._state(false); resolve(); }
+      };
+      next();
+      // safety: never leave the mouth moving
+      setTimeout(() => { if (myGen === this.gen && !speechSynthesis.speaking) this._state(false); }, 15000);
+    });
   },
   stop() {
-    try { CAP.tts?.stop(); } catch {}
-    try { speechSynthesis?.cancel(); } catch {}
+    this.gen++;
+    try { CAP.tts?.stop()?.catch?.(() => {}); } catch {}
+    try { if ("speechSynthesis" in window) speechSynthesis.cancel(); } catch {}
     this._state(false);
-  }
+  },
+  label() { return this.engine === "claude" ? "Voix Claude" : this.engine === "browser" ? "Voix du navigateur (secours)" : "Aucune voix disponible"; }
 };
 
 /* =========================================================
    Prompts
    ========================================================= */
+function weakLabels(l) { return S.data[l].weaknesses.filter(w => w.count > 0).sort((a, b) => b.count - a.count).slice(0, 10); }
 function profileContext(l) {
   const d = S.data[l];
-  const weak = d.weaknesses.filter(w => w.count > 0).sort((a, b) => b.count - a.count).slice(0, 8)
-    .map(w => `- ${w.label} (vu ${w.count} fois${w.note ? " ; " + w.note : ""})`).join("\n") || "- aucun encore";
+  const weak = weakLabels(l).map(w => `- ${w.label} (vu ${w.count} fois${w.note ? " ; " + w.note : ""})`).join("\n") || "- aucun encore";
   const strong = d.strengths.slice(-6).join(", ") || "aucun noté";
-  const last = d.sessions.slice(-3).map(s => `- ${fmtDate(s.date)} : ${s.summary}`).join("\n") || "- première séance";
-  const hw = d.homework.slice(-2).map(hw => `- "${hw.title}" (${hw.status === "done" ? "fait, score " + hw.score + "/10" : "pas encore fait"}) : ${hw.focus}`).join("\n") || "- aucun";
-  const vocab = d.vocab.slice(-25).map(v => v.word).join(", ") || "aucun";
+  const last = d.sessions.slice(-3).map(s => `- ${fmtDate(s.date)} : ${s.summary}${s.next ? " (objectif suivant : " + s.next + ")" : ""}`).join("\n") || "- aucune";
+  const hw = d.homework.slice(-2).map(hw => `- "${hw.title}" (${hw.status === "done" ? "fait, " + hw.score + "/10" : "pas encore fait"}) : ${hw.focus}`).join("\n") || "- aucun";
+  const skills = SKILLS.map(([k, n]) => d.skills[k] != null ? `${n} ${d.skills[k]}/100` : null).filter(Boolean).join(", ") || "pas encore mesurées";
+  const known = d.vocab.filter(v => v.box >= 3).slice(-30).map(v => v.w).join(", ") || "aucun";
   return `PROFIL DE L'ÉLÈVE
-Prénom : ${S.profile.name}
-Langue maternelle : français
-Niveau actuel en ${LANGS[l].name.toLowerCase()} : ${d.level}
-Points faibles suivis (réutilise ces libellés exacts dans "category" quand ça correspond) :
+Prénom : ${S.profile.name} (francophone)
+${d.assessed ? `Niveau OBSERVÉ par toi lors des séances précédentes : ${d.level}${d.levelNote ? " (" + d.levelNote + ")" : ""}` : `Niveau pas encore évalué. L'élève s'estime ${d.declared}, mais NE TE FIE PAS à cette auto-évaluation.`}
+Compétences mesurées : ${skills}
+Lacunes suivies (réutilise ces libellés exacts quand c'est le même type d'erreur) :
 ${weak}
 Points forts : ${strong}
 Dernières séances :
 ${last}
 Derniers devoirs :
 ${hw}
-Vocabulaire déjà vu récemment : ${vocab}`;
+Mots déjà bien acquis (ne les réexplique pas) : ${known}`;
 }
-function levelBehaviour(l) {
-  const lvl = S.data[l].level, i = LEVELS.indexOf(lvl);
-  if (l === "es" && i <= 1) return `Niveau débutant complet. Parle en espagnol très simple : phrases de 3 à 8 mots, présent de l'indicatif, vocabulaire du quotidien. Mets TOUJOURS la traduction française de ta réplique dans "translation". Explique la grammaire en français, en une phrase. Introduis au maximum 2 mots nouveaux par réplique et liste-les dans "new_words". Si ${S.profile.name} répond en français ou bloque, donne-lui la phrase espagnole à répéter. Pose des questions fermées ou à choix ("¿Te gusta el café o el té?") pour l'aider à produire. Félicite chaque progrès, sans en faire trop.`;
-  if (i <= 3) return `Niveau ${lvl}. Parle en ${l === "es" ? "espagnol" : "anglais"} clair et naturel, phrases courtes à moyennes, en introduisant progressivement de nouveaux temps et tournures. Donne la traduction française dans "translation" seulement pour les phrases difficiles, sinon "". Explications en français.`;
-  return `Niveau avancé (${lvl}). Parle en ${l === "es" ? "espagnol" : "anglais"} natif, riche et idiomatique, comme avec un collègue cultivé : débats, nuances, humour, expressions idiomatiques, phrasal verbs, registres. "translation" = "". Corrige aussi ce qui est correct mais pas naturel : collocations, prépositions, faux amis, calques du français, registre, ordre des mots. Explique en français, de façon concise et précise. Pousse ${S.profile.name} vers un niveau C2.`;
+function levelBehaviour(l, lvl) {
+  const i = LEVELS.indexOf(lvl);
+  const L = l === "es" ? "espagnol" : "anglais";
+  if (i <= 1) return `Niveau observé ${lvl} (débutant). Parle en ${L} très simple : phrases de 3 à 8 mots, présent, vocabulaire du quotidien. Ajoute une courte partie en français ("lang":"fr") seulement pour expliquer ou encourager, jamais plus d'une phrase. Mets la traduction française de tes phrases en ${L} dans "translation". Introduis au maximum 2 mots nouveaux par réplique (dans "new_words"). Si l'élève bloque ou répond en français, donne-lui la phrase en ${L} à répéter. Pose des questions fermées ou à choix pour l'aider à produire.`;
+  if (i <= 3) return `Niveau observé ${lvl}. Parle en ${L} clair et naturel, phrases courtes à moyennes, en introduisant progressivement de nouveaux temps et tournures. "translation" seulement pour les phrases difficiles, sinon "". Explications courtes en français uniquement si l'élève ne comprend pas.`;
+  return `Niveau observé ${lvl}. Parle en ${L} natif, riche et idiomatique, comme avec un collègue cultivé : débats, nuances, humour, expressions idiomatiques${l === "en" ? ", phrasal verbs" : ""}, registres variés. Jamais de français. "translation" = "". Pousse l'élève à préciser, argumenter, reformuler avec un vocabulaire plus précis.`;
 }
-function rules(l) {
-  return `Tu es Elena, professeure particulière d'espagnol et d'anglais (née à Séville, a vécu 10 ans à Londres), chaleureuse, drôle et exigeante. Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. La séance d'aujourd'hui est en ${LANGS[l].name.toLowerCase()}.${S.topic ? ` Thème choisi : ${S.topic}.` : ""}
+function adaptHint() {
+  const a = C.analyses.slice(-4);
+  if (!a.length) return "Pas encore de mesure dans cette séance : commence à un niveau prudent et observe.";
+  const errs = a.reduce((s, x) => s + x.errors, 0) / a.length;
+  const sig = a.map(x => x.level).filter(x => LEVELS.includes(x));
+  const obs = sig.length ? sig[sig.length - 1] : null;
+  let action = "garde ce niveau de difficulté";
+  if (errs >= 2.5) action = "SIMPLIFIE nettement : phrases plus courtes, mots plus courants, propose un modèle de réponse";
+  else if (errs >= 1.5) action = "simplifie un peu et reviens sur l'erreur principale";
+  else if (errs <= .5 && a.length >= 2) action = "MONTE d'un cran : structures plus complexes, vocabulaire plus précis, questions plus ouvertes";
+  return `Mesure en direct (${a.length} dernières interventions) : ${errs.toFixed(1)} erreur(s) par intervention en moyenne${obs ? ", niveau observé ≈ " + obs : ""}. → ${action}.`;
+}
+function convRules(l) {
+  const d = S.data[l];
+  const due = C.targets.map(v => `${v.w} (${v.m})`).join(", ");
+  const diag = !d.assessed;
+  return `Tu es Elena, professeure particulière d'espagnol et d'anglais (née à Séville, a vécu 10 ans à Londres), chaleureuse, drôle et exigeante. Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.${S.topic ? ` Thème : ${S.topic}.` : ""}
 
 ${profileContext(l)}
 
-COMMENT TU ENSEIGNES
-${levelBehaviour(l)}
-- Tu mènes une vraie conversation : réagis à ce que dit ${S.profile.name}, partage un peu de toi, puis relance avec UNE question.
-- "reply" est dit à voix haute : 1 à 4 phrases, pas de markdown, pas d'emoji, pas de listes. Appelle ${S.profile.name} par son prénom de temps en temps (pas à chaque réplique).
-- Corrige CHAQUE erreur de la dernière intervention de ${S.profile.name} dans "corrections" (tableau vide s'il n'y en a aucune). Une entrée par erreur : "original" = le passage fautif exact, "corrected" = la version correcte, "explanation" = la règle en français (1 phrase), "category" = libellé court et réutilisable du type d'erreur (ex. "ser / estar", "accord en genre", "present perfect vs prétérit", "prépositions", "faux amis").
-- Dans "reply", tu peux reprendre naturellement la bonne formulation (reformulation implicite), sans faire la leçon.
-- Les messages qui commencent par [oral] viennent de la reconnaissance vocale : ignore ponctuation, majuscules et accents manquants, mais corrige les vraies erreurs de grammaire et de vocabulaire.
-- Si ${S.profile.name} écrit en français, réponds-lui quand même dans la langue du cours et aide-le à le dire.
-- Fais le lien avec ses points faibles et ses devoirs quand c'est naturel : crée des occasions de pratiquer ces points.
+${diag ? `SÉANCE DE DIAGNOSTIC : ton objectif est de découvrir le VRAI niveau de ${S.profile.name}, sans te fier à son auto-évaluation. Commence ${l === "es" && LEVELS.indexOf(d.declared) <= 1 ? "par les bases absolues (saluer, se présenter)" : "à un niveau intermédiaire"}, puis monte la difficulté toutes les 2 répliques tant qu'il réussit (temps du passé, futur, conditionnel, subjonctif, vocabulaire abstrait, idiomes), et redescends dès qu'il peine. Varie les thèmes pour tester l'étendue du vocabulaire. Reste naturelle : ça doit ressembler à une conversation, pas à un examen.\n` : ""}
+ADAPTATION EN DIRECT
+${adaptHint()}
+${levelBehaviour(l, C.liveLevel || d.level)}
 
-FORMAT : réponds uniquement avec un objet JSON :
-{"reply":"...","translation":"... ou \\"\\"","corrections":[{"original":"...","corrected":"...","explanation":"...","category":"..."}],"new_words":[{"word":"...","meaning":"traduction française"}]}`;
+VOCABULAIRE À FAIRE RÉUTILISER AUJOURD'HUI
+${due || "aucun"}
+Crée des occasions naturelles pour que ${S.profile.name} emploie ces mots (une question qui les appelle), sans les lui donner directement.
+
+RÈGLES
+- Vraie conversation : réagis à ce que dit ${S.profile.name}, partage un peu de toi, puis relance avec UNE question.
+- Tu ne corriges PAS dans ta réplique (une collègue s'en charge à l'écrit) ; tu peux juste reprendre naturellement la bonne formulation.
+- Tout ce que tu dis est lu à voix haute : 1 à 4 phrases, pas de markdown, pas d'emoji, pas de listes.
+- Appelle ${S.profile.name} par son prénom de temps en temps, pas à chaque réplique.
+- Les messages qui commencent par [oral] viennent de la reconnaissance vocale : ne relève pas ponctuation ou accents.
+
+FORMAT : uniquement un objet JSON :
+{"say":[{"lang":"${l}","text":"ta réplique"}],"translation":"traduction française ou \\"\\"","new_words":[{"word":"mot en ${LANGS[l].name.toLowerCase()}","meaning":"sens en français"}]}
+"say" contient une ou plusieurs parties dans l'ordre où tu les dis ; "lang" vaut "${l}" ou "fr".`;
+}
+function analysisPrompt(l, teacherLine, said) {
+  const d = S.data[l];
+  return `Tu es une correctrice experte en ${LANGS[l].name.toLowerCase()} langue étrangère pour francophones. Analyse la dernière intervention orale de l'élève ${S.profile.name} pendant un cours en visio.
+Niveau estimé jusqu'ici : ${C.liveLevel || d.level}${d.assessed ? "" : " (non vérifié)"}.
+Lacunes déjà suivies (réutilise ces libellés exacts si c'est le même problème) : ${weakLabels(l).map(w => w.label).join(" ; ") || "aucune"}
+Mots cibles qu'on veut lui faire réutiliser : ${C.targets.map(v => v.w).join(", ") || "aucun"}
+
+Ce que la prof venait de dire : « ${teacherLine || "(début de séance)"} »
+Ce que l'élève a répondu${said.startsWith("[oral]") ? " (transcrit par reconnaissance vocale : ignore ponctuation, majuscules et accents manquants)" : ""} : « ${said.replace(/^\[oral\]\s*/, "")} »
+
+Fais :
+1. "corrections" : CHAQUE vraie erreur (grammaire, conjugaison, accord, vocabulaire, préposition, faux ami, ordre des mots). "original" = passage exact fautif, "corrected" = forme correcte, "explanation" = règle en français en 1 phrase, "category" = libellé court de la lacune (ex. "ser / estar", "accord en genre", "present perfect vs prétérit", "prépositions", "faux amis", "vocabulaire manquant").
+2. "better" : 0 à 2 formulations correctes mais améliorables (plus naturel, plus précis, plus riche) adaptées à son niveau : {"said","better","why"}.
+3. "vocab_gaps" : les mots qui lui ont manqué ou qu'il devrait apprendre d'après cette réponse : mots dits en français, contournements, mot trop basique à enrichir, mot mal choisi. {"word" (en ${LANGS[l].name.toLowerCase()}, avec article pour un nom ${l === "es" ? "espagnol" : ""}),"meaning" (français),"example" (phrase courte d'exemple)}. Maximum 3.
+4. "used_targets" : les mots cibles qu'il a employés correctement.
+5. "level" : le niveau CECRL que cette intervention démontre (${LEVELS.join(", ")}). Juge sur ce qui est réellement produit : complexité, exactitude, étendue du vocabulaire. Une phrase très courte et simple ne prouve pas un niveau élevé.
+Si l'intervention est en français, considère que l'élève ne savait pas le dire : propose la phrase correcte en "corrections" (original = sa phrase en français) et les mots manquants en "vocab_gaps".
+
+Réponds uniquement en JSON :
+{"corrections":[{"original":"","corrected":"","explanation":"","category":""}],"better":[{"said":"","better":"","why":""}],"vocab_gaps":[{"word":"","meaning":"","example":""}],"used_targets":[],"level":"B1"}`;
 }
 
 /* =========================================================
    Router
    ========================================================= */
 const app = () => $("#app");
-function render() {
-  if (!S.profile?.name) return renderOnboarding();
-  renderLobby();
-}
+function render() { if (!S.profile?.name) renderOnboarding(); else renderLobby(); }
 
 /* ---------- onboarding ---------- */
 function renderOnboarding() {
@@ -560,21 +736,20 @@ function renderOnboarding() {
       e.preventDefault();
       const name = $("#onb-name").value.trim();
       if (!name) { $("#onb-name").focus(); return; }
-      S.profile = { name, cur: "es" };
+      S.profile = { name: name.slice(0, 40), cur: "es" };
       S.data.es = newLang($("#onb-es").value);
       S.data.en = newLang($("#onb-en").value);
       saveProfile(); saveLang("es"); saveLang("en");
       render();
     } },
     cv,
-    h("div", null,
-      h("p", { class: "label", text: "Ta prof : Elena · Español & English" }),
-      h("h1", { text: "¡Hola! Comment tu t'appelles ?" })),
-    h("p", { class: "muted", text: "Elena te parle en visio, corrige chacune de tes erreurs et te donne des devoirs adaptés à tes points faibles à la fin de chaque séance." }),
-    h("div", { class: "field" }, h("label", { for: "onb-name", text: "Ton prénom" }), h("input", { id: "onb-name", autocomplete: "given-name", placeholder: "Ton prénom", required: true })),
+    h("div", null, h("p", { class: "label", text: "Ta prof : Elena · Español & English" }), h("h1", { text: "¡Hola! Comment tu t'appelles ?" })),
+    h("p", { class: "muted", text: "Elena te parle en visio et corrige chacune de tes erreurs. Elle mesure ton vrai niveau pendant le premier cours, suit tes lacunes et ton vocabulaire, et te donne des devoirs ciblés après chaque séance." }),
+    h("div", { class: "field" }, h("label", { for: "onb-name", text: "Ton prénom" }), h("input", { id: "onb-name", autocomplete: "given-name", placeholder: "Ton prénom", required: true, maxlength: "40" })),
     h("div", { class: "onb-row" },
-      h("div", { class: "field" }, h("label", { for: "onb-en", text: "Niveau en anglais" }), levelSelect("onb-en", "C1")),
-      h("div", { class: "field" }, h("label", { for: "onb-es", text: "Niveau en espagnol" }), levelSelect("onb-es", "A0"))),
+      h("div", { class: "field" }, h("label", { for: "onb-en", text: "Ton niveau ressenti en anglais" }), levelSelect("onb-en", "C1")),
+      h("div", { class: "field" }, h("label", { for: "onb-es", text: "Ton niveau ressenti en espagnol" }), levelSelect("onb-es", "A0"))),
+    h("p", { class: "lvl-note", text: "Simple point de départ : Elena vérifie ton niveau réel pendant le premier cours et l'ajuste ensuite à chaque séance." }),
     h("button", { class: "btn primary", type: "submit", text: "Commencer avec Elena" }),
     !window.claude?.use ? h("p", { class: "notice", text: "Ouvre cette page dans Claude pour qu'Elena puisse parler : hors de Claude, elle n'a ni voix ni cerveau." }) : null
   );
@@ -583,99 +758,222 @@ function renderOnboarding() {
   $("#onb-name").focus();
 }
 function levelSelect(id, val) {
-  const labels = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A2 · élémentaire", B1: "B1 · intermédiaire", B2: "B2 · avancé", C1: "C1 · autonome", C2: "C2 · maîtrise" };
-  return h("select", { id }, LEVELS.map(l => h("option", { value: l, selected: l === val, text: labels[l] })));
+  return h("select", { id }, LEVELS.map(l => h("option", { value: l, selected: l === val, text: LEVEL_LABEL[l] })));
 }
 
 /* ---------- lobby ---------- */
 function renderLobby() {
-  const l = S.cur = S.profile.cur || "es";
+  const l = S.cur = S.profile.cur === "en" ? "en" : "es";
   const d = S.data[l];
   const root = app(); root.replaceChildren();
   const brandCv = h("canvas", { "data-mode": "portrait" });
   const joinCv = h("canvas", { "data-mode": "portrait" });
   const minutes = d.sessions.reduce((a, s) => a + (s.minutes || 0), 0);
   const pending = d.homework.filter(x => x.status !== "done");
+  const due = dueWords(l, 999).length;
 
-  const tab = (code) => h("button", {
+  const tab = code => h("button", {
     class: "lang-tab " + code, "aria-pressed": String(code === l), onclick: () => { S.profile.cur = code; S.topic = null; saveProfile(); renderLobby(); }
-  }, h("span", { class: "label", text: LANGS[code].name }), h("b", { text: LANGS[code].native }), h("span", { class: "muted", text: "Niveau " + S.data[code].level }));
+  }, h("span", { class: "label", text: LANGS[code].name }), h("b", { text: LANGS[code].native }),
+     h("span", { class: "muted", text: S.data[code].assessed ? "Niveau " + S.data[code].level : "Niveau à évaluer" }));
 
   const topics = h("div", { class: "chips", role: "group", "aria-label": "Thème" },
-    LANGS[l].topics.map(tp => h("button", { class: "chip", "aria-pressed": String(S.topic === tp), onclick: e => {
+    LANGS[l].topics.map(tp => h("button", { class: "chip", "aria-pressed": String(S.topic === tp), onclick: () => {
       S.topic = S.topic === tp ? null : tp;
       topics.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c.textContent === S.topic)));
     }, text: tp })));
 
   const greet = l === "es" ? `¡Hola, ${S.profile.name}!` : `Hi ${S.profile.name}!`;
-  const sub = d.sessions.length
-    ? (pending.length ? `Tu as ${pending.length} devoir${pending.length > 1 ? "s" : ""} à rendre en ${LANGS[l].name.toLowerCase()}.` : `Dernière séance le ${fmtDate(d.sessions.at(-1).date)}. Prêt pour la suivante ?`)
-    : `Première séance de ${LANGS[l].name.toLowerCase()} avec Elena.`;
+  const bits = [];
+  if (!d.assessed) bits.push(`Premier cours de ${LANGS[l].name.toLowerCase()} : Elena va évaluer ton vrai niveau en discutant avec toi.`);
+  if (pending.length) bits.push(`${pending.length} devoir${pending.length > 1 ? "s" : ""} à rendre.`);
+  if (due) bits.push(`${due} mot${due > 1 ? "s" : ""} à réviser.`);
+  if (!bits.length) bits.push(`Dernière séance le ${fmtDate(d.sessions.at(-1)?.date)}. Prêt pour la suivante ?`);
 
   root.append(h("div", { class: "wrap" },
     h("header", { class: "top" },
       h("div", { class: "brand" }, brandCv, h("div", null, h("h1", { text: "Clase con Elena" }), h("span", { class: "label", text: Store.online ? "Progrès sauvegardés sur ton compte" : "Progrès sauvegardés sur cet appareil" }))),
       h("div", { class: "lang-tabs" }, tab("es"), tab("en"))),
     h("h2", { class: "hello", text: greet }),
-    h("p", { class: "muted", text: sub }),
+    h("p", { class: "muted", text: bits.join(" ") }),
     h("div", { class: "grid" },
       h("div", { style: "display:flex;flex-direction:column;gap:20px;min-width:0" },
         h("section", { class: "panel join" },
           h("div", { class: "join-stage" }, joinCv,
             h("div", { style: "display:flex;flex-direction:column;gap:12px;min-width:0" },
-              h("span", { class: "label", text: "Elena est en ligne" }),
+              h("div", { class: "row" }, h("span", { class: "label", text: "Elena est en ligne" }), !d.assessed ? h("span", { class: "diag", text: "Diagnostic" }) : null),
               h("h2", { text: l === "es" ? "Rejoins ta séance d'espagnol" : "Rejoins ta séance d'anglais" }),
               h("p", { style: "margin:0;color:var(--call-muted)", text: "Choisis un thème ou laisse Elena décider." }),
               topics,
-              h("button", { class: "btn primary", onclick: startCall, disabled: !CAP.sample, text: "Rejoindre l'appel" }),
-              !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec Elena." : "Ouvre cette page dans Claude pour lancer la visio." }) : null,
-              !CAP.dictation && CAP.sample ? h("p", { style: "margin:0;color:var(--call-muted);font-size:13px", text: "Micro indisponible dans ce navigateur : tu pourras écrire tes réponses. Pour parler, utilise Chrome ou l'app Claude sur ordinateur." }) : null))),
+              h("button", { class: "btn primary", id: "join", onclick: () => startCall(), disabled: !CAP.sample, text: "Rejoindre l'appel" }),
+              !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec Elena." : "Ouvre cette page dans Claude pour lancer la visio." }) : null))),
+        soundCheckPanel(l),
         homeworkPanel(l)),
       h("div", { style: "display:flex;flex-direction:column;gap:20px;min-width:0" },
-        h("section", { class: "panel" },
-          h("div", { style: "display:flex;justify-content:space-between;align-items:center;gap:8px" },
-            h("h2", { text: "Ta progression" }),
-            levelEditor(l)),
-          h("div", { class: "stats" },
-            h("div", { class: "stat" }, h("b", { text: d.level }), h("span", { class: "label", text: "Niveau" })),
-            h("div", { class: "stat" }, h("b", { text: d.sessions.length }), h("span", { class: "label", text: "Séances" })),
-            h("div", { class: "stat" }, h("b", { text: minutes }), h("span", { class: "label", text: "Minutes" }))),
-          h("h3", { style: "font-size:15px;margin-top:4px", text: "Points faibles suivis" }),
-          weakList(d),
-          d.strengths.length ? h("div", null, h("h3", { style: "font-size:15px;margin-bottom:6px", text: "Points forts" }), h("p", { style: "margin:0", class: "muted", text: d.strengths.slice(-8).join(" · ") })) : null,
-          d.vocab.length ? h("div", null, h("h3", { style: "font-size:15px;margin-bottom:8px", text: `Vocabulaire (${d.vocab.length} mots)` }),
-            h("div", { class: "vocab" }, d.vocab.slice(-24).reverse().map(v => h("span", null, v.word + " ", h("em", { text: v.meaning }))))) : null),
+        progressPanel(l, minutes),
+        vocabPanel(l),
         h("section", { class: "panel" },
           h("h2", { text: "Historique" }),
           d.sessions.length ? h("div", { class: "hist" }, d.sessions.slice(-6).reverse().map(s =>
             h("div", { class: "hist-item" }, h("time", { text: `${fmtDate(s.date)} · ${s.minutes} min · ${s.errors} erreur${s.errors > 1 ? "s" : ""}` }), h("p", { style: "margin:2px 0 0", text: s.summary }))))
             : h("p", { class: "empty", text: "Tes séances apparaîtront ici, avec le résumé d'Elena." }),
-          h("button", { class: "btn", style: "align-self:flex-start", onclick: e => renameFlow(e), text: "Changer de prénom" })))
+          h("div", { class: "row" },
+            h("button", { class: "btn sm", onclick: e => renameFlow(e), text: "Changer de prénom" }),
+            d.assessed ? h("button", { class: "btn sm", onclick: () => { d.assessed = false; saveLang(l); renderLobby(); toast("Le prochain cours sera un nouveau diagnostic."); }, text: "Refaire un diagnostic" }) : null)))
     )));
   Avatar.mount(brandCv); Avatar.mount(joinCv);
 }
-function levelEditor(l) {
-  const sel = levelSelect("lvl-" + l, S.data[l].level);
-  sel.style.cssText = "background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 8px";
-  sel.setAttribute("aria-label", "Modifier le niveau");
-  sel.onchange = () => { S.data[l].level = sel.value; saveLang(l); renderLobby(); toast("Niveau mis à jour : Elena va s'adapter."); };
-  return sel;
+function progressPanel(l, minutes) {
+  const d = S.data[l];
+  return h("section", { class: "panel" },
+    h("h2", { text: "Ta progression" }),
+    h("div", { class: "stats" },
+      h("div", { class: "stat" }, h("b", { text: d.assessed ? d.level : "?" }), h("span", { class: "label", text: d.assessed ? "Niveau mesuré" : "À évaluer" })),
+      h("div", { class: "stat" }, h("b", { text: d.sessions.length }), h("span", { class: "label", text: "Séances" })),
+      h("div", { class: "stat" }, h("b", { text: minutes }), h("span", { class: "label", text: "Minutes" }))),
+    h("p", { class: "lvl-note", text: d.assessed ? (d.levelNote || "Niveau mesuré par Elena pendant tes cours.") + ` (Tu t'estimais ${d.declared}.)` : `Tu t'estimes ${d.declared}. Elena mesurera ton vrai niveau pendant le premier cours.` }),
+    Object.keys(d.skills).length ? h("div", { class: "skills" }, SKILLS.map(([k, n]) => d.skills[k] == null ? null : h("div", { class: "skill" },
+      h("span", { text: n }), h("div", { class: "bar" }, h("i", { style: `width:${Math.max(3, Math.min(100, d.skills[k]))}%` })), h("b", { text: d.skills[k] })))) : null,
+    h("h3", { style: "font-size:15px;margin-top:4px", text: "Tes lacunes" }),
+    weakList(d),
+    d.strengths.length ? h("div", null, h("h3", { style: "font-size:15px;margin-bottom:6px", text: "Points forts" }), h("p", { style: "margin:0", class: "muted", text: d.strengths.slice(-8).join(" · ") })) : null);
 }
 function renameFlow(ev) {
   const panel = ev.target.closest(".panel");
   if (panel.querySelector(".rename")) return;
-  const input = h("input", { id: "rename-name", value: S.profile.name, "aria-label": "Nouveau prénom" });
+  const input = h("input", { id: "rename-name", value: S.profile.name, "aria-label": "Nouveau prénom", maxlength: "40" });
   const f = h("form", { class: "rename field", onsubmit: e => { e.preventDefault(); const v = input.value.trim(); if (v) { S.profile.name = v; saveProfile(); renderLobby(); } } },
     input, h("button", { class: "btn primary", type: "submit", text: "Enregistrer" }));
   panel.append(f); input.focus();
 }
 function weakList(d) {
-  const list = d.weaknesses.filter(w => w.count > 0 || w.trend === "better").sort((a, b) => b.count - a.count).slice(0, 7);
-  if (!list.length) return h("p", { class: "empty", text: "Elena repère tes erreurs récurrentes pendant les séances et les suit ici." });
+  const list = d.weaknesses.filter(w => w.count > 0 || w.trend === "better").sort((a, b) => b.count - a.count).slice(0, 8);
+  if (!list.length) return h("p", { class: "empty", text: "Elena repère tes erreurs récurrentes pendant les cours et les suit ici." });
   const max = Math.max(...list.map(w => w.count), 1);
   return h("div", { class: "weak" }, list.map(w => h("div", { class: "weak-row" + (w.trend === "better" ? " better" : "") },
     h("div", { style: "min-width:0" }, h("span", { text: w.label }), h("small", { text: (w.trend === "better" ? "En progrès · " : "") + (w.note || `${w.count} occurrence${w.count > 1 ? "s" : ""}`) })),
     h("div", { class: "bar", title: w.count + " occurrences" }, h("i", { style: `width:${Math.max(8, w.count / max * 100)}%` })))));
+}
+
+/* ---------- sound & mic check ---------- */
+function soundCheckPanel(l) {
+  const status = h("p", { class: "status", text: `${Voice.label()} · ${CAP.dictation ? "micro disponible" : "micro indisponible ici (Chrome ou l'app Claude sur ordinateur)"}` });
+  const heard = h("p", { class: "muted", style: "margin:0;font-size:14px", hidden: true });
+  const testVoice = h("button", { class: "btn sm", text: "Tester la voix d'Elena", onclick: async () => {
+    status.className = "status"; status.textContent = "Lecture en cours… tu dois entendre Elena.";
+    const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! ¿Me oyes bien?` }, { lang: "fr", text: "Si tu m'entends, tout est prêt." }]
+                             : [{ lang: "en", text: `Hi ${S.profile.name}! Can you hear me clearly?` }, { lang: "fr", text: "Si tu m'entends, tout est prêt." }];
+    let spoke = false; const prev = Voice.stateCb; Voice.stateCb = on => { if (on) spoke = true; };
+    await Voice.speak(parts, l);
+    Voice.stateCb = prev;
+    status.className = "status " + (spoke || Voice.engine === "claude" ? "ok" : "bad");
+    status.textContent = Voice.engine === "none" ? "Aucune voix disponible dans ce navigateur : tu liras les sous-titres." : `${Voice.label()} : si tu n'as rien entendu, monte le volume et vérifie que l'onglet n'est pas en sourdine.`;
+  } });
+  const testMic = h("button", { class: "btn sm", text: "Tester mon micro", disabled: !CAP.dictation });
+  let offs = [], timer = 0, txt = [];
+  const finish = () => { offs.forEach(f => { try { f(); } catch {} }); offs = []; clearTimeout(timer); testMic.textContent = "Tester mon micro"; };
+  testMic.onclick = () => {
+    const dd = CAP.dictation; if (!dd) return;
+    if (dd.active()) { dd.stop().catch(() => {}); return; }
+    Voice.stop(); txt = [];
+    heard.hidden = false; heard.textContent = l === "es" ? "Dis par exemple : « Hola, me llamo… »" : "Say for example: “Hello, my name is…”";
+    offs = [
+      dd.onPartial(({ text }) => { heard.textContent = "J'entends : " + [...txt, text].join(" "); }),
+      dd.onFinal(({ text }) => { if (text.trim()) txt.push(text.trim()); heard.textContent = "J'entends : " + txt.join(" "); }),
+      dd.onState(({ state, reason }) => {
+        if (state === "listening") testMic.textContent = "Arrêter le test";
+        if (state === "idle") {
+          finish();
+          if (reason === "not_granted") { status.className = "status bad"; status.textContent = "Micro refusé : autorise-le depuis le menu Permissions de la page, sinon tu écriras tes réponses."; }
+          else if (txt.length) { status.className = "status ok"; status.textContent = "Micro OK : Elena t'entend bien."; }
+          else { status.className = "status bad"; status.textContent = "Je n'ai rien entendu. Vérifie le micro choisi par ton navigateur et réessaie."; }
+        }
+      })
+    ];
+    dd.start({ language: LANGS[l].stt }).catch(e => { finish(); status.className = "status bad"; status.textContent = e?.code === "not_granted" ? "Micro refusé : tu pourras écrire tes réponses." : "Le micro n'a pas démarré. Réessaie."; });
+    timer = setTimeout(() => { if (dd.active()) dd.stop().catch(() => {}); }, 9000);
+  };
+  return h("section", { class: "panel" },
+    h("h2", { text: "Son et micro" }),
+    h("div", { class: "check" }, testVoice, testMic, status), heard);
+}
+
+/* ---------- vocabulary ---------- */
+function vocabPanel(l) {
+  const d = S.data[l];
+  const due = dueWords(l, 999);
+  const lac = d.vocab.filter(v => v.src === "lacune" && v.box < 3).length;
+  const acquired = d.vocab.filter(v => v.box >= 4).length;
+  const dots = n => h("span", { class: "box-dots", "aria-label": `maîtrise ${n} sur 6` }, [0, 1, 2, 3, 4, 5].map(i => h("i", { class: i < n ? "on" : "" })));
+  return h("section", { class: "panel" },
+    h("div", { class: "vocab-head" },
+      h("h2", { text: "Ton vocabulaire" }),
+      h("button", { class: "btn primary sm", disabled: !due.length, onclick: () => flashcards(l), text: due.length ? `Réviser ${Math.min(due.length, 15)} mots` : "Rien à réviser" })),
+    d.vocab.length ? h("p", { class: "lvl-note", text: `${d.vocab.length} mots dans ta banque · ${acquired} acquis · ${lac} lacune${lac > 1 ? "s" : ""} repérée${lac > 1 ? "s" : ""} en cours. Les mots reviennent à intervalles croissants (1, 2, 4, 8… jours) et Elena les glisse dans vos conversations.` }) : null,
+    d.vocab.length ? h("div", { class: "vocab" }, d.vocab.slice().sort((a, b) => (b.src === "lacune") - (a.src === "lacune") || a.box - b.box).slice(0, 30).map(v =>
+      h("span", { title: v.ex || "" }, v.w + " ", h("em", { text: v.m }), dots(v.box))))
+      : h("p", { class: "empty", text: "Les mots nouveaux du cours et ceux qui t'ont manqué arrivent ici, puis tu les révises en cartes." }));
+}
+const norm = s => str(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[¿?¡!.,;:"'()«»]/g, "").replace(/^(el|la|los|las|un|una|the|a|an|to)\s+/, "").replace(/\s+/g, " ").trim();
+const strict = s => str(s).toLowerCase().replace(/[¿?¡!.,;:"'()«»]/g, "").replace(/^(el|la|los|las|un|una|the|a|an|to)\s+/, "").replace(/\s+/g, " ").trim();
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
+  return prev[n];
+}
+function flashcards(l) {
+  const queue = dueWords(l, 15).slice();
+  if (!queue.length) return;
+  const retried = new Set();
+  let done = 0, good = 0;
+  const total = queue.length;
+  const card = h("div", { class: "flash", role: "dialog", "aria-label": "Révision du vocabulaire" });
+  const ov = h("div", { class: "overlay" }, card);
+  document.body.append(ov);
+  const close = () => { Voice.stop(); ov.remove(); saveLang(l); renderLobby(); };
+  function show() {
+    const v = queue.shift();
+    if (!v) {
+      card.replaceChildren(h("h2", { text: "Révision terminée" }), h("p", { text: `${good} bonne${good > 1 ? "s" : ""} réponse${good > 1 ? "s" : ""} sur ${total} mots. Les mots ratés reviendront plus tôt.` }),
+        h("button", { class: "btn primary", onclick: close, text: "Fermer" }));
+      return;
+    }
+    const input = h("input", { id: "flash-answer", autocomplete: "off", autocapitalize: "off", spellcheck: "false", placeholder: `En ${LANGS[l].name.toLowerCase()}…`, "aria-label": "Ta réponse" });
+    const res = h("div", { class: "res", hidden: true });
+    const listen = h("button", { class: "btn sm", type: "button", hidden: true, onclick: () => Voice.speak([{ lang: l, text: v.w + (v.ex ? ". " + v.ex : "") }], l), text: "Écouter" });
+    const nextBtn = h("button", { class: "btn primary", type: "button", hidden: true, onclick: show, text: "Suivant" });
+    const checkBtn = h("button", { class: "btn primary", type: "submit", text: "Vérifier" });
+    const skip = h("button", { class: "btn", type: "button", onclick: () => judge(true), text: "Je ne sais pas" });
+    function judge(gaveUp) {
+      const a = input.value;
+      let r;
+      if (!gaveUp && strict(a) === strict(v.w)) r = ["good", "Parfait !"];
+      else if (!gaveUp && norm(a) === norm(v.w)) r = ["good", "Juste, attention aux accents."];
+      else if (!gaveUp && norm(a).length > 3 && lev(norm(a), norm(v.w)) <= 1) r = ["mid", "Presque ! Une lettre de différence."];
+      else r = ["bad", gaveUp ? "Pas grave, retiens-le :" : "Pas tout à fait."];
+      grade(v, r[0]);
+      if (r[0] === "good") good++;
+      if (r[0] !== "good" && !retried.has(v)) { retried.add(v); queue.push(v); }
+      done++;
+      res.hidden = false; res.className = "res " + (r[0] === "good" ? "good" : r[0] === "mid" ? "mid" : "bad");
+      res.replaceChildren(h("strong", { text: r[1] + " " }), h("span", { text: v.w }), v.ex ? h("div", { class: "muted", style: "font-size:14px;margin-top:4px", text: v.ex }) : null);
+      input.disabled = true; checkBtn.hidden = true; skip.hidden = true; listen.hidden = false; nextBtn.hidden = false;
+      Voice.speak([{ lang: l, text: v.w }], l);
+      nextBtn.focus();
+    }
+    const form = h("form", { onsubmit: e => { e.preventDefault(); if (!input.disabled) { if (input.value.trim()) judge(false); else input.focus(); } }, style: "display:flex;flex-direction:column;gap:12px" },
+      h("span", { class: "label", text: "Comment dit-on…" }),
+      h("div", { class: "prompt", text: v.m || "?" }),
+      input, res,
+      h("div", { class: "row" }, checkBtn, skip, listen, nextBtn));
+    card.replaceChildren(
+      h("div", { class: "flash-top" }, h("span", { class: "label", text: `Carte ${Math.min(done + 1, total + retried.size)} · ${queue.length} restante${queue.length > 1 ? "s" : ""}` }),
+        h("button", { class: "btn sm", onclick: close, text: "Arrêter" })),
+      form);
+    input.focus();
+  }
+  show();
 }
 
 /* ---------- homework ---------- */
@@ -684,7 +982,7 @@ function homeworkPanel(l) {
   const list = d.homework.slice().reverse().slice(0, 4);
   return h("section", { class: "panel" },
     h("h2", { text: "Devoirs" }),
-    list.length ? list.map(hw => homeworkCard(l, hw)) : h("p", { class: "empty", text: "À la fin de chaque séance, Elena te prépare des exercices ciblés sur tes erreurs. Ils arriveront ici." }));
+    list.length ? list.map(hw => homeworkCard(l, hw)) : h("p", { class: "empty", text: "À la fin de chaque cours, Elena te prépare des exercices ciblés sur tes lacunes et ton vocabulaire. Ils arriveront ici." }));
 }
 function homeworkCard(l, hw) {
   const open = hw.status !== "done" && hw === S.data[l].homework.filter(x => x.status !== "done").at(-1);
@@ -693,25 +991,25 @@ function homeworkCard(l, hw) {
     h("div", { class: "hw-head" },
       h("div", { style: "min-width:0" }, h("h3", { style: "font-size:17px", text: hw.title }), h("p", { class: "muted", style: "margin:2px 0 0;font-size:14px", text: hw.focus })),
       h("span", { class: "pill " + (hw.status === "done" ? "done" : "todo"), text: hw.status === "done" ? `Fait · ${hw.score}/10` : `À rendre · ${fmtDate(hw.date)}` })),
-    h("button", { class: "btn", style: "align-self:flex-start;padding:6px 12px;font-size:13px", "aria-expanded": String(open), onclick: e => {
-      body.hidden = !body.hidden; e.target.setAttribute("aria-expanded", String(!body.hidden)); e.target.textContent = body.hidden ? "Voir les exercices" : "Masquer";
+    h("button", { class: "btn sm", style: "align-self:flex-start", "aria-expanded": String(open), onclick: e => {
+      body.hidden = !body.hidden; e.currentTarget.setAttribute("aria-expanded", String(!body.hidden)); e.currentTarget.textContent = body.hidden ? "Voir les exercices" : "Masquer";
     }, text: open ? "Masquer" : "Voir les exercices" }),
     body);
-  hw.exercises.forEach((ex, i) => {
+  arr(hw.exercises).forEach((ex, i) => {
     const id = `ex-${hw.id}-${i}`;
     let input;
-    if (ex.type === "qcm" && Array.isArray(ex.options)) {
-      input = h("div", { class: "opts", role: "radiogroup" }, ex.options.map((o, j) => h("label", null,
+    if (ex.type === "qcm" && arr(ex.options).length) {
+      input = h("div", { class: "opts", role: "radiogroup", "aria-labelledby": id + "-q" }, ex.options.map(o => h("label", null,
         h("input", { type: "radio", name: id, value: o, checked: ex.answer === o, disabled: hw.status === "done" }), o)));
+      input.addEventListener("change", e => { ex.answer = e.target.value; saveDraft(l); });
     } else {
-      input = h("textarea", { id, rows: ex.type === "write" ? 4 : 1, placeholder: ex.hint || "Ta réponse", disabled: hw.status === "done" });
+      input = h("textarea", { id, rows: ex.type === "write" ? 4 : 1, placeholder: ex.type === "write" ? "Écris ici…" : "Ta réponse", disabled: hw.status === "done" });
       input.value = ex.answer || "";
       input.addEventListener("input", () => { ex.answer = input.value; saveDraft(l); });
     }
-    if (ex.type === "qcm") input.addEventListener("change", e => { ex.answer = e.target.value; saveDraft(l); });
     body.append(h("div", { class: "ex" },
-      h("label", { for: id, style: "font-weight:600" }, `${i + 1}. `, ex.prompt),
-      ex.hint && ex.type !== "write" ? h("small", { class: "muted", text: "Indice : " + ex.hint }) : null,
+      h("label", { for: id, id: id + "-q", style: "font-weight:600" }, `${i + 1}. `, ex.prompt),
+      ex.hint ? h("small", { class: "muted", text: "Indice : " + ex.hint }) : null,
       input,
       ex.feedback ? h("div", { class: "fb " + (ex.correct ? "good" : "bad") }, ex.correct ? "Correct. " : "À revoir. ", ex.feedback) : null));
   });
@@ -726,26 +1024,26 @@ let draftTimer;
 function saveDraft(l) { clearTimeout(draftTimer); draftTimer = setTimeout(() => saveLang(l), 900); }
 async function gradeHomework(l, hw, btn) {
   if (!CAP.sample) { toast("Ouvre cette page dans Claude pour faire corriger tes devoirs."); return; }
-  if (hw.exercises.every(ex => !ex.answer?.trim())) { toast("Réponds à au moins un exercice avant de rendre."); return; }
+  if (arr(hw.exercises).every(ex => !str(ex.answer))) { toast("Réponds à au moins un exercice avant de rendre."); return; }
   btn.disabled = true; btn.textContent = "Elena corrige…";
-  const prompt = `Tu es Elena, professeure de ${LANGS[l].name.toLowerCase()} de ${S.profile.name} (niveau ${S.data[l].level}, francophone). Corrige ses devoirs.
+  const prompt = `Tu es Elena, professeure de ${LANGS[l].name.toLowerCase()} de ${S.profile.name} (francophone). Corrige ses devoirs avec exigence et bienveillance.
 
 ${profileContext(l)}
 
 DEVOIR : "${hw.title}" — objectif : ${hw.focus}
-${hw.exercises.map((ex, i) => `${i + 1}. [${ex.type}] ${ex.prompt}${ex.options ? " (choix : " + ex.options.join(" / ") + ")" : ""}${ex.expected ? "\n   Réponse attendue : " + ex.expected : ""}\n   Réponse de l'élève : ${ex.answer?.trim() || "(pas de réponse)"}`).join("\n")}
+${hw.exercises.map((ex, i) => `${i + 1}. [${ex.type}] ${ex.prompt}${ex.options ? " (choix : " + ex.options.join(" / ") + ")" : ""}${ex.expected ? "\n   Réponse attendue : " + ex.expected : ""}\n   Réponse de l'élève : ${str(ex.answer) || "(pas de réponse)"}`).join("\n")}
 
-Pour chaque exercice : "correct" (true si juste ou acceptable), "feedback" en français (1-2 phrases : la bonne réponse et pourquoi ; pour une production écrite, réécris la version corrigée). Puis une note globale sur 10, un commentaire encourageant en français adressé à ${S.profile.name} (2 phrases), et la mise à jour des points faibles.
+Pour chaque exercice, dans l'ordre : "correct" (true si juste ou acceptable, accepte les variantes correctes même si différentes de la réponse attendue), "feedback" en français (1-2 phrases : la bonne réponse et pourquoi ; pour une production écrite, réécris la version corrigée et note les fautes). Puis : note sur 10, commentaire encourageant (2 phrases) adressé à ${S.profile.name}, mise à jour des lacunes, et les mots de vocabulaire qu'il ne connaissait pas (max 5).
 Réponds uniquement en JSON :
-{"results":[{"correct":true,"feedback":"..."}],"score":7,"comment":"...","weakness_updates":[{"label":"libellé existant ou nouveau","delta":1,"note":"court"}],"strengths":["..."]}
+{"results":[{"correct":true,"feedback":"..."}],"score":7,"comment":"...","weakness_updates":[{"label":"libellé existant ou nouveau","delta":1,"note":"court"}],"strengths":["..."],"vocab_gaps":[{"word":"","meaning":"","example":""}]}
 delta = +1 si l'erreur persiste, -1 si le point est maîtrisé.`;
   try {
-    const r = await CAP.sample.json(prompt, { cache: false });
-    (r.results || []).forEach((res, i) => { if (hw.exercises[i]) { hw.exercises[i].correct = !!res.correct; hw.exercises[i].feedback = String(res.feedback || ""); } });
+    const r = await askJSON(prompt, { effort: "low" });
+    arr(r.results).forEach((res, i) => { if (hw.exercises[i]) { hw.exercises[i].correct = !!res?.correct; hw.exercises[i].feedback = str(res?.feedback); } });
     hw.score = Math.max(0, Math.min(10, Math.round(Number(r.score) || 0)));
-    hw.comment = String(r.comment || "");
+    hw.comment = str(r.comment);
     hw.status = "done"; hw.doneAt = today();
-    applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths);
+    applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune");
     saveLang(l); renderLobby(); toast(`Devoirs corrigés : ${hw.score}/10`);
   } catch (e) {
     btn.disabled = false; btn.textContent = "Rendre mes devoirs à Elena"; toast(errCopy(e));
@@ -753,43 +1051,47 @@ delta = +1 si l'erreur persiste, -1 si le point est maîtrisé.`;
 }
 function applyWeakness(l, ups) {
   const d = S.data[l];
-  for (const u of Array.isArray(ups) ? ups : []) {
-    const label = String(u.label || "").trim(); if (!label) continue;
+  for (const u of arr(ups)) {
+    const label = str(u?.label).slice(0, 60); if (!label) continue;
     let w = d.weaknesses.find(x => x.label.toLowerCase() === label.toLowerCase());
     if (!w) { w = { label, count: 0, first: today() }; d.weaknesses.push(w); }
-    const delta = Number(u.delta) || 0;
+    const delta = Math.max(-3, Math.min(10, Number(u.delta) || 0));
     w.count = Math.max(0, w.count + delta);
     w.trend = delta < 0 ? "better" : delta > 0 ? "worse" : w.trend;
-    if (u.note) w.note = String(u.note).slice(0, 120);
+    if (u.note) w.note = str(u.note).slice(0, 120);
     w.last = today();
   }
   d.weaknesses = d.weaknesses.filter(w => w.count > 0 || w.trend === "better").slice(-40);
 }
-function addStrengths(l, arr) {
+function addStrengths(l, list) {
   const d = S.data[l];
-  for (const s of Array.isArray(arr) ? arr : []) { const v = String(s).trim(); if (v && !d.strengths.includes(v)) d.strengths.push(v); }
+  for (const s of arr(list)) { const v = str(s).slice(0, 80); if (v && !d.strengths.includes(v)) d.strengths.push(v); }
   d.strengths = d.strengths.slice(-20);
 }
 
 /* =========================================================
    The call
    ========================================================= */
-const C = { turns: [], log: [], errors: [], words: [], start: 0, timer: 0, busy: false, ctl: null, finals: [], showTr: true, captions: true, listening: false, lastReply: null };
+const C = { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], targets: [], used: new Set(), liveLevel: null,
+            start: 0, timer: 0, busy: false, ctl: null, finals: [], showTr: true, captions: true, listening: false, lastSay: null, lastTeacherText: "", pending: null, open: false, micOffs: [] };
 
 function startCall() {
-  Object.assign(C, { turns: [], log: [], errors: [], words: [], start: Date.now(), busy: false, finals: [], listening: false, lastReply: null });
-  const l = S.cur;
+  const l = S.cur, d = S.data[l];
+  Object.assign(C, { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], used: new Set(),
+    targets: dueWords(l, 6), liveLevel: d.assessed ? d.level : null,
+    start: now(), busy: false, finals: [], listening: false, lastSay: null, lastTeacherText: "", pending: null, open: true, micOffs: [] });
   const cv = h("canvas", { class: "teacher" });
   const initials = S.profile.name.trim().slice(0, 2).toUpperCase();
-  const micBtn = h("button", { class: "cbtn mic", id: "mic", "aria-label": "Parler", disabled: !CAP.dictation });
+  const micBtn = h("button", { class: "cbtn mic", id: "mic", "aria-label": "Parler (barre d'espace)", disabled: !CAP.dictation });
   micBtn.innerHTML = ICON.mic;
   const mk = (id, icon, label, fn) => { const b = h("button", { class: "cbtn", id, "aria-label": label, onclick: fn }); b.innerHTML = icon; return h("div", { class: "cbtn-wrap" }, b, h("span", { text: label })); };
   const endBtn = h("button", { class: "cbtn end", "aria-label": "Raccrocher", onclick: endCall }); endBtn.innerHTML = ICON.end;
 
   const view = h("div", { class: "call", role: "dialog", "aria-label": "Visio avec Elena" },
     h("div", { class: "call-top" },
-      h("div", null, h("div", { style: "font:600 16px var(--f-display)", text: `Elena · ${LANGS[l].native}` }), h("span", { class: "label", text: S.topic || (l === "es" ? "Conversación" : "Conversation") })),
-      h("div", { class: "rec" }, h("i"), h("span", { id: "clock", text: "00:00" }))),
+      h("div", null, h("div", { style: "font:600 16px var(--f-display)", text: `Elena · ${LANGS[l].native}` }),
+        h("span", { class: "label", text: (!d.assessed ? "Diagnostic · " : "") + (S.topic || (l === "es" ? "Conversación" : "Conversation")) })),
+      h("div", { class: "rec" }, h("span", { id: "live-level", class: "label", style: "color:var(--call-muted)" }), h("i"), h("span", { id: "clock", text: "00:00" }))),
     h("div", { class: "call-body" },
       h("div", { class: "stage" }, cv,
         h("div", { class: "self", id: "self" }, h("div", { class: "avatar", text: initials }), h("small", { text: S.profile.name })),
@@ -798,58 +1100,69 @@ function startCall() {
       h("aside", { class: "side" },
         h("div", { class: "side-head" }, h("span", { class: "label", text: "Transcription & corrections" }),
           h("div", { class: "toggles" },
-            h("button", { class: "tgl", "aria-pressed": String(C.captions), onclick: e => { C.captions = !C.captions; e.target.setAttribute("aria-pressed", String(C.captions)); $("#captions").hidden = !C.captions; }, text: "Sous-titres" }),
-            h("button", { class: "tgl", "aria-pressed": String(C.showTr), onclick: e => { C.showTr = !C.showTr; e.target.setAttribute("aria-pressed", String(C.showTr)); document.querySelectorAll(".tr,.captions small").forEach(x => x.hidden = !C.showTr); }, text: "Traduction" }))),
+            h("button", { class: "tgl", "aria-pressed": String(C.captions), onclick: e => { C.captions = !C.captions; e.currentTarget.setAttribute("aria-pressed", String(C.captions)); $("#captions").hidden = !C.captions; }, text: "Sous-titres" }),
+            h("button", { class: "tgl", "aria-pressed": String(C.showTr), onclick: e => { C.showTr = !C.showTr; e.currentTarget.setAttribute("aria-pressed", String(C.showTr)); document.querySelectorAll(".tr,.captions small").forEach(x => x.hidden = !C.showTr); }, text: "Traduction" }))),
         h("div", { class: "log", id: "log", "aria-live": "polite" }),
         h("form", { class: "compose", onsubmit: e => { e.preventDefault(); const i = $("#typed"); const v = i.value.trim(); if (v) { i.value = ""; userSays(v, false); } } },
-          h("input", { id: "typed", placeholder: l === "es" ? "Escribe aquí… (ou en français si tu bloques)" : "Type here…", autocomplete: "off" }),
+          h("input", { id: "typed", placeholder: l === "es" ? "Escribe aquí… (ou en français si tu bloques)" : "Type here…", autocomplete: "off", maxlength: "1200" }),
           h("button", { type: "submit", text: "Envoyer" })))),
     h("div", { class: "controls" },
-      mk("repeat", ICON.repeat, "Répéter", () => { if (C.lastReply) Voice.speak(C.lastReply, l); }),
-      mk("slow", ICON.slow, "Plus lent", e => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? "Elena parlera plus lentement." : "Vitesse normale."); }),
+      mk("repeat", ICON.repeat, "Répéter", () => { if (C.lastSay) Voice.speak(C.lastSay, l); }),
+      mk("slow", ICON.slow, "Plus lent", () => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? "Elena parlera plus lentement." : "Vitesse normale."); }),
       h("div", { class: "cbtn-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Parler" : "Micro indisponible" })),
-      mk("help", ICON.help, "Je bloque", () => userSays(l === "es" ? "(Je ne sais pas comment dire ça, aide-moi : donne-moi un exemple de réponse simple à répéter.)" : "(I'm stuck, give me a hint or a model answer.)", false, true)),
+      mk("help", ICON.help, "Je bloque", () => userSays(l === "es" ? "(Je ne sais pas comment dire ça. Aide-moi : donne-moi un exemple de réponse simple à répéter.)" : "(I'm stuck. Give me a hint or a model answer.)", false, true)),
+      mk("mute", ICON.mute, "Son", () => { Voice.muted = !Voice.muted; if (Voice.muted) Voice.stop(); const b = $("#mute"); b.style.opacity = Voice.muted ? ".45" : ""; b.nextSibling.textContent = Voice.muted ? "Muet" : "Son"; }),
       h("div", { class: "cbtn-wrap" }, endBtn, h("span", { text: "Raccrocher" }))));
   document.body.append(view);
   Avatar.mount(cv);
   Voice.stateCb = on => {
     const tag = $("#tag"); if (!tag) return;
     tag.className = "tag" + (on ? " speaking" : C.busy ? " thinking" : "");
-    $("#tag-text").textContent = on ? "Elena parle…" : C.busy ? "Elena réfléchit…" : "Elena";
+    $("#tag-text").textContent = on ? "Elena parle…" : C.busy ? "Elena réfléchit…" : C.listening ? "Elena t'écoute" : "Elena";
   };
-  C.timer = setInterval(() => { const s = Math.floor((Date.now() - C.start) / 1000); const c = $("#clock"); if (c) c.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }, 1000);
+  C.timer = setInterval(() => { const s = Math.floor((now() - C.start) / 1000); const c = $("#clock"); if (c) c.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }, 1000);
   setupMic(micBtn);
-  teacherTurn(`[La séance commence. Salue ${S.profile.name} par son prénom, comme au début d'une visio. Si un devoir a été donné, demande brièvement comment ça s'est passé. Puis lance la conversation${S.topic ? " sur le thème « " + S.topic + " »" : " sur un sujet adapté à son niveau et à ses points faibles"}. Pas de correction pour ce message.]`, true);
+  document.addEventListener("keydown", spaceKey);
+  teacherTurn(`[La séance commence. Salue ${S.profile.name} par son prénom, comme au début d'une visio. ${d.homework.at(-1)?.status === "todo" ? "Demande brièvement s'il a pu faire ses devoirs. " : ""}Puis lance la conversation${S.topic ? " sur le thème « " + S.topic + " »" : " sur un sujet adapté"}.]`, null);
+}
+function spaceKey(e) {
+  if (e.code !== "Space" || e.repeat || !C.open) return;
+  const t = e.target; if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "BUTTON" || t.isContentEditable)) return;
+  e.preventDefault(); $("#mic")?.click();
 }
 
 function setupMic(btn) {
   const d = CAP.dictation; if (!d) return;
   const self = $("#self");
   let partialEl = null;
-  const offs = [
+  C.micOffs = [
     d.onPartial(({ text }) => {
+      if (!C.open) return;
       if (!partialEl) { partialEl = h("div", { class: "partial" }); $("#log")?.append(partialEl); }
       partialEl.textContent = [...C.finals, text].join(" ");
       scrollLog();
     }),
-    d.onFinal(({ text }) => { if (text.trim()) C.finals.push(text.trim()); if (partialEl) partialEl.textContent = C.finals.join(" "); }),
+    d.onFinal(({ text }) => { if (!C.open) return; if (str(text)) C.finals.push(str(text)); if (partialEl) partialEl.textContent = C.finals.join(" "); }),
     d.onState(({ state, reason }) => {
-      const live = state === "listening" || state === "starting";
+      if (!C.open) return;
+      const live = state === "listening" || state === "starting" || state === "finishing";
       C.listening = live;
       btn.classList.toggle("live", live); btn.innerHTML = live ? ICON.stop : ICON.mic;
-      btn.setAttribute("aria-label", live ? "Arrêter et envoyer" : "Parler");
-      const lab = $("#mic-label"); if (lab) lab.textContent = live ? "J'écoute… (appuie pour envoyer)" : "Parler";
+      btn.setAttribute("aria-label", live ? "Arrêter et envoyer" : "Parler (barre d'espace)");
+      const lab = $("#mic-label"); if (lab) lab.textContent = state === "finishing" ? "Envoi…" : live ? "J'écoute… appuie pour envoyer" : "Parler";
       self?.classList.toggle("live", live);
       Avatar.set({ listening: live });
+      Voice.stateCb?.(false);
       if (state === "idle") {
         partialEl?.remove(); partialEl = null;
         const said = C.finals.join(" ").trim(); C.finals = [];
         if (said) userSays(said, true);
+        else if (reason === "stopped" || reason === "viewer_stopped") toast("Je n'ai rien entendu. Parle un peu plus fort ou écris ta réponse.");
         if (reason === "not_granted") { btn.disabled = true; if (lab) lab.textContent = "Micro refusé"; toast("Micro refusé : tu peux écrire tes réponses."); }
+        if (reason === "time_limit") toast("Durée d'écoute maximale atteinte : ce que tu as dit a été envoyé.");
       }
     })
   ];
-  C.micOffs = offs;
   btn.onclick = () => {
     if (C.listening) { d.stop().catch(() => {}); return; }
     Voice.stop();
@@ -857,173 +1170,261 @@ function setupMic(btn) {
     d.start({ language: LANGS[S.cur].stt }).catch(e => {
       if (e?.code === "not_granted") { btn.disabled = true; toast("Micro refusé : tu peux écrire tes réponses."); }
       else if (e?.code === "dismissed") toast("Autorise le micro pour parler avec Elena.");
+      else if (e?.code === "rate_limited") toast("Micro momentanément indisponible. Réessaie dans quelques secondes.");
       else if (e?.code !== "stopped") toast("Le micro n'a pas démarré. Réessaie ou écris ta réponse.");
     });
   };
 }
-
 function scrollLog() { const lg = $("#log"); if (lg) lg.scrollTop = lg.scrollHeight; }
 
 function userSays(text, oral, isHelp) {
-  if (C.busy) { toast("Attends qu'Elena ait répondu."); return; }
-  const bubble = h("div", { class: "msg u" + (isHelp ? " help" : "") }, h("span", { class: "who", text: S.profile.name }), h("div", { class: "bubble", text: text }));
+  if (!C.open) return;
+  text = str(text).slice(0, 1200); if (!text) return;
+  if (C.busy) {
+    // Elena is still answering: queue the student's words instead of dropping them
+    C.pending = C.pending ? { ...C.pending, text: C.pending.text + " " + text } : { text, oral, isHelp };
+    toast("Elena finit sa phrase, ton message part juste après.");
+    return;
+  }
+  const bubble = h("div", { class: "msg u" + (isHelp ? " help" : "") }, h("span", { class: "who", text: S.profile.name }), h("div", { class: "bubble", text }));
   $("#log")?.append(bubble); scrollLog();
-  if (!isHelp) C.log.push({ who: "student", text });
-  teacherTurn((oral ? "[oral] " : "") + text, false, bubble);
+  const content = (oral ? "[oral] " : "") + text;
+  if (!isHelp) {
+    C.log.push({ who: "student", text });
+    analyse(content, bubble);
+  }
+  teacherTurn(content, bubble);
 }
 
-async function teacherTurn(content, opening, userBubble) {
+/* Deep correction + gap detection, runs in parallel with Elena's reply */
+async function analyse(content, bubble) {
   const l = S.cur;
+  const teacherLine = C.lastTeacherText;
+  const wait = h("span", { class: "checking", text: "Elena vérifie ta phrase…" });
+  bubble.append(wait); scrollLog();
+  let r;
+  try { r = await askJSON(analysisPrompt(l, teacherLine, content), { effort: "low" }); }
+  catch (e) {
+    if (!C.open) return;
+    wait.replaceWith(h("button", { class: "retry", onclick: ev => { ev.currentTarget.remove(); analyse(content, bubble); }, text: "Correction indisponible · réessayer" }));
+    return;
+  }
+  if (!C.open) return;
+  wait.remove();
+  const fixes = arr(r.corrections).filter(c => str(c?.original) && str(c?.corrected) && norm(c.original) !== norm(c.corrected));
+  const better = arr(r.better).filter(b => str(b?.said) && str(b?.better)).slice(0, 2);
+  const gaps = arr(r.vocab_gaps).filter(g => str(g?.word)).slice(0, 3);
+  fixes.forEach(f => {
+    bubble.append(h("div", { class: "fix" },
+      h("div", null, h("del", { text: str(f.original) }), "  →  ", h("ins", { text: str(f.corrected) })),
+      str(f.explanation) ? h("p", { text: str(f.explanation) }) : null));
+    C.errors.push({ original: str(f.original), corrected: str(f.corrected), explanation: str(f.explanation), category: str(f.category) || "divers" });
+  });
+  better.forEach(b => {
+    bubble.append(h("div", { class: "fix better" }, h("span", { class: "k", text: "Plus naturel" }),
+      h("div", null, h("del", { text: str(b.said) }), "  →  ", h("ins", { text: str(b.better) })),
+      str(b.why) ? h("p", { text: str(b.why) }) : null));
+    C.betters.push({ said: str(b.said), better: str(b.better) });
+  });
+  if (!fixes.length && !better.length) bubble.append(h("div", { class: "fix ok" }, h("p", { text: l === "es" ? "¡Perfecto! Aucune erreur." : "Spot on. No mistakes." })));
+  if (gaps.length) {
+    const n = addVocab(l, gaps, "lacune");
+    C.gaps.push(...gaps.map(g => ({ word: str(g.word), meaning: str(g.meaning) })));
+    bubble.append(h("div", { class: "words" }, gaps.map(g => h("span", { class: "gap-chip", text: `+ ${str(g.word)} = ${str(g.meaning)}` }))));
+    if (n) saveLang(l);
+  }
+  arr(r.used_targets).forEach(w => C.used.add(str(w)));
+  const lvl = LEVELS.includes(r.level) ? r.level : null;
+  C.analyses.push({ errors: fixes.length, level: lvl });
+  // live level = median of observed signals (needs 3+ to move away from the stored level)
+  const sig = C.analyses.map(a => a.level).filter(Boolean).map(x => LEVELS.indexOf(x)).sort((a, b) => a - b);
+  if (sig.length >= 3) {
+    C.liveLevel = LEVELS[sig[Math.floor(sig.length / 2)]];
+    const el = $("#live-level"); if (el) el.textContent = "Niveau observé " + C.liveLevel + " · ";
+  }
+  scrollLog();
+}
+
+async function teacherTurn(content, userBubble) {
+  const l = S.cur;
+  if (!C.open) return;
   C.busy = true;
   Avatar.set({ thinking: true }); Voice.stateCb?.(false);
   const typing = h("div", { class: "typing", text: "Elena réfléchit…" });
   $("#log")?.append(typing); scrollLog();
   C.turns.push({ role: "user", content });
-  // keep the conversation compact: instructions + last 24 turns
   const recent = C.turns.slice(-24);
   while (recent.length && recent[0].role !== "user") recent.shift();
-  const input = [{ role: "user", content: rules(l) }, ...recent];
+  const input = [{ role: "user", content: convRules(l) + "\n\n---\n\n" + recent[0].content }, ...recent.slice(1)];
   input[input.length - 1] = { role: "user", content: input.at(-1).content + "\n\n(Réponds avec l'objet JSON demandé.)" };
-  if (input.length >= 2 && input[1].role === "user") input.splice(0, 2, { role: "user", content: input[0].content + "\n\n---\n\n" + input[1].content });
-  C.ctl = new AbortController();
+  const ctl = C.ctl = new AbortController();
   try {
-    const r = await CAP.sample.json(input, { modelTier: "quick", cache: false, signal: C.ctl.signal });
+    const r = await askJSON(input, { modelTier: "quick", signal: ctl.signal });
+    if (!C.open) return;
     typing.remove();
-    const reply = String(r?.reply || "").trim() || "…";
-    const tr = String(r?.translation || "").trim();
-    const fixes = (Array.isArray(r?.corrections) ? r.corrections : []).filter(c => c && c.original && c.corrected && String(c.original).trim() !== String(c.corrected).trim());
-    const words = (Array.isArray(r?.new_words) ? r.new_words : []).filter(w => w && w.word);
-    C.turns.push({ role: "assistant", content: reply });
-    C.lastReply = reply;
-    if (userBubble && !opening && !userBubble.classList.contains("help")) {
-      if (fixes.length) fixes.forEach(f => {
-        userBubble.append(h("div", { class: "fix" },
-          h("div", null, h("del", { text: f.original }), "  →  ", h("ins", { text: f.corrected })),
-          f.explanation ? h("p", { text: f.explanation }) : null));
-        C.errors.push({ original: String(f.original), corrected: String(f.corrected), explanation: String(f.explanation || ""), category: String(f.category || "divers") });
-      });
-      else if (C.log.length) userBubble.append(h("div", { class: "fix ok" }, h("p", { text: l === "es" ? "¡Perfecto! Aucune erreur." : "Spot on. No mistakes." })));
-    }
-    words.forEach(w => C.words.push({ word: String(w.word), meaning: String(w.meaning || "") }));
-    C.log.push({ who: "teacher", text: reply });
-    const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: "Elena" }), h("div", { class: "bubble", text: reply }),
+    let say = arr(r.say).map(p => ({ lang: p?.lang === "fr" ? "fr" : l, text: str(p?.text) })).filter(p => p.text);
+    if (!say.length && str(r.reply)) say = [{ lang: l, text: str(r.reply) }];
+    if (!say.length) throw { code: "invalid_json" };
+    const text = say.map(p => p.text).join(" ");
+    const tr = str(r.translation);
+    const words = arr(r.new_words).filter(w => str(w?.word)).slice(0, 4);
+    C.turns.push({ role: "assistant", content: text });
+    C.lastSay = say; C.lastTeacherText = text;
+    words.forEach(w => C.words.push({ word: str(w.word), meaning: str(w.meaning) }));
+    C.log.push({ who: "teacher", text });
+    const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: "Elena" }), h("div", { class: "bubble", text }),
       tr ? h("div", { class: "tr", hidden: !C.showTr, text: tr }) : null,
-      words.length ? h("div", { class: "words" }, words.map(w => h("span", { text: `${w.word} = ${w.meaning}` }))) : null);
+      words.length ? h("div", { class: "words" }, words.map(w => h("span", { text: `${str(w.word)} = ${str(w.meaning)}` }))) : null);
     $("#log")?.append(msg); scrollLog();
     const cap = $("#captions");
-    if (cap) { cap.replaceChildren(h("span", { text: reply }), tr ? h("small", { hidden: !C.showTr }, h("span", { text: tr })) : ""); }
+    if (cap) cap.replaceChildren(h("span", { text }), tr ? h("small", { hidden: !C.showTr }, h("span", { text: tr })) : "");
     C.busy = false;
     Avatar.set({ thinking: false });
-    await Voice.speak(reply, l);
+    flushPending();
+    if (!C.busy && !C.listening) await Voice.speak(say, l);
   } catch (e) {
     typing.remove();
     C.turns.pop();
     C.busy = false; Avatar.set({ thinking: false }); Voice.stateCb?.(false);
-    if (e?.code === "cancelled") return;
-    $("#log")?.append(h("div", { class: "typing", text: errCopy(e) })); scrollLog();
-    if (e?.code === "not_granted") { $("#mic") && ($("#mic").disabled = true); }
+    if (e?.code === "cancelled" || !C.open) return;
+    const retry = h("button", { class: "retry", text: "Réessayer", onclick: () => { errBox.remove(); if (!C.busy) teacherTurn(content, userBubble); } });
+    const errBox = h("div", { style: "display:flex;flex-direction:column;gap:6px" }, h("div", { class: "typing", text: errCopy(e) }), e?.code !== "not_granted" ? retry : null);
+    $("#log")?.append(errBox); scrollLog();
+    if (e?.code === "not_granted") { const m = $("#mic"); if (m) m.disabled = true; }
+    else flushPending();
   }
+}
+function flushPending() {
+  if (!C.pending || C.busy || !C.open) return;
+  const p = C.pending; C.pending = null;
+  userSays(p.text, p.oral, p.isHelp);
 }
 
 function closeCall() {
+  C.open = false;
   clearInterval(C.timer);
-  C.ctl?.abort();
-  Voice.stop();
-  try { if (CAP.dictation?.active()) CAP.dictation.stop(); } catch {}
-  (C.micOffs || []).forEach(f => { try { f(); } catch {} });
+  try { C.ctl?.abort(); } catch {}
+  Voice.stop(); Voice.stateCb = null;
+  try { if (CAP.dictation?.active()) CAP.dictation.stop().catch(() => {}); } catch {}
+  C.micOffs.forEach(f => { try { f(); } catch {} }); C.micOffs = [];
+  document.removeEventListener("keydown", spaceKey);
   Avatar.set({ listening: false, thinking: false, speaking: false });
   document.querySelector(".call")?.remove();
 }
 
 async function endCall() {
-  const l = S.cur;
-  const minutes = Math.max(1, Math.round((Date.now() - C.start) / 60000));
+  const l = S.cur, d = S.data[l];
+  const minutes = Math.max(1, Math.round((now() - C.start) / 60000));
   const studentTurns = C.log.filter(x => x.who === "student").length;
+  const snapshot = { log: C.log.slice(), errors: C.errors.slice(), betters: C.betters.slice(), gaps: C.gaps.slice(), words: C.words.slice(), used: [...C.used], analyses: C.analyses.slice(), live: C.liveLevel };
   closeCall();
-  if (studentTurns < 2) { toast("Séance trop courte pour un bilan. À bientôt !"); renderLobby(); return; }
+  // vocabulary bookkeeping happens even without a report
+  addVocab(l, snapshot.words, "cours");
+  markUsed(l, snapshot.used);
+  if (studentTurns < 2) { saveLang(l); toast("Cours trop court pour un bilan. À bientôt !"); renderLobby(); return; }
   const card = h("div", { class: "report", role: "dialog", "aria-label": "Bilan de séance" },
     h("div", { style: "display:flex;gap:14px;align-items:center" }, h("div", { class: "spinner" }),
-      h("div", null, h("h2", { text: "Elena prépare ton bilan" }), h("p", { class: "muted", style: "margin:0", text: "Résumé, erreurs à retenir et devoirs adaptés à tes points faibles. Ça peut prendre une minute." }))));
+      h("div", null, h("h2", { text: "Elena prépare ton bilan" }), h("p", { class: "muted", style: "margin:0", text: "Niveau réel, lacunes, vocabulaire et devoirs ciblés. Ça peut prendre une minute." }))));
   const ov = h("div", { class: "overlay" }, card);
   document.body.append(ov);
-  const d = S.data[l];
-  const transcript = C.log.map(x => (x.who === "student" ? S.profile.name : "Elena") + " : " + x.text).join("\n").slice(-14000);
-  const errs = C.errors.map(e => `- « ${e.original} » → « ${e.corrected} » [${e.category}] ${e.explanation}`).join("\n").slice(-6000) || "- aucune erreur relevée";
-  const prompt = `Tu es Elena, professeure particulière de ${LANGS[l].name.toLowerCase()}. La séance en visio avec ${S.profile.name} vient de se terminer (${minutes} min). Rédige le bilan et les devoirs.
+  const transcript = snapshot.log.map(x => (x.who === "student" ? S.profile.name : "Elena") + " : " + x.text).join("\n").slice(-14000);
+  const errs = snapshot.errors.map(e => `- « ${e.original} » → « ${e.corrected} » [${e.category}] ${e.explanation}`).join("\n").slice(-6000) || "- aucune erreur relevée";
+  const betters = snapshot.betters.map(b => `- « ${b.said} » → « ${b.better} »`).join("\n").slice(-2000) || "- aucune";
+  const gaps = snapshot.gaps.map(g => `${g.word} (${g.meaning})`).join(", ") || "aucun";
+  const dueList = dueWords(l, 12).map(v => `${v.w} (${v.m})`).join(", ") || "aucun";
+  const signals = snapshot.analyses.map(a => a.level).filter(Boolean).join(", ") || "aucun";
+  const isBeginner = LEVELS.indexOf(snapshot.live || d.level) <= 1;
+  const prompt = `Tu es Elena, professeure particulière de ${LANGS[l].name.toLowerCase()}. Le cours en visio avec ${S.profile.name} vient de se terminer (${minutes} min). Rédige le bilan et les devoirs.
 
 ${profileContext(l)}
 
 TRANSCRIPTION
 ${transcript}
 
-ERREURS CORRIGÉES PENDANT LA SÉANCE
+ERREURS RELEVÉES
 ${errs}
 
+FORMULATIONS À AMÉLIORER
+${betters}
+
+MOTS QUI LUI ONT MANQUÉ : ${gaps}
+MOTS À RÉVISER (répétition espacée) : ${dueList}
+NIVEAUX OBSERVÉS RÉPLIQUE PAR RÉPLIQUE : ${signals}
+
 À FAIRE
-1. "summary" : 1 phrase en français, ce qu'on a fait (pour l'historique).
-2. "message" : 2-3 phrases chaleureuses adressées à ${S.profile.name} en français : ce qui s'est bien passé, ce qu'il faut travailler.
-3. "top_mistakes" : les 3 à 5 erreurs les plus importantes à retenir (forme correcte + règle courte).
-4. "weakness_updates" : mets à jour les points faibles. Réutilise les libellés existants quand c'est le même type d'erreur. delta = nombre d'occurrences aujourd'hui (positif), ou -1 pour un point faible existant que ${S.profile.name} a bien utilisé aujourd'hui.
-5. "strengths" : 0 à 3 points forts nouveaux et précis.
-6. "level" : niveau CECRL estimé (${LEVELS.join(", ")}). Ne change le niveau actuel (${d.level}) que si la séance le justifie clairement ; progression d'un cran maximum.
-7. "homework" : des devoirs CIBLÉS sur les points faibles les plus fréquents (anciens et nouveaux), adaptés au niveau : 5 à 7 exercices variés. Types : "fill" (phrase à trous avec ___), "translate" (traduire du français vers la langue du cours), "qcm" (avec "options", 3 choix), "write" (petite production : ${LEVELS.indexOf(d.level) <= 1 ? "2-3 phrases simples" : "un paragraphe de 80-120 mots"} sur un sujet lié à la séance). Mets la réponse attendue dans "expected" (sauf pour "write"). Consignes en français.
-8. "next_goal" : l'objectif de la prochaine séance, en une phrase.
+1. "summary" : 1 phrase en français pour l'historique.
+2. "message" : 2-3 phrases chaleureuses et honnêtes adressées à ${S.profile.name} en français.
+3. "level" : son VRAI niveau CECRL (${LEVELS.join(", ")}) d'après ce qu'il a réellement produit, pas d'après son auto-évaluation (${d.declared})${d.assessed ? ` ni par inertie (niveau précédent : ${d.level} ; ne bouge que d'un cran au maximum, sauf preuve nette)` : ""}. "level_note" : la justification en une phrase courte (ex. "phrases simples au présent, peu de connecteurs").
+4. "skills" : notes de 0 à 100 pour grammaire, vocabulaire, aisance, comprehension, relatives à un locuteur natif cultivé (100).
+5. "top_mistakes" : 3 à 5 erreurs les plus importantes à retenir.
+6. "weakness_updates" : mise à jour des lacunes. Réutilise les libellés existants. delta = occurrences aujourd'hui, ou -1 pour une lacune bien maîtrisée aujourd'hui.
+7. "strengths" : 0 à 3 points forts précis.
+8. "vocab_gaps" : 0 à 6 mots ou expressions supplémentaires qu'il devrait apprendre vu ce qu'il a voulu dire (avec article pour les noms, traduction, exemple court).
+9. "homework" : 6 à 8 exercices CIBLÉS : la moitié sur ses lacunes les plus fréquentes, au moins 2 sur le vocabulaire (mots qui lui ont manqué et mots à réviser), et 1 production écrite ("write") de ${isBeginner ? "2-3 phrases simples" : "80-120 mots"} qui oblige à réemployer ces mots. Types : "fill" (phrase à trous ___), "translate" (du français vers la langue du cours), "qcm" (3 "options"), "write". "expected" = réponse attendue (sauf "write"). Consignes en français, difficulté adaptée au niveau RÉEL.
+10. "next_goal" : objectif du prochain cours, en une phrase.
 
 Réponds uniquement en JSON :
-{"summary":"...","message":"...","top_mistakes":[{"wrong":"...","right":"...","rule":"..."}],"weakness_updates":[{"label":"...","delta":2,"note":"..."}],"strengths":["..."],"level":"${d.level}","homework":{"title":"...","focus":"points travaillés","exercises":[{"type":"fill","prompt":"...","hint":"...","expected":"..."},{"type":"qcm","prompt":"...","options":["...","...","..."],"expected":"..."}]},"next_goal":"..."}`;
+{"summary":"","message":"","level":"","level_note":"","skills":{"grammaire":0,"vocabulaire":0,"aisance":0,"comprehension":0},"top_mistakes":[{"wrong":"","right":"","rule":""}],"weakness_updates":[{"label":"","delta":1,"note":""}],"strengths":[],"vocab_gaps":[{"word":"","meaning":"","example":""}],"homework":{"title":"","focus":"","exercises":[{"type":"fill","prompt":"","hint":"","expected":""}]},"next_goal":""}`;
   let r;
-  try { r = await CAP.sample.json(prompt, { cache: false }); }
+  try { r = await askJSON(prompt, {}); }
   catch (e) {
-    // keep a minimal record even without a report
-    d.sessions.push({ date: today(), minutes, errors: C.errors.length, summary: `Conversation${S.topic ? " : " + S.topic : ""} (bilan non généré)` });
-    applyWeakness(l, Object.entries(C.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
+    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `Conversation${S.topic ? " : " + S.topic : ""} (bilan non généré)` });
+    applyWeakness(l, Object.entries(snapshot.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
     saveLang(l);
-    card.replaceChildren(h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs de la séance ont quand même été ajoutées à tes points faibles." }),
+    card.replaceChildren(h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs et les mots qui t'ont manqué ont quand même été enregistrés." }),
       h("button", { class: "btn primary", onclick: () => { ov.remove(); renderLobby(); }, text: "Retour" }));
     return;
   }
-  const oldLevel = d.level;
-  if (LEVELS.includes(r.level)) d.level = r.level;
-  applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths);
-  const seen = new Set(d.vocab.map(v => v.word.toLowerCase()));
-  C.words.forEach(w => { if (!seen.has(w.word.toLowerCase())) { d.vocab.push(w); seen.add(w.word.toLowerCase()); } });
-  d.vocab = d.vocab.slice(-150);
-  d.sessions.push({ date: today(), minutes, errors: C.errors.length, summary: String(r.summary || "Conversation"), next: String(r.next_goal || "") });
+  const oldLevel = d.assessed ? d.level : null;
+  if (LEVELS.includes(r.level)) { d.level = r.level; d.assessed = true; d.levelNote = str(r.level_note).slice(0, 160); }
+  if (r.skills && typeof r.skills === "object") for (const [k] of SKILLS) { const v = Number(r.skills[k]); if (Number.isFinite(v)) d.skills[k] = Math.round(Math.max(0, Math.min(100, v))); }
+  applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune");
+  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || "Conversation", next: str(r.next_goal) });
   d.sessions = d.sessions.slice(-30);
-  const hwIn = r.homework;
-  if (hwIn && Array.isArray(hwIn.exercises) && hwIn.exercises.length) {
-    d.homework.push({ id: uid(), date: today(), title: String(hwIn.title || "Devoirs"), focus: String(hwIn.focus || ""), status: "todo",
-      exercises: hwIn.exercises.slice(0, 8).map(ex => ({ type: ["fill", "translate", "qcm", "write"].includes(ex.type) ? ex.type : "translate", prompt: String(ex.prompt || ""), hint: ex.hint ? String(ex.hint) : "", options: Array.isArray(ex.options) ? ex.options.map(String).slice(0, 5) : undefined, expected: ex.expected ? String(ex.expected) : "" })) });
+  const hwIn = r.homework && typeof r.homework === "object" ? r.homework : null;
+  const exs = arr(hwIn?.exercises).filter(ex => str(ex?.prompt)).slice(0, 8);
+  if (exs.length) {
+    d.homework.push({ id: uid(), date: today(), title: str(hwIn.title) || "Devoirs", focus: str(hwIn.focus), status: "todo",
+      exercises: exs.map(ex => {
+        const opts = arr(ex.options).map(str).filter(Boolean).slice(0, 5);
+        const type = ["fill", "translate", "qcm", "write"].includes(ex.type) ? ex.type : "translate";
+        return { type: type === "qcm" && opts.length < 2 ? "translate" : type, prompt: str(ex.prompt), hint: str(ex.hint), options: opts.length >= 2 ? opts : undefined, expected: str(ex.expected) };
+      }) });
     d.homework = d.homework.slice(-12);
   }
   saveLang(l);
-  const mistakes = Array.isArray(r.top_mistakes) ? r.top_mistakes : [];
+  const mistakes = arr(r.top_mistakes).filter(m => str(m?.right));
   card.replaceChildren(
-    h("span", { class: "label", text: `Bilan · ${minutes} min · ${C.errors.length} correction${C.errors.length > 1 ? "s" : ""}` }),
+    h("span", { class: "label", text: `Bilan · ${minutes} min · ${snapshot.errors.length} correction${snapshot.errors.length > 1 ? "s" : ""} · ${snapshot.gaps.length + arr(r.vocab_gaps).length} mots ajoutés` }),
     h("h2", { text: l === "es" ? `¡Buen trabajo, ${S.profile.name}!` : `Well done, ${S.profile.name}!` }),
-    h("p", { style: "margin:0", text: String(r.message || "") }),
-    d.level !== oldLevel ? h("p", { class: "notice", text: `Nouveau niveau estimé : ${oldLevel} → ${d.level}` }) : null,
+    h("p", { style: "margin:0", text: str(r.message) }),
+    d.assessed ? h("p", { class: "notice", text: (oldLevel && oldLevel !== d.level ? `Niveau mesuré : ${oldLevel} → ${d.level}. ` : oldLevel ? `Niveau mesuré : ${d.level}. ` : `Ton vrai niveau : ${d.level} (tu t'estimais ${d.declared}). `) + d.levelNote }) : null,
     mistakes.length ? h("div", null, h("h3", { style: "font-size:16px;margin-bottom:8px", text: "À retenir" }),
       h("div", { style: "display:flex;flex-direction:column;gap:8px" }, mistakes.map(m => h("div", { class: "hw" },
-        h("div", null, h("del", { style: "color:var(--err)", text: String(m.wrong || "") }), "  →  ", h("strong", { style: "color:var(--ok)", text: String(m.right || "") })),
-        m.rule ? h("small", { class: "muted", text: String(m.rule) }) : null)))) : null,
-    hwIn?.exercises?.length ? h("p", { class: "notice", text: `Devoirs : « ${hwIn.title} », ${hwIn.exercises.length} exercices ciblés sur ${hwIn.focus}. Tu les trouveras dans ton carnet.` }) : null,
-    r.next_goal ? h("p", { class: "muted", style: "margin:0", text: "Prochaine séance : " + r.next_goal }) : null,
-    h("button", { class: "btn primary", style: "align-self:flex-start", onclick: () => { ov.remove(); renderLobby(); }, text: "Voir mes devoirs" }));
+        h("div", null, h("del", { style: "color:var(--err)", text: str(m.wrong) }), "  →  ", h("strong", { style: "color:var(--ok)", text: str(m.right) })),
+        str(m.rule) ? h("small", { class: "muted", text: str(m.rule) }) : null)))) : null,
+    exs.length ? h("p", { class: "notice", text: `Devoirs : « ${str(hwIn.title) || "Devoirs"} », ${exs.length} exercices sur ${str(hwIn.focus) || "tes lacunes"}.` }) : null,
+    str(r.next_goal) ? h("p", { class: "muted", style: "margin:0", text: "Prochain cours : " + str(r.next_goal) }) : null,
+    h("button", { class: "btn primary", style: "align-self:flex-start", onclick: () => { ov.remove(); renderLobby(); }, text: "Voir mes devoirs et mon vocabulaire" }));
 }
 
 /* =========================================================
    Boot
    ========================================================= */
 (async function boot() {
-  await initCaps();
-  await Store.init();
-  await loadAll();
-  if (S.profile?.name) {
-    S.data.es = S.data.es || newLang("A0");
-    S.data.en = S.data.en || newLang("C1");
+  try {
+    await initCaps();
+    await Store.init();
+    await loadAll();
+    if (S.profile?.name) {
+      S.data.es = migrate(S.data.es, "A0");
+      S.data.en = migrate(S.data.en, "C1");
+    }
+    Voice.init();
+    render();
+  } catch (e) {
+    console.error(e);
+    app().replaceChildren(h("div", { class: "onb" }, h("div", { class: "onb-card" }, h("h1", { text: "Elena n'a pas pu démarrer" }), h("p", { text: "Recharge la page. Si ça continue, ouvre-la depuis claude.ai." }))));
   }
-  Voice.init();
-  render();
 })();
 </script>
