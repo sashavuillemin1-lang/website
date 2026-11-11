@@ -248,6 +248,12 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .life-tile.new{border-style:dashed}
 .life-tile.started{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
 .life-tile.solid{border-color:var(--ok);box-shadow:inset 3px 0 0 var(--ok);background:var(--ok-bg)}
+[hidden]{display:none!important}
+.mini-select{background:transparent;color:var(--call-fg);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:3px 8px;font-size:12px;max-width:100%}
+.mini-select option{color:#121a1d}
+.cbtn.send{width:auto;padding:0 18px;border-radius:999px;background:#58d68d;color:#121a1d;font-weight:700;height:48px}
+.cbtn.mic.muted-mic{background:#2a3639;color:var(--call-fg);outline:2px dashed rgba(255,255,255,.3)}
+.mic-wrap span{max-width:150px;text-align:center}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -757,7 +763,7 @@ const Voice = {
       try { speechSynthesis.addEventListener("voiceschanged", load); } catch {}
     }
   },
-  _state(on) { Avatar.set({ speaking: on }); try { this.stateCb?.(on); } catch {} },
+  _state(on) { if (!on && Avatar.st.speaking) C.deafUntil = now() + 900; Avatar.set({ speaking: on }); try { this.stateCb?.(on); } catch {} },
   // parts: [{lang: "es"|"en"|"fr", text}]
   async speak(parts, fallbackLang) {
     if (typeof parts === "string") parts = [{ lang: fallbackLang, text: parts }];
@@ -765,11 +771,19 @@ const Voice = {
     if (!parts.length || this.muted) return;
     const myGen = ++this.gen;
     const rate = this.slow ? .78 : 1;
+    // Claude's voice cannot play while dictation listens: use the browser voice during an open-mic call
+    const micOpen = !!(C.open && CAP.dictation?.active?.());
+    if (micOpen) {
+      if ("speechSynthesis" in window) return this._browser(parts, rate, myGen);
+      if (!this._warned) { this._warned = true; toast("Pas de voix disponible pendant que le micro est ouvert : lis les sous-titres, ou passe en mode Talkie."); }
+      return;
+    }
     if (this.engine === "claude") {
       try {
         await CAP.tts.speak(parts.map(p => ({ text: p.text, language: p.lang })), { voice: "airy", rate });
         return;
       } catch (e) {
+        if (e?.code === "busy" && "speechSynthesis" in window && myGen === this.gen) return this._browser(parts, rate, myGen);
         if (["stopped", "busy"].includes(e?.code) || e?.reason === "replaced" || e?.reason === "viewer_stopped") return;
         if (e?.code === "rate_limited") { await new Promise(r => setTimeout(r, Math.min(4000, e.retryAfterMs || 1500))); if (myGen !== this.gen) return; try { await CAP.tts.speak(parts.map(p => ({ text: p.text, language: p.lang })), { voice: "airy", rate }); return; } catch {} }
         console.warn("tts", e);
@@ -800,12 +814,15 @@ const Voice = {
         try { speechSynthesis.speak(u); } catch { this._state(false); resolve(); }
       };
       next();
-      // safety: never leave the mouth moving
-      setTimeout(() => { if (myGen === this.gen && !speechSynthesis.speaking) this._state(false); }, 15000);
+      // watchdog: some browsers never fire onend; never leave Elena "speaking" or the page waiting
+      const total = chunks.reduce((n, c) => n + c.text.length, 0);
+      setTimeout(() => { if (myGen === this.gen) { try { speechSynthesis.cancel(); } catch {} this.gen++; this._state(false); } resolve(); }, 4000 + total * 110 / rate);
     });
   },
   stop() {
     this.gen++;
+    // an interruption is not an echo risk: listen to the student straight away
+    Avatar.set({ speaking: false }); C.deafUntil = 0;
     try { CAP.tts?.stop()?.catch?.(() => {}); } catch {}
     try { if ("speechSynthesis" in window) speechSynthesis.cancel(); } catch {}
     this._state(false);
@@ -1408,7 +1425,7 @@ function addStrengths(l, list) {
    The call
    ========================================================= */
 const C = { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], targets: [], used: new Set(), liveLevel: null,
-            start: 0, timer: 0, busy: false, ctl: null, finals: [], captions: true, listening: false, lastSay: null, lastTeacherText: "", pending: null, open: false, micOffs: [] };
+            start: 0, timer: 0, busy: false, ctl: null, finals: [], captions: true, listening: false, lastSay: null, lastTeacherText: "", pending: null, open: false, micOffs: [], deafUntil: 0, flushMic: null };
 
 function startCall(spec) {
   const l = S.cur, d = S.data[l];
@@ -1438,6 +1455,7 @@ function startCall(spec) {
         h("div", { class: "side-head" }, h("span", { class: "label", text: "Transcription & corrections" }),
           h("div", { class: "toggles" },
             h("button", { class: "tgl", "aria-pressed": String(C.captions), onclick: e => { C.captions = !C.captions; e.currentTarget.setAttribute("aria-pressed", String(C.captions)); $("#captions").hidden = !C.captions; }, text: "Sous-titres" }),
+            micSettings(),
             h("span", { class: "label", style: "text-transform:none;letter-spacing:0", text: l === "es" ? "Toca una palabra de Elena para entenderla" : "Tap any word Elena says to understand it" }))),
         h("div", { class: "log", id: "log", "aria-live": "polite" }),
         h("form", { class: "compose", onsubmit: e => { e.preventDefault(); const i = $("#typed"); const v = i.value.trim(); if (v) { i.value = ""; userSays(v, false); } } },
@@ -1446,7 +1464,8 @@ function startCall(spec) {
     h("div", { class: "controls" },
       mk("repeat", ICON.repeat, "Répéter", () => { if (C.lastSay) Voice.speak(C.lastSay, l); }),
       mk("slow", ICON.slow, "Plus lent", () => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? "Elena parlera plus lentement." : "Vitesse normale."); }),
-      h("div", { class: "cbtn-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Appuie et parle" : "Micro : aide" })),
+      h("div", { class: "cbtn-wrap mic-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Ouvrir le micro" : "Micro : aide" })),
+      h("div", { class: "cbtn-wrap", id: "send-wrap" }, h("button", { class: "cbtn send", id: "send-now", hidden: true, "aria-label": "Envoyer maintenant", text: "Envoyer" })),
       mk("lost", ICON.repeat.replace("<svg", '<svg style="transform:scaleX(-1)"'), l === "es" ? "No entiendo" : "I'm lost", () => userSays(l === "es" ? "(No entiendo. ¿Puedes decirlo con palabras más fáciles y un ejemplo?)" : "(I don't understand. Can you say it with simpler words and an example?)", false, true)),
       mk("help", ICON.help, l === "es" ? "Ayúdame" : "Help me", () => userSays(l === "es" ? "(No sé cómo decirlo. Dame un ejemplo de respuesta para repetir.)" : "(I'm stuck. Give me a model answer I can repeat.)", false, true)),
       mk("mute", ICON.mute, "Son", () => { Voice.muted = !Voice.muted; if (Voice.muted) Voice.stop(); const b = $("#mute"); b.style.opacity = Voice.muted ? ".45" : ""; b.nextSibling.textContent = Voice.muted ? "Muet" : "Son"; }),
@@ -1475,56 +1494,115 @@ function spaceKey(e) {
   e.preventDefault(); $("#mic")?.click();
 }
 
+const micMode = () => (S.profile.micMode === "ptt" ? "ptt" : "call");
+const patience = () => (S.profile.patience === 0 ? 0 : Number(S.profile.patience) || 4000);
 function setupMic(btn) {
   const d = CAP.dictation;
   const lab = () => $("#mic-label");
-  if (!d) { btn.disabled = false; btn.onclick = () => showMicHelp(null); return; }
+  const sendBtn = $("#send-now");
+  if (!d) { btn.onclick = () => showMicHelp(null); return; }
   const self = $("#self");
-  let partialEl = null, silenceT = 0, noSpeechT = 0;
-  const clearT = () => { clearTimeout(silenceT); clearTimeout(noSpeechT); };
-  // auto-send: once the student stops talking, stop listening and send
-  const armSilence = ms => { clearTimeout(silenceT); silenceT = setTimeout(() => { if (C.listening && d.active()) d.stop().catch(() => {}); }, ms); };
+  let partialEl = null, partial = "", silenceT = 0, tickT = 0, waitPartial = 0, skipFinal = "", noSpeechT = 0, weStopped = false;
+  const deaf = () => Avatar.st.speaking || now() < (C.deafUntil || 0);
+  const pendingText = () => [...C.finals, partial].join(" ").trim();
+  const paint = () => {
+    const t = pendingText();
+    if (t) { if (!partialEl) { partialEl = h("div", { class: "partial" }); $("#log")?.append(partialEl); } partialEl.textContent = t; scrollLog(); }
+    else { partialEl?.remove(); partialEl = null; }
+    if (sendBtn) sendBtn.hidden = !t;
+  };
+  const label = txt => { const lb = lab(); if (lb) lb.textContent = txt; };
+  const idleLabel = () => C.listening ? (micMode() === "call" ? "Appel en cours, parle librement" : "Je t'écoute") : (micMode() === "call" ? "Ouvrir le micro" : "Appuie et parle");
+  const clearSilence = () => { clearTimeout(silenceT); clearInterval(tickT); silenceT = 0; if (C.open) label(idleLabel()); };
+  // send what was said; in call mode the mic stays open
+  const flush = () => {
+    clearSilence();
+    if (partial && waitPartial < 2) { waitPartial++; silenceT = setTimeout(flush, 700); return; }   // let the last words settle
+    const said = pendingText();
+    if (partial) skipFinal = norm(partial);
+    C.finals = []; partial = ""; waitPartial = 0; paint();
+    if (said) userSays(said, true);
+    if (micMode() === "ptt" && d.active()) { weStopped = true; d.stop().catch(() => {}); }
+  };
+  const armSilence = () => {
+    clearSilence();
+    const ms = patience(); if (!ms) return;              // manual: only the Send button sends
+    const until = now() + ms;
+    const tick = () => { const left = Math.ceil((until - now()) / 1000); if (left > 0) label(`Envoi dans ${left} s… (continue à parler pour attendre)`); };
+    tick(); tickT = setInterval(tick, 250);
+    silenceT = setTimeout(flush, ms);
+  };
+  C.flushMic = flush;
   C.micOffs = [
     d.onPartial(({ text }) => {
       if (!C.open) return;
-      if (str(text)) { clearTimeout(noSpeechT); armSilence(2200); }
-      if (!partialEl) { partialEl = h("div", { class: "partial" }); $("#log")?.append(partialEl); }
-      partialEl.textContent = [...C.finals, text].join(" ");
-      scrollLog();
+      if (deaf()) { partial = ""; paint(); return; }    // ignore Elena's own voice
+      partial = str(text);
+      if (partial) { clearTimeout(noSpeechT); armSilence(); }
+      paint();
     }),
     d.onFinal(({ text }) => {
       if (!C.open) return;
-      if (str(text)) { C.finals.push(str(text)); clearTimeout(noSpeechT); armSilence(1400); }
-      if (partialEl) partialEl.textContent = C.finals.join(" ");
+      const t = str(text);
+      partial = "";
+      if (deaf() || !t) { paint(); return; }
+      if (skipFinal && (norm(t) === skipFinal || skipFinal.startsWith(norm(t)) || norm(t).startsWith(skipFinal))) { skipFinal = ""; paint(); return; }
+      skipFinal = "";
+      C.finals.push(t); clearTimeout(noSpeechT); armSilence(); paint();
     }),
     d.onState(({ state, reason }) => {
       if (!C.open) return;
       const live = state === "listening" || state === "starting" || state === "finishing";
       C.listening = live;
-      btn.classList.toggle("live", live); btn.innerHTML = live ? ICON.stop : ICON.mic;
-      btn.setAttribute("aria-label", live ? "Envoyer maintenant" : "Parler (barre d'espace)");
-      const lb = lab(); if (lb) lb.textContent = state === "starting" ? "Connexion…" : state === "finishing" ? "Envoi…" : live ? "Je t'écoute, parle" : "Appuie et parle";
+      btn.classList.toggle("live", live); btn.innerHTML = live ? (micMode() === "call" ? ICON.mic : ICON.stop) : ICON.mic;
+      btn.classList.toggle("muted-mic", !live && micMode() === "call");
+      btn.setAttribute("aria-label", live ? (micMode() === "call" ? "Couper le micro" : "Envoyer maintenant") : "Ouvrir le micro (barre d'espace)");
       self?.classList.toggle("live", live);
-      Avatar.set({ listening: live });
+      Avatar.set({ listening: live && !Avatar.st.speaking });
       Voice.stateCb?.(false);
-      if (state === "listening") { clearTimeout(noSpeechT); noSpeechT = setTimeout(() => { if (d.active() && !C.finals.length) d.stop().catch(() => {}); }, 12000); }
+      if (state === "starting") label("Connexion du micro…");
+      else if (state === "listening") { label(idleLabel()); if (micMode() === "ptt") { clearTimeout(noSpeechT); noSpeechT = setTimeout(() => { if (d.active() && !pendingText()) { weStopped = true; d.stop().catch(() => {}); } }, 15000); } }
       if (state === "idle") {
-        clearT();
-        partialEl?.remove(); partialEl = null;
-        const said = C.finals.join(" ").trim(); C.finals = [];
-        if (said) { userSays(said, true); return; }
+        clearSilence(); clearTimeout(noSpeechT);
+        const said = pendingText(); C.finals = []; partial = ""; paint();
+        if (said) userSays(said, true);
+        const mine = weStopped; weStopped = false;
+        label(idleLabel());
         if (["not_granted", "dismissed", "unavailable", "upstream_error", "rate_limited"].includes(reason)) showMicHelp(reason);
-        else if (reason === "stopped" || reason === "viewer_stopped") showMicHelp("no_sound");
+        else if (!mine && micMode() === "call" && reason !== "stopped") { label("Micro coupé : appuie pour reprendre"); toast(reason === "hidden" ? "Le micro s'est coupé car la page était cachée. Appuie sur le micro pour reprendre." : "Le micro s'est coupé. Appuie dessus pour reprendre l'appel."); }
+        else if (!said && micMode() === "ptt" && !mine) showMicHelp("no_sound");
       }
     })
   ];
+  if (sendBtn) sendBtn.onclick = () => flush();
   btn.onclick = () => {
-    if (C.listening) { clearT(); d.stop().catch(() => {}); return; }
+    if (C.listening) {
+      if (micMode() === "call") { weStopped = true; flush(); d.stop().catch(() => {}); toast("Micro coupé. Appuie à nouveau pour reprendre."); }
+      else flush();
+      return;
+    }
     Voice.stop();
-    C.finals = [];
+    C.finals = []; partial = ""; skipFinal = "";
     document.querySelectorAll(".log .mic-help").forEach(x => x.remove());
     Mic.start(S.cur).catch(e => { if (e?.code !== "stopped") showMicHelp(e?.code); });
   };
+  label(idleLabel());
+}
+function micSettings() {
+  if (!CAP.dictation) return null;
+  const mode = h("select", { id: "mic-mode", class: "mini-select", "aria-label": "Mode du micro" },
+    h("option", { value: "call", selected: micMode() === "call", text: "Micro ouvert (appel)" }),
+    h("option", { value: "ptt", selected: micMode() === "ptt", text: "Talkie (un appui par phrase)" }));
+  const pat = h("select", { id: "mic-patience", class: "mini-select", "aria-label": "Délai avant envoi" },
+    [[2500, "Envoi après 2,5 s de silence"], [4000, "Envoi après 4 s de silence"], [6000, "Envoi après 6 s de silence"], [0, "Envoi manuel (bouton Envoyer)"]]
+      .map(([v, t]) => h("option", { value: String(v), selected: patience() === v, text: t })));
+  mode.onchange = () => {
+    S.profile.micMode = mode.value; saveProfile();
+    if (CAP.dictation.active()) { C.flushMic?.(); CAP.dictation.stop().catch(() => {}); }
+    toast(mode.value === "call" ? "Micro ouvert : appuie une fois sur le micro, puis parle comme dans un appel. Elena utilise alors la voix du navigateur." : "Mode talkie : un appui sur le micro par phrase, avec la voix de Claude.");
+  };
+  pat.onchange = () => { S.profile.patience = Number(pat.value); saveProfile(); };
+  return h("div", { class: "row", style: "gap:6px" }, mode, pat);
 }
 function showMicHelp(code) {
   const log = $("#log"); if (!log) return;
@@ -1638,7 +1716,7 @@ async function teacherTurn(content, userBubble) {
     C.busy = false;
     Avatar.set({ thinking: false });
     flushPending();
-    if (!C.busy && !C.listening) await Voice.speak(say, l);
+    if (!C.busy && (!C.listening || micMode() === "call")) await Voice.speak(say, l);
   } catch (e) {
     typing.remove();
     C.turns.pop();
