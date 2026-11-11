@@ -240,6 +240,14 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .rec.over{color:#f0c05a}
 .timeup{background:#2b261a;border:1px solid rgba(240,192,90,.35);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .timeup p{margin:0;color:#e8dfc8}
+.life{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.life-tile{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 10px;cursor:pointer;min-width:0}
+.life-tile:hover{background:var(--surface-2)}
+.life-name{font-weight:600;font-size:13.5px;line-height:1.25}
+.life-meta{font-size:12px;color:var(--muted)}
+.life-tile.new{border-style:dashed}
+.life-tile.started{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
+.life-tile.solid{border-color:var(--ok);box-shadow:inset 3px 0 0 var(--ok);background:var(--ok-bg)}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -366,7 +374,7 @@ const LEVEL_LABEL = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A
 const SKILLS = [["grammaire", "Grammaire"], ["vocabulaire", "Vocabulaire"], ["aisance", "Aisance orale"], ["comprehension", "Compréhension"]];
 const BOX_DAYS = [0, 1, 2, 4, 8, 16, 35];
 function newLang(declared) {
-  return { declared, level: declared, assessed: false, levelNote: "", skills: {}, weaknesses: [], sessions: [], homework: [], vocab: [], strengths: [], plan: [], cycleIdx: 0 };
+  return { declared, level: declared, assessed: false, levelNote: "", skills: {}, weaknesses: [], sessions: [], homework: [], vocab: [], strengths: [], plan: [], cycleIdx: 0, coverage: {} };
 }
 function migrate(d, declared) {
   if (!d) return newLang(declared);
@@ -375,7 +383,8 @@ function migrate(d, declared) {
   if (d.assessed == null) d.assessed = false;
   d.skills = d.skills && typeof d.skills === "object" ? d.skills : {};
   for (const k of ["weaknesses", "sessions", "homework", "vocab", "strengths", "plan"]) d[k] = arr(d[k]);
-  d.vocab = d.vocab.map(v => ({ w: str(v.w || v.word), m: str(v.m || v.meaning), ex: str(v.ex), box: Number(v.box) || 0, due: Number(v.due) || 0, ok: Number(v.ok) || 0, ko: Number(v.ko) || 0, src: v.src || "cours", added: v.added || today() })).filter(v => v.w);
+  d.vocab = d.vocab.map(v => ({ w: str(v.w || v.word), m: str(v.m || v.meaning), ex: str(v.ex), box: Number(v.box) || 0, due: Number(v.due) || 0, ok: Number(v.ok) || 0, ko: Number(v.ko) || 0, src: v.src || "cours", added: v.added || today(), ...(v.dom ? { dom: v.dom } : {}) })).filter(v => v.w);
+  d.coverage = d.coverage && typeof d.coverage === "object" ? d.coverage : {};
   return d;
 }
 const S = { profile: null, data: { es: null, en: null }, cur: "es", topic: null };
@@ -388,14 +397,14 @@ function saveProfile() { Store.set("profile", S.profile); }
 
 /* ---------- vocabulary bank (spaced repetition) ---------- */
 function vocabKey(w) { return str(w).toLowerCase().replace(/^(el|la|los|las|un|una|the|a|an|to)\s+/, ""); }
-function addVocab(l, items, src) {
+function addVocab(l, items, src, dom) {
   const d = S.data[l]; let added = 0;
   for (const it of arr(items)) {
     const w = str(it.word || it.w), m = str(it.meaning || it.m);
     if (!w || w.length > 80) continue;
     const ex = d.vocab.find(v => vocabKey(v.w) === vocabKey(w));
-    if (ex) { if (src === "lacune") { ex.box = 0; ex.due = now(); ex.src = "lacune"; } if (!ex.ex && it.example) ex.ex = str(it.example); continue; }
-    d.vocab.push({ w, m, ex: str(it.example), box: 0, due: now(), ok: 0, ko: 0, src, added: today() });
+    if (ex) { if (src === "lacune") { ex.box = 0; ex.due = now(); ex.src = "lacune"; } if (!ex.ex && it.example) ex.ex = str(it.example); if (!ex.dom && dom) ex.dom = dom; continue; }
+    d.vocab.push({ w, m, ex: str(it.example), box: 0, due: now(), ok: 0, ko: 0, src, added: today(), ...(dom ? { dom } : {}) });
     added++;
   }
   // keep the bank bounded: drop the best-known words first
@@ -491,9 +500,17 @@ function nextType(l) {
   while ((t === "debate" && isLow(l)) || (last3.slice(-1)[0] === t));
   return t;
 }
-function makeSession(l, type, topic, minutes) {
+const DOMAIN_TYPES = ["conv", "role", "story", "listen", "vocab"];
+function makeSession(l, type, topic, minutes, domainId) {
   type = TYPES[type] ? type : "conv";
-  return { id: uid(), type, topic: topic || topicFor(l, type, recentTopics(l)), minutes: DURATIONS.includes(minutes) ? minutes : TYPES[type].min };
+  let domain = DOMAIN_BY_ID[domainId] ? domainId : null;
+  if (!topic) {
+    if (DOMAIN_TYPES.includes(type)) {
+      const dom = DOMAIN_BY_ID[domainId] || pickDomain(l, { needRole: type === "role" });
+      domain = dom.id; topic = domainTopic(l, dom, type, recentTopics(l));
+    } else topic = topicFor(l, type, recentTopics(l));
+  }
+  return { id: uid(), type, topic, minutes: DURATIONS.includes(minutes) ? minutes : TYPES[type].min, domain };
 }
 function ensurePlan(l) {
   const d = S.data[l];
@@ -506,6 +523,56 @@ function ensurePlan(l) {
   return changed;
 }
 function sessionTitle(sp) { return `${TYPES[sp.type].name} · ${sp.topic}`; }
+
+
+/* =========================================================
+   Real-life vocabulary map: 24 domains, each with topics per level and role-plays
+   esL/esH = Spanish topics (beginner / B1+), enL/enH = English, esR/enR = role-plays
+   ========================================================= */
+const DOMAINS = [
+  { id: "identite", name: "Se présenter", esL: ["Me presento", "¿De dónde eres?", "Mis gustos"], esH: ["Quién soy y qué me mueve", "Mi recorrido vital"], enL: ["Introducing yourself"], enH: ["What shaped who you are", "First impressions"], esR: ["Conocer a alguien en una fiesta"], enR: ["Small talk at a networking event"] },
+  { id: "famille", name: "Famille & relations", esL: ["Mi familia", "Mis amigos", "Describir a una persona"], esH: ["Las relaciones de pareja", "La familia de hoy"], enL: ["Family and friends"], enH: ["Friendship as an adult", "Modern families", "Dating culture"], esR: ["Presentar a tu pareja a tu familia"], enR: ["Meeting your partner's parents"] },
+  { id: "maison", name: "Maison & logement", esL: ["Mi casa", "Las habitaciones y los muebles", "Las tareas de casa"], esH: ["Encontrar piso", "Vivir solo o compartir piso"], enL: ["Your home"], enH: ["The housing crisis", "Flatsharing horror stories", "DIY and home repairs"], esR: ["Alquilar un piso", "Llamar al fontanero"], enR: ["Renting a flat in London", "Complaining to your landlord"] },
+  { id: "nourriture", name: "Nourriture & cuisine", esL: ["La comida", "Mi receta favorita", "Las frutas y verduras"], esH: ["La gastronomía española", "Comer sano"], enL: ["Food and cooking"], enH: ["Food trends and diets", "A recipe you master", "Food waste"], esR: ["Dar una receta a un amigo"], enR: ["Explaining a recipe on a cooking show"] },
+  { id: "restaurant", name: "Restaurant & café", esL: ["En el bar", "Pedir la comida", "Las tapas"], esH: ["Salir a cenar", "La cultura del aperitivo"], enL: ["At the café"], enH: ["Tipping culture", "Your best and worst restaurant"], esR: ["Pedir en un restaurante", "Una alergia en el restaurante"], enR: ["Sending a dish back", "Booking a table for a big group"] },
+  { id: "courses", name: "Courses & magasins", esL: ["De compras", "En el supermercado", "Los números y los precios"], esH: ["Comprar por internet", "El consumismo"], enL: ["Shopping"], enH: ["Online shopping habits", "Fast fashion vs second hand"], esR: ["En el mercado", "Devolver un producto"], enR: ["Returning a faulty product", "Haggling at a market"] },
+  { id: "vetements", name: "Vêtements & mode", esL: ["La ropa", "Los colores", "¿Qué llevas hoy?"], esH: ["La moda y el estilo", "La ropa de segunda mano"], enL: ["Clothes"], enH: ["Personal style", "Dress codes at work"], esR: ["Comprar ropa en una tienda"], enR: ["Shopping for a wedding outfit"] },
+  { id: "sante", name: "Corps & santé", esL: ["El cuerpo", "Estoy enfermo", "Los hábitos sanos"], esH: ["El estrés", "El sistema de salud"], enL: ["Health"], enH: ["Mental health", "Sleep", "Healthcare systems"], esR: ["En la farmacia", "En la consulta del médico"], enR: ["Doctor's appointment", "Describing symptoms at a pharmacy"] },
+  { id: "transports", name: "Transports", esL: ["Los medios de transporte", "Ir al trabajo", "El metro y el autobús"], esH: ["Coche o transporte público", "La movilidad del futuro"], enL: ["Getting around"], enH: ["Cars in city centres", "Commuting"], esR: ["Comprar un billete de tren", "Alquilar un coche"], enR: ["Dealing with a cancelled flight", "Renting a car abroad"] },
+  { id: "voyage", name: "Voyage & hôtel", esL: ["Los viajes", "Las vacaciones", "La maleta"], esH: ["Viajar por Latinoamérica", "El turismo de masas"], enL: ["Holidays"], enH: ["Travel stories", "Is tourism destroying places?", "Travelling solo"], esR: ["Reservar una habitación de hotel", "En el aeropuerto"], enR: ["Complaining about a hotel room", "Lost luggage at the airport"] },
+  { id: "ville", name: "Ville & directions", esL: ["Mi ciudad", "Los lugares de la ciudad", "¿Dónde está…?"], esH: ["La vida en la ciudad o en el campo", "Mi barrio ideal"], enL: ["Your town"], enH: ["Cities of the future", "Gentrification"], esR: ["Pedir direcciones en la calle"], enR: ["Giving directions to a lost tourist"] },
+  { id: "travail", name: "Travail & bureau", esL: ["Mi trabajo", "Las profesiones", "Un día en la oficina"], esH: ["El futuro del trabajo", "El teletrabajo"], enL: ["Jobs"], enH: ["AI and the future of work", "Remote work vs the office", "Work-life balance"], esR: ["Una entrevista de trabajo"], enR: ["Job interview for your dream job", "Negotiating a pay rise", "Handling an angry client"] },
+  { id: "etudes", name: "Études & apprentissage", esL: ["Mis estudios", "Aprender idiomas", "La escuela"], esH: ["La educación", "Aprender a lo largo de la vida"], enL: ["School and studies"], enH: ["Education systems", "Is university still worth it?"], esR: ["Inscribirse en un curso"], enR: ["Asking a professor for an extension"] },
+  { id: "argent", name: "Argent & banque", esL: ["El dinero", "Pagar con tarjeta o en efectivo", "Ahorrar"], esH: ["La economía personal", "El coste de la vida"], enL: ["Money"], enH: ["Personal finance", "The cost of living", "Should billionaires exist?"], esR: ["Abrir una cuenta en el banco"], enR: ["Disputing a charge with your bank"] },
+  { id: "tech", name: "Téléphone, internet & tech", esL: ["Mi móvil", "Internet y las redes", "Las aplicaciones"], esH: ["Las redes sociales", "La inteligencia artificial"], enL: ["Phones and apps"], enH: ["Ethics of technology", "Social media and democracy", "Screen time"], esR: ["Llamar al servicio técnico"], enR: ["Calling customer service about a wrong bill", "Tech support for your grandmother"] },
+  { id: "loisirs", name: "Loisirs & sorties", esL: ["El tiempo libre", "El fin de semana", "Quedar con amigos"], esH: ["Mis pasiones", "El ocio y las pantallas"], enL: ["Hobbies"], enH: ["Hobbies that changed you", "Nightlife"], esR: ["Organizar una salida con amigos"], enR: ["Planning a weekend trip with a friend"] },
+  { id: "sport", name: "Sport & forme", esL: ["Los deportes", "Hacer ejercicio", "El fútbol"], esH: ["El deporte y la sociedad", "Los grandes eventos deportivos"], enL: ["Sport"], enH: ["Sport and society", "Extreme sports"], esR: ["Apuntarse a un gimnasio"], enR: ["Joining a gym"] },
+  { id: "culture", name: "Musique, cinéma & livres", esL: ["La música", "Las películas", "Un libro"], esH: ["El cine y las series", "La cultura española"], enL: ["Films and music"], enH: ["Cinema and series", "A book that changed you", "Art and AI"], esR: ["Comprar entradas para un concierto"], enR: ["Recommending a series to a friend"] },
+  { id: "meteo", name: "Météo, nature & animaux", esL: ["El tiempo y las estaciones", "Los animales", "La naturaleza"], esH: ["El medio ambiente", "El cambio climático"], enL: ["Weather and nature"], enH: ["Climate policy", "Wildlife and us"], esR: ["Planear una excursión según el tiempo"], enR: ["Cancelling an outdoor event because of the weather"] },
+  { id: "emotions", name: "Émotions & caractère", esL: ["¿Cómo estás?", "Mi carácter", "Lo que me gusta y lo que no"], esH: ["Gestionar las emociones", "La felicidad"], enL: ["Feelings"], enH: ["What makes people happy", "Dealing with failure"], esR: ["Consolar a un amigo"], enR: ["Giving difficult feedback to a colleague"] },
+  { id: "fetes", name: "Fêtes & traditions", esL: ["Las fiestas", "La Navidad", "Mi cumpleaños"], esH: ["Las tradiciones españolas", "Las fiestas populares"], enL: ["Celebrations"], enH: ["Traditions worth keeping", "Weddings around the world"], esR: ["Invitar a alguien a tu cumpleaños"], enR: ["Giving a toast at a wedding"] },
+  { id: "admin", name: "Administration & services", esL: ["En correos", "La peluquería", "Los horarios"], esH: ["La burocracia", "Los servicios públicos"], enL: ["Services"], enH: ["Bureaucracy stories", "Public services"], esR: ["En la peluquería", "Hacer un trámite en el ayuntamiento"], enR: ["At the post office", "Booking a repair at the garage"] },
+  { id: "urgences", name: "Urgences & imprévus", esL: ["¡Socorro!", "He perdido mis llaves", "Un problema en el viaje"], esH: ["Situaciones de emergencia", "Un día en que todo salió mal"], enL: ["Problems"], enH: ["A day when everything went wrong", "Emergencies abroad"], esR: ["Denunciar un robo en la comisaría", "Llamar a urgencias"], enR: ["Reporting a stolen wallet to the police", "Calling emergency services"] },
+  { id: "actu", name: "Actualité & société", esL: ["Las noticias de hoy", "Mi país"], esH: ["La actualidad", "Los jóvenes y la política"], enL: ["The news"], enH: ["The news this week", "Is a four-day week realistic?", "Should social media be banned for under-16s?"], esR: ["Una encuesta en la calle"], enR: ["Being interviewed on the street by a journalist"] },
+];
+const DOMAIN_BY_ID = Object.fromEntries(DOMAINS.map(x => [x.id, x]));
+// least-covered domains first, never the last two used; ties shuffled
+function pickDomain(l, opts = {}) {
+  const d = S.data[l];
+  const cov = d.coverage || {};
+  const recent = [...d.sessions.slice(-3).map(s => s.domain), ...arr(d.plan).map(p => p.domain)].filter(Boolean).slice(-4);
+  let pool = DOMAINS.filter(x => !recent.includes(x.id) && (!opts.needRole || (l === "es" ? x.esR : x.enR)?.length));
+  if (!pool.length) pool = DOMAINS.slice();
+  const score = x => (cov[x.id] || 0) * 10 + d.vocab.filter(v => v.dom === x.id).length / 5 + Math.random() * 3;
+  return pool.sort((a, b) => score(a) - score(b))[0];
+}
+function domainTopic(l, dom, type, avoid = []) {
+  const lowLvl = isLow(l);
+  let list = type === "role" ? (l === "es" ? dom.esR : dom.enR)
+    : l === "es" ? (lowLvl ? dom.esL : dom.esH) : (lowLvl ? dom.enL : dom.enH);
+  if (!list?.length) list = l === "es" ? dom.esL : dom.enH;
+  return pick(list, avoid);
+}
 
 /* =========================================================
    Teacher avatar (canvas) — Elena
@@ -804,7 +871,7 @@ function convRules(l) {
   return `Tu es Elena, professeure particulière d'espagnol et d'anglais (née à Séville, a vécu 10 ans à Londres), chaleureuse, drôle et exigeante. Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.
 
 FORMAT DE LA SÉANCE : ${TYPES[C.spec.type].name} · ${C.spec.topic} · durée prévue ${C.spec.minutes} min
-${TYPES[C.spec.type].how()}
+${TYPES[C.spec.type].how()}${C.spec.domain ? `\nDOMAINE DE LA VRAIE VIE : ${DOMAIN_BY_ID[C.spec.domain].name}. Fais employer le vocabulaire concret et indispensable de ce domaine dans la vie réelle : objets, actions, expressions toutes faites, phrases de survie que les natifs utilisent vraiment.` : ""}
 TEMPS : ${phaseHint()}
 
 ${profileContext(l)}
@@ -934,6 +1001,7 @@ function renderLobby() {
         homeworkPanel(l)),
       h("div", { style: "display:flex;flex-direction:column;gap:20px;min-width:0" },
         progressPanel(l, minutes),
+        lifePanel(l),
         vocabPanel(l),
         h("section", { class: "panel" },
           h("h2", { text: "Historique" }),
@@ -956,7 +1024,7 @@ function joinBlock(l) {
   const head = h("div", { style: "display:flex;flex-direction:column;gap:6px" },
     h("div", { class: "row" }, h("span", { class: "type-pill " + sp.type, text: TYPES[sp.type].name }), h("span", { class: "dur", text: sp.minutes + " min" })),
     h("h2", { text: sp.topic }),
-    h("p", { style: "margin:0;color:var(--call-muted)", text: TYPES[sp.type].short }));
+    h("p", { style: "margin:0;color:var(--call-muted)", text: TYPES[sp.type].short + (sp.domain && DOMAIN_BY_ID[sp.domain] ? " · " + DOMAIN_BY_ID[sp.domain].name : "") }));
   const go = h("button", { class: "btn primary", id: "join", onclick: () => startCall(sp), disabled: !CAP.sample, text: "Rejoindre l'appel" });
   const toggle = h("button", { class: "linkbtn", type: "button", text: S.custom ? "Fermer la séance sur mesure" : "Choisir une autre séance (type, thème, durée)", onclick: () => {
     S.custom = S.custom ? null : { type: sp.type === "diag" ? "conv" : sp.type, minutes: sp.minutes, topic: "" };
@@ -971,23 +1039,36 @@ function buildCustom(l, box) {
   const chipRow = (items, isOn, onPick, label) => h("div", { class: "chips", role: "group", "aria-label": label }, items.map(([val, text]) =>
     h("button", { class: "chip", type: "button", "aria-pressed": String(isOn(val)), onclick: () => { onPick(val); renderLobby(); }, text })));
   const types = Object.keys(TYPES).filter(t => t !== "diag" && !(t === "debate" && isLow(l)));
-  const suggestions = (() => {
+  const sugg = (() => {
     const b = BANK[l], low = isLow(l);
-    const src = c.type === "role" ? b.role : c.type === "debate" ? (low ? b.high : b.debate) : c.type === "grammar" ? [...weakLabels(l).map(w => w.label), ...(low ? b.gramLow : b.gramHigh)] : c.type === "review" ? [topicFor(l, "review")] : (low ? b.low : b.high);
-    return [...new Set(src)].slice(0, 12);
+    if (DOMAIN_TYPES.includes(c.type)) {
+      const cov = S.data[l].coverage || {};
+      const doms = DOMAINS.slice().sort((a, b2) => (cov[a.id] || 0) - (cov[b2.id] || 0));
+      if (c.domain) doms.sort((a, b2) => (b2.id === c.domain) - (a.id === c.domain));
+      const out = [];
+      for (const dm of doms) {
+        const list = c.type === "role" ? (l === "es" ? dm.esR : dm.enR) : (l === "es" ? (low ? dm.esL : dm.esH) : (low ? dm.enL : dm.enH));
+        for (const t of arr(list).slice(0, dm.id === c.domain ? 3 : 1)) out.push([t, dm.id]);
+        if (out.length >= 14) break;
+      }
+      return out;
+    }
+    const src = c.type === "debate" ? (low ? b.high : b.debate) : c.type === "grammar" ? [...weakLabels(l).map(w => w.label), ...(low ? b.gramLow : b.gramHigh)] : [topicFor(l, "review")];
+    return [...new Set(src)].slice(0, 12).map(t => [t, null]);
   })();
+  const suggestions = sugg.map(x => x[0]);
   const input = h("input", { id: "custom-topic", class: "custom-input", placeholder: l === "es" ? "…ou écris ton propre thème" : "…ou écris ton propre thème", value: c.topic && !suggestions.includes(c.topic) ? c.topic : "", maxlength: "80" });
-  input.addEventListener("input", () => { c.topic = input.value.trim(); });
+  input.addEventListener("input", () => { c.topic = input.value.trim(); c.domain = null; });
   box.append(
     h("span", { class: "label", text: "Type de séance" }),
-    chipRow(types.map(t => [t, TYPES[t].name]), v => c.type === v, v => { c.type = v; c.topic = ""; c.minutes = TYPES[v].min; }, "Type"),
+    chipRow(types.map(t => [t, TYPES[t].name]), v => c.type === v, v => { c.type = v; c.topic = ""; if (!DOMAIN_TYPES.includes(v)) c.domain = null; c.minutes = TYPES[v].min; }, "Type"),
     h("span", { class: "label", text: "Durée" }),
     chipRow(DURATIONS.map(m => [m, m + " min"]), v => c.minutes === v, v => { c.minutes = v; }, "Durée"),
     h("span", { class: "label", text: c.type === "role" ? "Situation" : c.type === "grammar" ? "Point de grammaire" : c.type === "debate" ? "Question du débat" : "Thème" }),
-    chipRow(suggestions.map(t => [t, t]), v => c.topic === v, v => { c.topic = c.topic === v ? "" : v; }, "Thème"),
+    chipRow(suggestions.map(t => [t, t]), v => c.topic === v, v => { c.topic = c.topic === v ? "" : v; c.domain = c.topic ? (sugg.find(x => x[0] === v) || [])[1] : null; }, "Thème"),
     input,
     h("button", { class: "btn primary", type: "button", disabled: !CAP.sample, onclick: () => {
-      const sp = makeSession(l, c.type, c.topic || topicFor(l, c.type, recentTopics(l)), c.minutes);
+      const sp = makeSession(l, c.type, c.topic || null, c.minutes, c.domain);
       S.custom = null; startCall(sp);
     }, text: "Lancer cette séance" }));
 }
@@ -997,15 +1078,30 @@ function programPanel(l) {
     h("span", { class: "prog-n", text: "J+" + (i + 1) }),
     h("div", { style: "min-width:0" },
       h("div", { class: "row", style: "gap:6px" }, h("span", { class: "type-pill light " + sp.type, text: TYPES[sp.type].name }), h("span", { class: "muted", style: "font-size:13px", text: sp.minutes + " min" })),
-      h("div", { class: "prog-topic", text: sp.topic })),
+      h("div", { class: "prog-topic", text: sp.topic }),
+      sp.domain && DOMAIN_BY_ID[sp.domain] ? h("div", { class: "muted", style: "font-size:12px", text: DOMAIN_BY_ID[sp.domain].name }) : null),
     h("div", { class: "prog-actions" },
-      h("button", { class: "btn sm", type: "button", title: "Autre thème", "aria-label": "Autre thème pour cette séance", onclick: () => { sp.topic = topicFor(l, sp.type, [sp.topic, ...recentTopics(l)]); saveLang(l); renderLobby(); }, text: "↻" }),
+      h("button", { class: "btn sm", type: "button", title: "Autre thème", "aria-label": "Autre thème pour cette séance", onclick: () => { const n = makeSession(l, sp.type, null, sp.minutes); if (n.topic === sp.topic) n.topic = topicFor(l, sp.type, [sp.topic]); sp.topic = n.topic; sp.domain = n.domain; saveLang(l); renderLobby(); }, text: "↻" }),
       h("button", { class: "btn sm", type: "button", disabled: !CAP.sample, onclick: () => startCall(sp), text: "Lancer" }))));
   return h("section", { class: "panel" },
     h("div", { class: "vocab-head" }, h("h2", { text: "Ton programme" }),
       h("button", { class: "btn sm", type: "button", onclick: () => { d.plan = d.plan.slice(0, 1); ensurePlan(l); saveLang(l); renderLobby(); toast("Programme régénéré."); }, text: "Nouveau programme" })),
     h("p", { class: "lvl-note", text: "Tes prochaines séances, une par jour. Elena varie les formats et les thèmes, et ajoute une séance de révision ou de grammaire dès que tes mots à revoir ou une lacune s'accumulent. Tu peux lancer n'importe laquelle, changer son thème, ou en créer une sur mesure." }),
     h("div", { class: "prog" }, rows));
+}
+
+function lifePanel(l) {
+  const d = S.data[l], cov = d.coverage || {};
+  const words = id => d.vocab.filter(v => v.dom === id).length;
+  const touched = DOMAINS.filter(x => (cov[x.id] || 0) > 0).length;
+  const state = x => { const n = cov[x.id] || 0, w = words(x.id); return n >= 3 && w >= 15 ? "solid" : n >= 1 ? "started" : "new"; };
+  return h("section", { class: "panel" },
+    h("div", { class: "vocab-head" }, h("h2", { text: "La vraie vie" }), h("span", { class: "pill", text: `${touched} / ${DOMAINS.length} domaines abordés` })),
+    h("p", { class: "lvl-note", text: "Les 24 domaines dont tu as besoin au quotidien. Le programme va d'abord vers ceux que tu n'as pas encore travaillés. Clique sur un domaine pour préparer une séance dessus." }),
+    h("div", { class: "life" }, DOMAINS.map(x => h("button", { class: "life-tile " + state(x), type: "button", title: `${cov[x.id] || 0} séance(s), ${words(x.id)} mot(s)`,
+      onclick: () => { S.custom = { type: "vocab", minutes: 10, topic: domainTopic(l, x, "vocab"), domain: x.id }; renderLobby(); $(".join")?.scrollIntoView({ behavior: "smooth", block: "start" }); } },
+      h("span", { class: "life-name", text: x.name }),
+      h("span", { class: "life-meta", text: (cov[x.id] ? `${cov[x.id]} séance${cov[x.id] > 1 ? "s" : ""}` : "à découvrir") + (words(x.id) ? ` · ${words(x.id)} mots` : "") })))));
 }
 function progressPanel(l, minutes) {
   const d = S.data[l];
@@ -1488,7 +1584,7 @@ async function analyse(content, bubble) {
   });
   if (!fixes.length && !better.length) bubble.append(h("div", { class: "fix ok" }, h("p", { text: l === "es" ? "¡Perfecto! Aucune erreur." : "Spot on. No mistakes." })));
   if (gaps.length) {
-    const n = addVocab(l, gaps, "lacune");
+    const n = addVocab(l, gaps, "lacune", C.spec?.domain);
     C.gaps.push(...gaps.map(g => ({ word: str(g.word), meaning: str(g.meaning) })));
     bubble.append(h("div", { class: "words" }, gaps.map(g => h("span", { class: "gap-chip", text: `+ ${str(g.word)} : ${str(g.meaning)}` }))));
     if (n) saveLang(l);
@@ -1593,7 +1689,7 @@ Réponds uniquement en JSON : {"lemma":"forme de dictionnaire (avec article pour
     const lemma = str(r.lemma) || word, def = str(r.definition), ex = str(r.example);
     const inBank = S.data[l].vocab.some(v => vocabKey(v.w) === vocabKey(lemma));
     const add = h("button", { type: "button", text: inBank ? (l === "es" ? "Ya está en tu vocabulario" : "Already in your words") : (l === "es" ? "+ Añadir a mi vocabulario" : "+ Add to my words"), disabled: inBank });
-    add.onclick = () => { addVocab(l, [{ word: lemma, meaning: def, example: ex }], "lacune"); saveLang(l); add.textContent = l === "es" ? "Añadida ✓" : "Added ✓"; add.disabled = true; };
+    add.onclick = () => { addVocab(l, [{ word: lemma, meaning: def, example: ex }], "lacune", C.spec?.domain); saveLang(l); add.textContent = l === "es" ? "Añadida ✓" : "Added ✓"; add.disabled = true; };
     box.replaceChildren(h("b", { text: lemma }), def ? h("p", { text: def }) : null, ex ? h("p", { class: "ex", text: ex }) : null,
       h("div", { class: "row" }, h("button", { type: "button", onclick: () => { if (!C.listening) Voice.speak([{ lang: l, text: lemma + ". " + ex }], l); }, text: l === "es" ? "Escuchar" : "Listen" }), add,
         h("button", { type: "button", onclick: () => { box.remove(); span.classList.remove("sel"); }, text: "✕", "aria-label": "Fermer" })));
@@ -1639,11 +1735,13 @@ async function endCall() {
   const snapshot = { log: C.log.slice(), errors: C.errors.slice(), betters: C.betters.slice(), gaps: C.gaps.slice(), words: C.words.slice(), used: [...C.used], analyses: C.analyses.slice(), live: C.liveLevel };
   closeCall();
   // vocabulary bookkeeping happens even without a report
-  addVocab(l, snapshot.words, "cours");
+  addVocab(l, snapshot.words, "cours", spec.domain);
   markUsed(l, snapshot.used);
   if (studentTurns < 2) { saveLang(l); toast("Cours trop court pour un bilan. La séance reste dans ton programme."); renderLobby(); return; }
   // the session counts: take it off the programme and top the programme up
   d.plan = arr(d.plan).filter(p => p.id !== spec.id);
+  if (spec.domain) { d.coverage[spec.domain] = (d.coverage[spec.domain] || 0) + 1; }
+  saveLang(l);
   const card = h("div", { class: "report", role: "dialog", "aria-label": "Bilan de séance" },
     h("div", { style: "display:flex;gap:14px;align-items:center" }, h("div", { class: "spinner" }),
       h("div", null, h("h2", { text: "Elena prépare ton bilan" }), h("p", { class: "muted", style: "margin:0", text: "Niveau réel, lacunes, vocabulaire et devoirs ciblés. Ça peut prendre une minute." }))));
@@ -1690,7 +1788,7 @@ Réponds uniquement en JSON :
   let r;
   try { r = await askJSON(prompt, {}); }
   catch (e) {
-    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `${sessionTitle(spec)} (bilan non généré)`, type: spec.type, topic: spec.topic });
+    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `${sessionTitle(spec)} (bilan non généré)`, type: spec.type, topic: spec.topic, domain: spec.domain });
     applyWeakness(l, Object.entries(snapshot.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
     saveLang(l);
     card.replaceChildren(h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs et les mots qui t'ont manqué ont quand même été enregistrés." }),
@@ -1700,8 +1798,8 @@ Réponds uniquement en JSON :
   const oldLevel = d.assessed ? d.level : null;
   if (LEVELS.includes(r.level)) { d.level = r.level; d.assessed = true; d.levelNote = str(r.level_note).slice(0, 160); }
   if (r.skills && typeof r.skills === "object") for (const [k] of SKILLS) { const v = Number(r.skills[k]); if (Number.isFinite(v)) d.skills[k] = Math.round(Math.max(0, Math.min(100, v))); }
-  applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune");
-  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || sessionTitle(spec), next: str(r.next_goal), type: spec.type, topic: spec.topic });
+  applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune", spec.domain);
+  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || sessionTitle(spec), next: str(r.next_goal), type: spec.type, topic: spec.topic, domain: spec.domain });
   d.sessions = d.sessions.slice(-30);
   const hwIn = r.homework && typeof r.homework === "object" ? r.homework : null;
   const exs = arr(hwIn?.exercises).filter(ex => str(ex?.prompt)).slice(0, 8);
