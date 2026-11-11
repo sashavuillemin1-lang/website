@@ -318,13 +318,13 @@ async function initCaps() {
   names.forEach((n, i) => CAP[n] = res[i]);
 }
 const SAMPLE_ERR = {
-  not_granted: "Tu as refusé l'accès à Claude : Elena ne peut pas répondre. Recharge la page pour réessayer.",
+  not_granted: "Tu as refusé l'accès à Claude : ton prof ne peut pas répondre. Recharge la page pour réessayer.",
   rate_limited: "Trop de demandes d'un coup. Attends quelques secondes puis réessaie.",
   sampling_disabled: "L'accès à Claude est désactivé sur ce compte.",
   prompt_too_large: "La séance est trop longue. Raccroche pour obtenir ton bilan.",
   invalid_json: "Réponse illisible. Réessaie.",
 };
-const errCopy = e => SAMPLE_ERR[e?.code] || "Elena n'a pas pu répondre. Réessaie.";
+const errCopy = e => SAMPLE_ERR[e?.code] || "Pas de réponse cette fois. Réessaie.";
 async function askJSON(input, opts) {
   const r = await CAP.sample.json(input, { cache: false, ...opts });
   if (!r || typeof r !== "object" || Array.isArray(r)) throw { code: "invalid_json" };
@@ -375,6 +375,12 @@ const LANGS = {
   es: { name: "Espagnol", native: "Español", tts: "es", stt: "es-ES" },
   en: { name: "Anglais", native: "English", tts: "en", stt: "en-GB" }
 };
+const TEACHERS = {
+  es: { name: "Elena", intro: "Tu es Elena, professeure particulière d'espagnol, née et élevée à Séville, chaleureuse, drôle et exigeante. Tu parles l'espagnol d'Espagne (vosotros, vocabulaire d'Espagne)." },
+  en: { name: "James", intro: "Tu es James, professeur particulier d'anglais, Londonien né et élevé à Londres, chaleureux, plein d'humour et exigeant. Tu parles l'anglais britannique de Londres : vocabulaire et tournures UK (flat, queue, mate, cheers, brilliant, fancy…), jamais américain." }
+};
+const tn = l => TEACHERS[l === "en" ? "en" : "es"].name;
+const deTn = l => (l === "en" ? "de James" : "d'Elena");
 const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
 const LEVEL_LABEL = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A2 · élémentaire", B1: "B1 · intermédiaire", B2: "B2 · avancé", C1: "C1 · autonome", C2: "C2 · maîtrise" };
 const SKILLS = [["grammaire", "Grammaire"], ["vocabulaire", "Vocabulaire"], ["aisance", "Aisance orale"], ["comprehension", "Compréhension"]];
@@ -636,6 +642,7 @@ const Avatar = (() => {
     x.setTransform(1, 0, 0, 1, 0, 0);
     x.drawImage(drawBg(w, hgt), 0, 0);
     const portrait = cv.dataset.mode === "portrait";
+    const male = cv.dataset.teacher === "en";
     const s = portrait ? Math.min(w, hgt) / 300 : Math.min(w / 520, hgt / 360);
     const sway = st.listening ? 0 : Math.sin(t * .7) * 2;
     const bob = Math.sin(t * (st.speaking ? 3.2 : 1.1)) * (st.speaking ? 2.2 : 1) + (st.listening ? Math.max(0, Math.sin(t * 2.4)) * 3 : 0);
@@ -644,15 +651,15 @@ const Avatar = (() => {
     x.save(); x.translate(cx, cy); x.scale(s, s);
     // shoulders / sweater (breathing)
     x.save(); x.translate(0, 120); x.scale(breathe, breathe); x.translate(0, -120);
-    x.fillStyle = "#1f5a6b";
+    x.fillStyle = male ? "#283a5b" : "#1f5a6b";
     x.beginPath(); x.moveTo(-175, 270); x.bezierCurveTo(-165, 150, -92, 118, 0, 116); x.bezierCurveTo(92, 118, 165, 150, 175, 270); x.closePath(); x.fill();
     x.fillStyle = "rgba(0,0,0,.12)";
     x.beginPath(); x.moveTo(-60, 270); x.quadraticCurveTo(-70, 180, -40, 128); x.lineTo(-30, 128); x.quadraticCurveTo(-56, 190, -48, 270); x.fill();
     x.restore();
     // head group (bob + tilt)
     x.save(); x.translate(0, bob); x.rotate(Math.sin(t * .5) * .015 + (st.thinking ? .04 : 0));
-    // back hair, falling past shoulders
-    x.fillStyle = "#2d1c14";
+    // back hair, falling past shoulders (Elena only)
+    x.fillStyle = male ? "transparent" : "#2d1c14";
     x.beginPath(); x.moveTo(-70, -16);
     x.bezierCurveTo(-92, -112, 92, -112, 70, -16);
     x.bezierCurveTo(84, 40, 78, 96, 96, 128);
@@ -662,23 +669,47 @@ const Avatar = (() => {
     x.bezierCurveTo(-78, 96, -84, 40, -70, -16);
     x.fill();
     // scarf + neck
-    x.fillStyle = "#c98d6b"; x.fillRect(-22, 58, 44, 64);
-    x.fillStyle = "rgba(0,0,0,.09)"; x.fillRect(-22, 58, 44, 18);
-    x.fillStyle = "#c6531f";
-    x.beginPath(); x.moveTo(-48, 112); x.quadraticCurveTo(0, 150, 48, 112); x.lineTo(42, 134); x.quadraticCurveTo(0, 170, -42, 134); x.closePath(); x.fill();
+    x.fillStyle = male ? "#d4a07f" : "#c98d6b"; x.fillRect(male ? -26 : -22, 58, male ? 52 : 44, 64);
+    x.fillStyle = "rgba(0,0,0,.09)"; x.fillRect(male ? -26 : -22, 58, male ? 52 : 44, 18);
+    if (male) {
+      // open shirt collar under the jumper
+      x.fillStyle = "#e9eef2";
+      x.beginPath(); x.moveTo(-30, 112); x.lineTo(0, 150); x.lineTo(-8, 162); x.lineTo(-44, 126); x.closePath(); x.fill();
+      x.beginPath(); x.moveTo(30, 112); x.lineTo(0, 150); x.lineTo(8, 162); x.lineTo(44, 126); x.closePath(); x.fill();
+    } else {
+      x.fillStyle = "#c6531f";
+      x.beginPath(); x.moveTo(-48, 112); x.quadraticCurveTo(0, 150, 48, 112); x.lineTo(42, 134); x.quadraticCurveTo(0, 170, -42, 134); x.closePath(); x.fill();
+    }
     // face
-    x.fillStyle = "#dca07c";
-    x.beginPath(); x.ellipse(0, 0, 62, 76, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = male ? "#e4b493" : "#dca07c";
+    x.beginPath(); x.ellipse(0, 0, male ? 64 : 62, male ? 78 : 76, 0, 0, Math.PI * 2); x.fill();
     x.beginPath(); x.ellipse(-62, 6, 9, 15, 0, 0, Math.PI * 2); x.ellipse(62, 6, 9, 15, 0, 0, Math.PI * 2); x.fill();
-    x.fillStyle = "#e3b341"; x.beginPath(); x.arc(-63, 26, 4, 0, Math.PI * 2); x.arc(63, 26, 4, 0, Math.PI * 2); x.fill();
+    if (!male) { x.fillStyle = "#e3b341"; x.beginPath(); x.arc(-63, 26, 4, 0, Math.PI * 2); x.arc(63, 26, 4, 0, Math.PI * 2); x.fill(); }
+    if (male) {
+      // short brown hair with a side parting, sideburns, light stubble
+      x.fillStyle = "#6b4a2f";
+      x.beginPath();
+      x.moveTo(-66, -12);
+      x.bezierCurveTo(-76, -72, -40, -102, 2, -102);
+      x.bezierCurveTo(46, -102, 78, -72, 66, -12);
+      x.lineTo(60, -30);
+      x.bezierCurveTo(52, -54, 30, -62, 8, -60);
+      x.bezierCurveTo(-14, -68, -46, -58, -58, -32);
+      x.closePath(); x.fill();
+      x.fillRect(-66, -36, 8, 30); x.fillRect(58, -36, 8, 30);
+      x.strokeStyle = "rgba(255,255,255,.12)"; x.lineWidth = 2;
+      x.beginPath(); x.moveTo(-22, -96); x.quadraticCurveTo(-26, -78, -30, -62); x.stroke();
+      x.fillStyle = "rgba(80,55,35,.10)";
+      x.beginPath(); x.ellipse(0, 36, 50, 40, 0, .12 * Math.PI, .88 * Math.PI); x.lineTo(0, 30); x.closePath(); x.fill();
+      x.beginPath(); x.ellipse(0, 31, 17, 5, 0, 0, Math.PI * 2); x.fill();
+    }
     // fringe
-    x.fillStyle = "#2d1c14";
+    x.fillStyle = male ? "transparent" : "#2d1c14";
     x.beginPath(); x.moveTo(-66, -8); x.bezierCurveTo(-72, -82, -10, -98, 20, -86); x.bezierCurveTo(62, -80, 74, -40, 66, -4);
     x.bezierCurveTo(50, -46, 20, -58, -8, -50); x.bezierCurveTo(-34, -44, -54, -30, -66, -8); x.fill();
-    x.fillStyle = "rgba(255,255,255,.07)";
-    x.beginPath(); x.ellipse(10, -72, 26, 6, -.3, 0, Math.PI * 2); x.fill();
+    if (!male) { x.fillStyle = "rgba(255,255,255,.07)"; x.beginPath(); x.ellipse(10, -72, 26, 6, -.3, 0, Math.PI * 2); x.fill(); }
     // cheeks
-    x.fillStyle = "rgba(214,96,80,.18)";
+    x.fillStyle = male ? "rgba(214,96,80,.07)" : "rgba(214,96,80,.18)";
     x.beginPath(); x.ellipse(-34, 22, 14, 9, 0, 0, Math.PI * 2); x.ellipse(34, 22, 14, 9, 0, 0, Math.PI * 2); x.fill();
     // eyes
     st.nextBlink -= dt;
@@ -703,7 +734,7 @@ const Avatar = (() => {
       x.beginPath(); x.ellipse(ex, -6, 11.5, 7.5 * open + .3, 0, Math.PI * 1.05, Math.PI * 1.95); x.stroke();
     }
     const browLift = st.speaking ? Math.max(0, noise(t * 1.3)) * 3 : st.listening ? 2 : 0;
-    x.strokeStyle = "#2d1c14"; x.lineWidth = 3.4;
+    x.strokeStyle = male ? "#4e3420" : "#2d1c14"; x.lineWidth = male ? 4.6 : 3.4;
     x.beginPath(); x.moveTo(-36, -22 - browLift); x.quadraticCurveTo(-24, -29 - browLift, -12, -24 - browLift); x.stroke();
     x.beginPath(); x.moveTo(12, -24 - browLift); x.quadraticCurveTo(24, -29 - browLift, 36, -22 - browLift); x.stroke();
     x.strokeStyle = "rgba(120,64,40,.45)"; x.lineWidth = 2;
@@ -719,7 +750,7 @@ const Avatar = (() => {
       x.strokeStyle = "#b5524a"; x.lineWidth = 2.6;
       x.beginPath(); x.ellipse(0, 40, 15.5 - m * 3, 3.5 + m * 10, 0, 0, Math.PI * 2); x.stroke();
     } else {
-      x.strokeStyle = "#a8453e"; x.lineWidth = 3; x.lineCap = "round";
+      x.strokeStyle = male ? "#9a4a40" : "#a8453e"; x.lineWidth = 3; x.lineCap = "round";
       x.beginPath(); x.moveTo(-15, 38); x.quadraticCurveTo(0, st.thinking ? 41 : 47, 15, 38); x.stroke();
     }
     x.restore(); // head
@@ -763,7 +794,46 @@ const Voice = {
       try { speechSynthesis.addEventListener("voiceschanged", load); } catch {}
     }
   },
-  _state(on) { if (!on && Avatar.st.speaking) C.deafUntil = now() + 900; Avatar.set({ speaking: on }); try { this.stateCb?.(on); } catch {} },
+  async ensureVoices() {
+    if (!("speechSynthesis" in window)) return;
+    try { this._browserVoices = speechSynthesis.getVoices() || []; } catch {}
+    if (this._browserVoices.length) return;
+    await new Promise(r => {
+      const t = setTimeout(r, 1500);
+      try { speechSynthesis.addEventListener("voiceschanged", () => { clearTimeout(t); r(); }, { once: true }); } catch { r(); }
+    });
+    try { this._browserVoices = speechSynthesis.getVoices() || []; } catch {}
+  },
+  // best native voice: British man for James, Spain-Spanish woman for Elena; never a French voice
+  pickVoice(lang) {
+    const want = lang === "en" ? "en-gb" : lang === "es" ? "es-es" : "fr-fr";
+    const MALE_EN = /(uk english male|daniel|arthur|oliver|george|ryan|thomas|harry|alfie|elliot|noah|ethan|malcolm)/i;
+    const FEMALE = /(female|kate|serena|martha|libby|sonia|hazel|susan|stephanie|fiona|moira|tessa|karen|samantha|maisie|bella|mia)/i;
+    const FEMALE_ES = /(m[oó]nica|luc[ií]a|elvira|helena|laura|esperanza|abril|marisol|paulina|google espa)/i;
+    let best = null, bs = 0;
+    for (const v of this._browserVoices || []) {
+      const vl = (v.lang || "").replace("_", "-").toLowerCase(), n = v.name || "";
+      let sc = vl === want ? 100 : vl.startsWith(lang) ? 20 : -1;
+      if (sc < 0) continue;
+      if (/natural|online|neural|premium|enhanced/i.test(n)) sc += 15;
+      if (/google/i.test(n)) sc += 8;
+      if (lang === "en") { if (MALE_EN.test(n)) sc += 30; if (FEMALE.test(n)) sc -= 30; }
+      if (lang === "es" && FEMALE_ES.test(n)) sc += 20;
+      if (sc > bs) { bs = sc; best = v; }
+    }
+    return best;
+  },
+  // James always uses a real British voice when the computer has one
+  britishVoice() { const v = this.pickVoice("en"); return v && (v.lang || "").replace("_", "-").toLowerCase() === "en-gb" ? v : null; },
+  voiceLabel(l) {
+    const micCall = micMode() === "call" && CAP.dictation;
+    const v = l === "en" ? this.britishVoice() : null;
+    if (v) return `Voix : ${v.name} (anglais britannique)`;
+    if (l === "es" && !micCall && this.engine === "claude") return "Voix Claude (espagnol)";
+    const b = this.pickVoice(l);
+    return b ? `Voix : ${b.name}` : this.label();
+  },
+  _state(on) { if (!on && Avatar.st.speaking) C.deafUntil = now() + 2500; Avatar.set({ speaking: on }); try { this.stateCb?.(on); } catch {} },
   // parts: [{lang: "es"|"en"|"fr", text}]
   async speak(parts, fallbackLang) {
     if (typeof parts === "string") parts = [{ lang: fallbackLang, text: parts }];
@@ -771,6 +841,10 @@ const Voice = {
     if (!parts.length || this.muted) return;
     const myGen = ++this.gen;
     const rate = this.slow ? .78 : 1;
+    await this.ensureVoices();
+    if (myGen !== this.gen) return;
+    // English: a native British voice beats any generic one, in every mode
+    if (parts.every(p => p.lang === "en") && "speechSynthesis" in window && this.britishVoice()) return this._browser(parts, rate, myGen);
     // Claude's voice cannot play while dictation listens: use the browser voice during an open-mic call
     const micOpen = !!(C.open && CAP.dictation?.active?.());
     if (micOpen) {
@@ -806,8 +880,8 @@ const Voice = {
         const c = chunks[i++];
         const u = new SpeechSynthesisUtterance(c.text);
         u.lang = code[c.lang]; u.rate = rate * .95;
-        const v = this._browserVoices.find(v => v.lang?.replace("_", "-").startsWith(code[c.lang])) || this._browserVoices.find(v => v.lang?.startsWith(c.lang));
-        if (v) u.voice = v;
+        const v = this.pickVoice(c.lang);
+        if (v) { u.voice = v; u.lang = v.lang; }
         u.onstart = () => this._state(true);
         u.onend = () => next();
         u.onerror = () => next();
@@ -885,7 +959,7 @@ function convRules(l) {
   const d = S.data[l];
   const due = C.targets.map(v => `${v.w} (${v.m})`).join(", ");
   const diag = !d.assessed;
-  return `Tu es Elena, professeure particulière d'espagnol et d'anglais (née à Séville, a vécu 10 ans à Londres), chaleureuse, drôle et exigeante. Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.
+  return `${TEACHERS[l].intro} Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.
 
 FORMAT DE LA SÉANCE : ${TYPES[C.spec.type].name} · ${C.spec.topic} · durée prévue ${C.spec.minutes} min
 ${TYPES[C.spec.type].how()}${C.spec.domain ? `\nDOMAINE DE LA VRAIE VIE : ${DOMAIN_BY_ID[C.spec.domain].name}. Fais employer le vocabulaire concret et indispensable de ce domaine dans la vie réelle : objets, actions, expressions toutes faites, phrases de survie que les natifs utilisent vraiment.` : ""}
@@ -956,15 +1030,15 @@ function renderOnboarding() {
       render();
     } },
     cv,
-    h("div", null, h("p", { class: "label", text: "Ta prof : Elena · Español & English" }), h("h1", { text: "¡Hola! Comment tu t'appelles ?" })),
-    h("p", { class: "muted", text: "Elena te parle en visio et corrige chacune de tes erreurs. Elle mesure ton vrai niveau pendant le premier cours, suit tes lacunes et ton vocabulaire, et te donne des devoirs ciblés après chaque séance." }),
+    h("div", null, h("p", { class: "label", text: "Tes profs : Elena (español) · James (English)" }), h("h1", { text: "¡Hola! Comment tu t'appelles ?" })),
+    h("p", { class: "muted", text: "Elena (Séville) et James (Londres) te parlent en visio et corrigent chacune de tes erreurs. Ils mesurent ton vrai niveau pendant le premier cours, suivent tes lacunes et ton vocabulaire, et te donnent des devoirs ciblés après chaque séance." }),
     h("div", { class: "field" }, h("label", { for: "onb-name", text: "Ton prénom" }), h("input", { id: "onb-name", autocomplete: "given-name", placeholder: "Ton prénom", required: true, maxlength: "40" })),
     h("div", { class: "onb-row" },
       h("div", { class: "field" }, h("label", { for: "onb-en", text: "Ton niveau ressenti en anglais" }), levelSelect("onb-en", "C1")),
       h("div", { class: "field" }, h("label", { for: "onb-es", text: "Ton niveau ressenti en espagnol" }), levelSelect("onb-es", "A0"))),
-    h("p", { class: "lvl-note", text: "Simple point de départ : Elena vérifie ton niveau réel pendant le premier cours et l'ajuste ensuite à chaque séance." }),
-    h("button", { class: "btn primary", type: "submit", text: "Commencer avec Elena" }),
-    !window.claude?.use ? h("p", { class: "notice", text: "Ouvre cette page dans Claude pour qu'Elena puisse parler : hors de Claude, elle n'a ni voix ni cerveau." }) : null
+    h("p", { class: "lvl-note", text: "Simple point de départ : ton prof vérifie ton niveau réel pendant le premier cours et l'ajuste ensuite à chaque séance." }),
+    h("button", { class: "btn primary", type: "submit", text: "Commencer" }),
+    !window.claude?.use ? h("p", { class: "notice", text: "Ouvre cette page dans Claude pour que tes profs puissent parler : hors de Claude, ils n'ont ni voix ni cerveau." }) : null
   );
   root.append(h("div", { class: "onb" }, form));
   Avatar.mount(cv);
@@ -979,8 +1053,8 @@ function renderLobby() {
   const l = S.cur = S.profile.cur === "en" ? "en" : "es";
   const d = S.data[l];
   const root = app(); root.replaceChildren();
-  const brandCv = h("canvas", { "data-mode": "portrait" });
-  const joinCv = h("canvas", { "data-mode": "portrait" });
+  const brandCv = h("canvas", { "data-mode": "portrait", "data-teacher": l });
+  const joinCv = h("canvas", { "data-mode": "portrait", "data-teacher": l });
   const minutes = d.sessions.reduce((a, s) => a + (s.minutes || 0), 0);
   const pending = d.homework.filter(x => x.status !== "done");
   const due = dueWords(l, 999).length;
@@ -994,14 +1068,14 @@ function renderLobby() {
 
   const greet = l === "es" ? `¡Hola, ${S.profile.name}!` : `Hi ${S.profile.name}!`;
   const bits = [];
-  if (!d.assessed) bits.push(`Premier cours de ${LANGS[l].name.toLowerCase()} : Elena va évaluer ton vrai niveau en discutant avec toi.`);
+  if (!d.assessed) bits.push(`Premier cours de ${LANGS[l].name.toLowerCase()} : ${tn(l)} va évaluer ton vrai niveau en discutant avec toi.`);
   if (pending.length) bits.push(`${pending.length} devoir${pending.length > 1 ? "s" : ""} à rendre.`);
   if (due) bits.push(`${due} mot${due > 1 ? "s" : ""} à réviser.`);
   if (!bits.length) bits.push(d.sessions.length ? `Dernière séance le ${fmtDate(d.sessions.at(-1).date)}. Ta prochaine séance est prête.` : "Ta première séance est prête.");
 
   root.append(h("div", { class: "wrap" },
     h("header", { class: "top" },
-      h("div", { class: "brand" }, brandCv, h("div", null, h("h1", { text: "Clase con Elena" }), h("span", { class: "label", text: Store.online ? "Progrès sauvegardés sur ton compte" : "Progrès sauvegardés sur cet appareil" }))),
+      h("div", { class: "brand" }, brandCv, h("div", null, h("h1", { text: l === "en" ? "Lessons with James" : "Clase con Elena" }), h("span", { class: "label", text: Store.online ? "Progrès sauvegardés sur ton compte" : "Progrès sauvegardés sur cet appareil" }))),
       h("div", { class: "lang-tabs" }, tab("es"), tab("en"))),
     h("h2", { class: "hello", text: greet }),
     h("p", { class: "muted", text: bits.join(" ") }),
@@ -1010,7 +1084,7 @@ function renderLobby() {
         h("section", { class: "panel join" },
           h("div", { class: "join-stage" }, joinCv,
             h("div", { style: "display:flex;flex-direction:column;gap:12px;min-width:0" },
-              h("span", { class: "label", text: "Elena est en ligne · séance du jour" }),
+              h("span", { class: "label", text: `${tn(l)} est en ligne · séance du jour` }),
               joinBlock(l),
               !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec Elena." : "Ouvre cette page dans Claude pour lancer la visio." }) : null))),
         programPanel(l),
@@ -1024,7 +1098,7 @@ function renderLobby() {
           h("h2", { text: "Historique" }),
           d.sessions.length ? h("div", { class: "hist" }, d.sessions.slice(-6).reverse().map(s =>
             h("div", { class: "hist-item" }, h("time", { text: `${fmtDate(s.date)} · ${s.type && TYPES[s.type] ? TYPES[s.type].name + " · " : ""}${s.minutes} min · ${s.errors} erreur${s.errors > 1 ? "s" : ""}` }), h("p", { style: "margin:2px 0 0", text: s.summary }))))
-            : h("p", { class: "empty", text: "Tes séances apparaîtront ici, avec le résumé d'Elena." }),
+            : h("p", { class: "empty", text: `Tes séances apparaîtront ici, avec le résumé ${deTn(l)}.` }),
           h("div", { class: "row" },
             h("button", { class: "btn sm", onclick: e => renameFlow(e), text: "Changer de prénom" }),
             d.assessed ? h("button", { class: "btn sm", onclick: () => { d.assessed = false; saveLang(l); renderLobby(); toast("Le prochain cours sera un nouveau diagnostic."); }, text: "Refaire un diagnostic" }) : null)))
@@ -1103,7 +1177,7 @@ function programPanel(l) {
   return h("section", { class: "panel" },
     h("div", { class: "vocab-head" }, h("h2", { text: "Ton programme" }),
       h("button", { class: "btn sm", type: "button", onclick: () => { d.plan = d.plan.slice(0, 1); ensurePlan(l); saveLang(l); renderLobby(); toast("Programme régénéré."); }, text: "Nouveau programme" })),
-    h("p", { class: "lvl-note", text: "Tes prochaines séances, une par jour. Elena varie les formats et les thèmes, et ajoute une séance de révision ou de grammaire dès que tes mots à revoir ou une lacune s'accumulent. Tu peux lancer n'importe laquelle, changer son thème, ou en créer une sur mesure." }),
+    h("p", { class: "lvl-note", text: `Tes prochaines séances, une par jour. ${tn(l)} varie les formats et les thèmes, et ajoute une séance de révision ou de grammaire dès que tes mots à revoir ou une lacune s'accumulent. Tu peux lancer n'importe laquelle, changer son thème, ou en créer une sur mesure.` }),
     h("div", { class: "prog" }, rows));
 }
 
@@ -1128,7 +1202,7 @@ function progressPanel(l, minutes) {
       h("div", { class: "stat" }, h("b", { text: d.assessed ? d.level : "?" }), h("span", { class: "label", text: d.assessed ? "Niveau mesuré" : "À évaluer" })),
       h("div", { class: "stat" }, h("b", { text: d.sessions.length }), h("span", { class: "label", text: "Séances" })),
       h("div", { class: "stat" }, h("b", { text: minutes }), h("span", { class: "label", text: "Minutes" }))),
-    h("p", { class: "lvl-note", text: d.assessed ? (d.levelNote || "Niveau mesuré par Elena pendant tes cours.") + ` (Tu t'estimais ${d.declared}.)` : `Tu t'estimes ${d.declared}. Elena mesurera ton vrai niveau pendant le premier cours.` }),
+    h("p", { class: "lvl-note", text: d.assessed ? (d.levelNote || `Niveau mesuré par ${tn(l)} pendant tes cours.`) + ` (Tu t'estimais ${d.declared}.)` : `Tu t'estimes ${d.declared}. Elena mesurera ton vrai niveau pendant le premier cours.` }),
     Object.keys(d.skills).length ? h("div", { class: "skills" }, SKILLS.map(([k, n]) => d.skills[k] == null ? null : h("div", { class: "skill" },
       h("span", { text: n }), h("div", { class: "bar" }, h("i", { style: `width:${Math.max(3, Math.min(100, d.skills[k]))}%` })), h("b", { text: d.skills[k] })))) : null,
     h("h3", { style: "font-size:15px;margin-top:4px", text: "Tes lacunes" }),
@@ -1145,7 +1219,7 @@ function renameFlow(ev) {
 }
 function weakList(d) {
   const list = d.weaknesses.filter(w => w.count > 0 || w.trend === "better").sort((a, b) => b.count - a.count).slice(0, 8);
-  if (!list.length) return h("p", { class: "empty", text: "Elena repère tes erreurs récurrentes pendant les cours et les suit ici." });
+  if (!list.length) return h("p", { class: "empty", text: "Tes erreurs récurrentes repérées pendant les cours apparaîtront ici." });
   const max = Math.max(...list.map(w => w.count), 1);
   return h("div", { class: "weak" }, list.map(w => h("div", { class: "weak-row" + (w.trend === "better" ? " better" : "") },
     h("div", { style: "min-width:0" }, h("span", { text: w.label }), h("small", { text: (w.trend === "better" ? "En progrès · " : "") + (w.note || `${w.count} occurrence${w.count > 1 ? "s" : ""}`) })),
@@ -1199,16 +1273,16 @@ const Mic = {
 
 /* ---------- sound & mic check ---------- */
 function soundCheckPanel(l) {
-  const status = h("p", { class: "status", text: `${Voice.label()} · ${CAP.dictation ? "micro disponible" : "micro non proposé dans cette fenêtre"}` });
+  const status = h("p", { class: "status", text: `${Voice.voiceLabel(l)} · ${CAP.dictation ? "micro disponible" : "micro non proposé dans cette fenêtre"}` });
   const heard = h("p", { class: "heard", hidden: true });
   const helpSlot = h("div");
-  const testVoice = h("button", { class: "btn sm", text: "Tester la voix d'Elena", onclick: async () => {
-    status.className = "status"; status.textContent = "Lecture en cours… tu dois entendre Elena.";
-    const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! ¿Me oyes bien? Si me oyes, todo está listo.` }]
-                             : [{ lang: "en", text: `Hi ${S.profile.name}! Can you hear me clearly? If you can, we're all set.` }];
+  const testVoice = h("button", { class: "btn sm", text: `Tester la voix ${deTn(l)}`, onclick: async () => {
+    status.className = "status"; status.textContent = `Lecture en cours… tu dois entendre ${tn(l)}.`;
+    const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! Soy Elena. ¿Me oyes bien? Si me oyes, todo está listo.` }]
+                             : [{ lang: "en", text: `Hiya ${S.profile.name}, I'm James. Can you hear me alright? Brilliant, then we're all set.` }];
     await Voice.speak(parts, l);
     status.className = "status " + (Voice.engine === "none" ? "bad" : "ok");
-    status.textContent = Voice.engine === "none" ? "Aucune voix disponible dans ce navigateur : tu liras les sous-titres." : `${Voice.label()} : si tu n'as rien entendu, monte le volume et vérifie que l'onglet n'est pas en sourdine.`;
+    status.textContent = Voice.engine === "none" ? "Aucune voix disponible dans ce navigateur : tu liras les sous-titres." : `${Voice.voiceLabel(l)}. Si tu n'as rien entendu, monte le volume et vérifie que l'onglet n'est pas en sourdine.`;
   } });
   const testMic = h("button", { class: "btn sm primary", text: "Tester mon micro" });
   let offs = [], timer = 0, txt = [];
@@ -1227,7 +1301,7 @@ function soundCheckPanel(l) {
       dd.onState(({ state, reason }) => {
         if (state === "listening") testMic.textContent = "Arrêter le test";
         if (state === "idle") {
-          if (txt.length) { finish(); helpSlot.replaceChildren(); status.className = "status ok"; status.textContent = "Micro OK : Elena t'entend bien."; }
+          if (txt.length) { finish(); helpSlot.replaceChildren(); status.className = "status ok"; status.textContent = `Micro OK : ${tn(l)} t'entend bien.`; }
           else if (["not_granted", "dismissed", "unavailable", "upstream_error", "rate_limited"].includes(reason)) fail(reason);
           else fail("no_sound");
         }
@@ -1366,10 +1440,10 @@ function homeworkCard(l, hw) {
       ex.feedback ? h("div", { class: "fb " + (ex.correct ? "good" : "bad") }, ex.correct ? "Correct. " : "À revoir. ", ex.feedback) : null));
   });
   if (hw.status !== "done") {
-    const btn = h("button", { class: "btn primary", style: "align-self:flex-start;margin-top:6px", text: "Rendre mes devoirs à Elena" });
+    const btn = h("button", { class: "btn primary", style: "align-self:flex-start;margin-top:6px", text: `Rendre mes devoirs à ${tn(l)}` });
     btn.onclick = () => gradeHomework(l, hw, btn);
     body.append(btn);
-  } else if (hw.comment) body.append(h("p", { class: "notice", text: "Elena : " + hw.comment }));
+  } else if (hw.comment) body.append(h("p", { class: "notice", text: tn(l) + " : " + hw.comment }));
   return card;
 }
 let draftTimer;
@@ -1377,8 +1451,8 @@ function saveDraft(l) { clearTimeout(draftTimer); draftTimer = setTimeout(() => 
 async function gradeHomework(l, hw, btn) {
   if (!CAP.sample) { toast("Ouvre cette page dans Claude pour faire corriger tes devoirs."); return; }
   if (arr(hw.exercises).every(ex => !str(ex.answer))) { toast("Réponds à au moins un exercice avant de rendre."); return; }
-  btn.disabled = true; btn.textContent = "Elena corrige…";
-  const prompt = `Tu es Elena, professeure de ${LANGS[l].name.toLowerCase()} de ${S.profile.name} (francophone). Corrige ses devoirs avec exigence et bienveillance.
+  btn.disabled = true; btn.textContent = `${tn(l)} corrige…`;
+  const prompt = `Tu es ${tn(l)}, ${l === "en" ? "professeur" : "professeure"} de ${LANGS[l].name.toLowerCase()} de ${S.profile.name} (francophone). Corrige ses devoirs avec exigence et bienveillance.
 
 ${profileContext(l)}
 
@@ -1398,7 +1472,7 @@ delta = +1 si l'erreur persiste, -1 si le point est maîtrisé.`;
     applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune");
     saveLang(l); renderLobby(); toast(`Devoirs corrigés : ${hw.score}/10`);
   } catch (e) {
-    btn.disabled = false; btn.textContent = "Rendre mes devoirs à Elena"; toast(errCopy(e));
+    btn.disabled = false; btn.textContent = `Rendre mes devoirs à ${tn(l)}`; toast(errCopy(e));
   }
 }
 function applyWeakness(l, ups) {
@@ -1433,16 +1507,16 @@ function startCall(spec) {
   Object.assign(C, { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], used: new Set(),
     targets: dueWords(l, 6), liveLevel: d.assessed ? d.level : null,
     start: now(), busy: false, finals: [], listening: false, lastSay: null, lastTeacherText: "", pending: null, open: true, micOffs: [] });
-  const cv = h("canvas", { class: "teacher" });
+  const cv = h("canvas", { class: "teacher", "data-teacher": l });
   const initials = S.profile.name.trim().slice(0, 2).toUpperCase();
   const micBtn = h("button", { class: "cbtn mic", id: "mic", "aria-label": "Parler (barre d'espace)" });
   micBtn.innerHTML = ICON.mic;
   const mk = (id, icon, label, fn) => { const b = h("button", { class: "cbtn", id, "aria-label": label, onclick: fn }); b.innerHTML = icon; return h("div", { class: "cbtn-wrap" }, b, h("span", { text: label })); };
   const endBtn = h("button", { class: "cbtn end", "aria-label": "Raccrocher", onclick: endCall }); endBtn.innerHTML = ICON.end;
 
-  const view = h("div", { class: "call", role: "dialog", "aria-label": "Visio avec Elena" },
+  const view = h("div", { class: "call", role: "dialog", "aria-label": `Visio avec ${tn(l)}` },
     h("div", { class: "call-top" },
-      h("div", null, h("div", { style: "font:600 16px var(--f-display)", text: `Elena · ${LANGS[l].native}` }),
+      h("div", null, h("div", { style: "font:600 16px var(--f-display)", text: `${tn(l)} · ${LANGS[l].native}` }),
         h("span", { class: "label", text: `${TYPES[C.spec.type].name} · ${C.spec.topic}` })),
       h("div", { class: "rec" }, h("span", { id: "live-level", class: "label", style: "color:var(--call-muted)" }), h("i"), h("span", { id: "clock", text: `00:00 / ${String(C.spec.minutes).padStart(2, "0")}:00` }))),
     h("div", { class: "time-track" }, h("i", { id: "time-bar" })),
@@ -1450,22 +1524,21 @@ function startCall(spec) {
       h("div", { class: "stage" }, cv,
         h("div", { class: "self", id: "self" }, h("div", { class: "avatar", text: initials }), h("small", { text: S.profile.name })),
         h("div", { class: "captions", id: "captions", "aria-live": "off" }),
-        h("div", { class: "tag", id: "tag" }, h("i", { class: "dot" }), h("span", { id: "tag-text", text: "Elena" }))),
+        h("div", { class: "tag", id: "tag" }, h("i", { class: "dot" }), h("span", { id: "tag-text", text: tn(l) }))),
       h("aside", { class: "side" },
         h("div", { class: "side-head" }, h("span", { class: "label", text: "Transcription & corrections" }),
           h("div", { class: "toggles" },
             h("button", { class: "tgl", "aria-pressed": String(C.captions), onclick: e => { C.captions = !C.captions; e.currentTarget.setAttribute("aria-pressed", String(C.captions)); $("#captions").hidden = !C.captions; }, text: "Sous-titres" }),
             micSettings(),
-            h("span", { class: "label", style: "text-transform:none;letter-spacing:0", text: l === "es" ? "Toca una palabra de Elena para entenderla" : "Tap any word Elena says to understand it" }))),
+            h("span", { class: "label", style: "text-transform:none;letter-spacing:0", text: l === "es" ? "Toca una palabra de Elena para entenderla" : "Tap any word James says to understand it" }))),
         h("div", { class: "log", id: "log", "aria-live": "polite" }),
         h("form", { class: "compose", onsubmit: e => { e.preventDefault(); const i = $("#typed"); const v = i.value.trim(); if (v) { i.value = ""; userSays(v, false); } } },
           h("input", { id: "typed", placeholder: l === "es" ? "Escribe aquí…" : "Type here…", autocomplete: "off", maxlength: "1200" }),
           h("button", { type: "submit", text: "Envoyer" })))),
     h("div", { class: "controls" },
       mk("repeat", ICON.repeat, "Répéter", () => { if (C.lastSay) Voice.speak(C.lastSay, l); }),
-      mk("slow", ICON.slow, "Plus lent", () => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? "Elena parlera plus lentement." : "Vitesse normale."); }),
+      mk("slow", ICON.slow, "Plus lent", () => { Voice.slow = !Voice.slow; const b = $("#slow"); b.style.background = Voice.slow ? "#58d68d" : ""; b.style.color = Voice.slow ? "#121a1d" : ""; toast(Voice.slow ? `${tn(l)} parlera plus lentement.` : "Vitesse normale."); }),
       h("div", { class: "cbtn-wrap mic-wrap" }, micBtn, h("span", { id: "mic-label", text: CAP.dictation ? "Ouvrir le micro" : "Micro : aide" })),
-      h("div", { class: "cbtn-wrap", id: "send-wrap" }, h("button", { class: "cbtn send", id: "send-now", hidden: true, "aria-label": "Envoyer maintenant", text: "Envoyer" })),
       mk("lost", ICON.repeat.replace("<svg", '<svg style="transform:scaleX(-1)"'), l === "es" ? "No entiendo" : "I'm lost", () => userSays(l === "es" ? "(No entiendo. ¿Puedes decirlo con palabras más fáciles y un ejemplo?)" : "(I don't understand. Can you say it with simpler words and an example?)", false, true)),
       mk("help", ICON.help, l === "es" ? "Ayúdame" : "Help me", () => userSays(l === "es" ? "(No sé cómo decirlo. Dame un ejemplo de respuesta para repetir.)" : "(I'm stuck. Give me a model answer I can repeat.)", false, true)),
       mk("mute", ICON.mute, "Son", () => { Voice.muted = !Voice.muted; if (Voice.muted) Voice.stop(); const b = $("#mute"); b.style.opacity = Voice.muted ? ".45" : ""; b.nextSibling.textContent = Voice.muted ? "Muet" : "Son"; }),
@@ -1475,7 +1548,7 @@ function startCall(spec) {
   Voice.stateCb = on => {
     const tag = $("#tag"); if (!tag) return;
     tag.className = "tag" + (on ? " speaking" : C.busy ? " thinking" : "");
-    $("#tag-text").textContent = on ? "Elena parle…" : C.busy ? "Elena réfléchit…" : C.listening ? "Elena t'écoute" : "Elena";
+    const T = tn(S.cur); $("#tag-text").textContent = on ? `${T} parle…` : C.busy ? `${T} réfléchit…` : C.listening ? `${T} t'écoute` : T;
   };
   const mmss = x => String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
   C.timer = setInterval(() => {
@@ -1495,7 +1568,7 @@ function spaceKey(e) {
 }
 
 const micMode = () => (S.profile.micMode === "ptt" ? "ptt" : "call");
-const patience = () => (S.profile.patience === 0 ? 0 : Number(S.profile.patience) || 4000);
+const patience = () => [2000, 3000, 5000].includes(Number(S.profile.patience)) ? Number(S.profile.patience) : 3000;
 function setupMic(btn) {
   const d = CAP.dictation;
   const lab = () => $("#mic-label");
@@ -1503,7 +1576,14 @@ function setupMic(btn) {
   if (!d) { btn.onclick = () => showMicHelp(null); return; }
   const self = $("#self");
   let partialEl = null, partial = "", silenceT = 0, tickT = 0, waitPartial = 0, skipFinal = "", noSpeechT = 0, weStopped = false;
-  const deaf = () => Avatar.st.speaking || now() < (C.deafUntil || 0);
+  // while the teacher talks, ignore the mic; just after, drop only what sounds like the teacher's own words
+  const echoOf = t => {
+    const words = norm(t).split(" ").filter(w => w.length > 1);
+    if (!words.length) return false;
+    const ref = new Set(norm(C.lastTeacherText).split(" "));
+    return words.filter(w => ref.has(w)).length / words.length >= .6;
+  };
+  const deaf = t => Avatar.st.speaking || (now() < (C.deafUntil || 0) && echoOf(t));
   const pendingText = () => [...C.finals, partial].join(" ").trim();
   const paint = () => {
     const t = pendingText();
@@ -1528,7 +1608,7 @@ function setupMic(btn) {
     clearSilence();
     const ms = patience(); if (!ms) return;              // manual: only the Send button sends
     const until = now() + ms;
-    const tick = () => { const left = Math.ceil((until - now()) / 1000); if (left > 0) label(`Envoi dans ${left} s… (continue à parler pour attendre)`); };
+    const tick = () => { if (C.open) label("Je t'écoute…"); };
     tick(); tickT = setInterval(tick, 250);
     silenceT = setTimeout(flush, ms);
   };
@@ -1536,7 +1616,7 @@ function setupMic(btn) {
   C.micOffs = [
     d.onPartial(({ text }) => {
       if (!C.open) return;
-      if (deaf()) { partial = ""; paint(); return; }    // ignore Elena's own voice
+      if (deaf(text)) { partial = ""; paint(); return; }    // ignore the teacher's own voice
       partial = str(text);
       if (partial) { clearTimeout(noSpeechT); armSilence(); }
       paint();
@@ -1545,7 +1625,7 @@ function setupMic(btn) {
       if (!C.open) return;
       const t = str(text);
       partial = "";
-      if (deaf() || !t) { paint(); return; }
+      if (!t || deaf(t)) { paint(); return; }
       if (skipFinal && (norm(t) === skipFinal || skipFinal.startsWith(norm(t)) || norm(t).startsWith(skipFinal))) { skipFinal = ""; paint(); return; }
       skipFinal = "";
       C.finals.push(t); clearTimeout(noSpeechT); armSilence(); paint();
@@ -1574,7 +1654,6 @@ function setupMic(btn) {
       }
     })
   ];
-  if (sendBtn) sendBtn.onclick = () => flush();
   btn.onclick = () => {
     if (C.listening) {
       if (micMode() === "call") { weStopped = true; flush(); d.stop().catch(() => {}); toast("Micro coupé. Appuie à nouveau pour reprendre."); }
@@ -1587,6 +1666,8 @@ function setupMic(btn) {
     Mic.start(S.cur).catch(e => { if (e?.code !== "stopped") showMicHelp(e?.code); });
   };
   label(idleLabel());
+  // open the mic straight away: "Rejoindre l'appel" was the click
+  if (micMode() === "call") btn.click();
 }
 function micSettings() {
   if (!CAP.dictation) return null;
@@ -1594,12 +1675,12 @@ function micSettings() {
     h("option", { value: "call", selected: micMode() === "call", text: "Micro ouvert (appel)" }),
     h("option", { value: "ptt", selected: micMode() === "ptt", text: "Talkie (un appui par phrase)" }));
   const pat = h("select", { id: "mic-patience", class: "mini-select", "aria-label": "Délai avant envoi" },
-    [[2500, "Envoi après 2,5 s de silence"], [4000, "Envoi après 4 s de silence"], [6000, "Envoi après 6 s de silence"], [0, "Envoi manuel (bouton Envoyer)"]]
+    [[2000, "Envoi après 2 s de silence"], [3000, "Envoi après 3 s de silence"], [5000, "Envoi après 5 s de silence"]]
       .map(([v, t]) => h("option", { value: String(v), selected: patience() === v, text: t })));
   mode.onchange = () => {
     S.profile.micMode = mode.value; saveProfile();
     if (CAP.dictation.active()) { C.flushMic?.(); CAP.dictation.stop().catch(() => {}); }
-    toast(mode.value === "call" ? "Micro ouvert : appuie une fois sur le micro, puis parle comme dans un appel. Elena utilise alors la voix du navigateur." : "Mode talkie : un appui sur le micro par phrase, avec la voix de Claude.");
+    toast(mode.value === "call" ? "Micro ouvert : appuie une fois sur le micro, puis parle comme dans un appel." : "Mode talkie : un appui sur le micro par phrase.");
   };
   pat.onchange = () => { S.profile.patience = Number(pat.value); saveProfile(); };
   return h("div", { class: "row", style: "gap:6px" }, mode, pat);
@@ -1617,7 +1698,7 @@ function userSays(text, oral, isHelp) {
   if (C.busy) {
     // Elena is still answering: queue the student's words instead of dropping them
     C.pending = C.pending ? { ...C.pending, text: C.pending.text + " " + text } : { text, oral, isHelp };
-    toast("Elena finit sa phrase, ton message part juste après.");
+    toast(`${tn(S.cur)} finit sa phrase, ton message part juste après.`);
     return;
   }
   const bubble = h("div", { class: "msg u" + (isHelp ? " help" : "") }, h("span", { class: "who", text: S.profile.name }), h("div", { class: "bubble", text }));
@@ -1634,7 +1715,7 @@ function userSays(text, oral, isHelp) {
 async function analyse(content, bubble) {
   const l = S.cur;
   const teacherLine = C.lastTeacherText;
-  const wait = h("span", { class: "checking", text: "Elena vérifie ta phrase…" });
+  const wait = h("span", { class: "checking", text: `${tn(S.cur)} vérifie ta phrase…` });
   bubble.append(wait); scrollLog();
   let r;
   try { r = await askJSON(analysisPrompt(l, teacherLine, content), { effort: "low" }); }
@@ -1684,7 +1765,7 @@ async function teacherTurn(content, userBubble) {
   if (!C.open) return;
   C.busy = true;
   Avatar.set({ thinking: true }); Voice.stateCb?.(false);
-  const typing = h("div", { class: "typing", text: "Elena réfléchit…" });
+  const typing = h("div", { class: "typing", text: `${tn(l)} réfléchit…` });
   $("#log")?.append(typing); scrollLog();
   C.turns.push({ role: "user", content });
   const recent = C.turns.slice(-24);
@@ -1708,7 +1789,7 @@ async function teacherTurn(content, userBubble) {
     if (r.done === true && !C.timeUp && (now() - C.start) / 60000 >= C.spec.minutes * .8) showTimeUp();
     words.forEach(w => C.words.push({ word: str(w.word), meaning: str(w.meaning) }));
     C.log.push({ who: "teacher", text });
-    const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: "Elena" }), wordBubble(text, l),
+    const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: tn(l) }), wordBubble(text, l),
       words.length ? h("div", { class: "words" }, words.map(w => h("span", { text: `${str(w.word)} : ${str(w.meaning)}` }))) : null);
     $("#log")?.append(msg); scrollLog();
     const cap = $("#captions");
@@ -1781,7 +1862,7 @@ function showTimeUp() {
   const log = $("#log"); if (!log) return;
   const box = h("div", { class: "timeup" },
     h("strong", { text: `Les ${C.spec.minutes} minutes sont écoulées.` }),
-    h("p", { text: "Elena va conclure. Tu peux terminer maintenant pour ton bilan et tes devoirs, ou prolonger." }),
+    h("p", { text: `${tn(S.cur)} va conclure. Tu peux terminer maintenant pour ton bilan et tes devoirs, ou prolonger.` }),
     h("div", { class: "row" },
       h("button", { class: "retry", type: "button", onclick: () => endCall(), text: "Terminer et voir mon bilan" }),
       h("button", { class: "retry", type: "button", onclick: () => { C.spec.minutes += 5; C.timeUp = false; box.remove(); toast("5 minutes de plus."); }, text: "Prolonger de 5 min" })));
@@ -1822,17 +1903,17 @@ async function endCall() {
   saveLang(l);
   const card = h("div", { class: "report", role: "dialog", "aria-label": "Bilan de séance" },
     h("div", { style: "display:flex;gap:14px;align-items:center" }, h("div", { class: "spinner" }),
-      h("div", null, h("h2", { text: "Elena prépare ton bilan" }), h("p", { class: "muted", style: "margin:0", text: "Niveau réel, lacunes, vocabulaire et devoirs ciblés. Ça peut prendre une minute." }))));
+      h("div", null, h("h2", { text: `${tn(l)} prépare ton bilan` }), h("p", { class: "muted", style: "margin:0", text: "Niveau réel, lacunes, vocabulaire et devoirs ciblés. Ça peut prendre une minute." }))));
   const ov = h("div", { class: "overlay" }, card);
   document.body.append(ov);
-  const transcript = snapshot.log.map(x => (x.who === "student" ? S.profile.name : "Elena") + " : " + x.text).join("\n").slice(-14000);
+  const transcript = snapshot.log.map(x => (x.who === "student" ? S.profile.name : tn(l)) + " : " + x.text).join("\n").slice(-14000);
   const errs = snapshot.errors.map(e => `- « ${e.original} » → « ${e.corrected} » [${e.category}] ${e.explanation}`).join("\n").slice(-6000) || "- aucune erreur relevée";
   const betters = snapshot.betters.map(b => `- « ${b.said} » → « ${b.better} »`).join("\n").slice(-2000) || "- aucune";
   const gaps = snapshot.gaps.map(g => `${g.word} (${g.meaning})`).join(", ") || "aucun";
   const dueList = dueWords(l, 12).map(v => `${v.w} (${v.m})`).join(", ") || "aucun";
   const signals = snapshot.analyses.map(a => a.level).filter(Boolean).join(", ") || "aucun";
   const isBeginner = LEVELS.indexOf(snapshot.live || d.level) <= 1;
-  const prompt = `Tu es Elena, professeure particulière de ${LANGS[l].name.toLowerCase()}. Le cours en visio avec ${S.profile.name} vient de se terminer : ${TYPES[spec.type].name}, « ${spec.topic} », ${minutes} min (prévu ${spec.minutes}). Rédige le bilan et les devoirs.
+  const prompt = `${TEACHERS[l].intro} Le cours en visio avec ${S.profile.name} vient de se terminer : ${TYPES[spec.type].name}, « ${spec.topic} », ${minutes} min (prévu ${spec.minutes}). Rédige le bilan et les devoirs.
 
 ${profileContext(l)}
 
@@ -1922,7 +2003,7 @@ Réponds uniquement en JSON :
     render();
   } catch (e) {
     console.error(e);
-    app().replaceChildren(h("div", { class: "onb" }, h("div", { class: "onb-card" }, h("h1", { text: "Elena n'a pas pu démarrer" }), h("p", { text: "Recharge la page. Si ça continue, ouvre-la depuis claude.ai." }))));
+    app().replaceChildren(h("div", { class: "onb" }, h("div", { class: "onb-card" }, h("h1", { text: "L'appli n'a pas pu démarrer" }), h("p", { text: "Recharge la page. Si ça continue, ouvre-la depuis claude.ai." }))));
   }
 })();
 </script>
