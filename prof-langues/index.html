@@ -263,6 +263,27 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .workshop-list{display:flex;flex-direction:column}
 .ex input[type=text],.ex input:not([type]){background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
 .voice-select{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:100%}
+.progression{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:12px}
+.lvl-bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.lvl-bar i{display:block;height:100%;background:var(--ok)}
+.sparks{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.spark-box{background:var(--surface-2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.spark-head{display:flex;justify-content:space-between;gap:8px;font-size:13.5px}
+.spark-head b{font-variant-numeric:tabular-nums}
+.spark{width:100%;height:56px;overflow:visible}
+.spark-base{stroke:var(--line);stroke-width:1}
+.spark-line{fill:none;stroke:var(--sky);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.spark-dot{fill:var(--sky);stroke:var(--surface-2);stroke-width:2}
+.spark-last{fill:var(--sky);stroke:var(--surface-2);stroke-width:2}
+.trend{font-size:12px;color:var(--muted)}
+.trend.good{color:var(--ok)}
+.obj-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.obj-list li.ok{color:var(--ok)}
+.obj-list li.ko{color:var(--err)}
+.plateau{margin:0;background:var(--err-bg);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:500}
+.obj-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.obj-card ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.obj-card .k{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted)}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -406,6 +427,8 @@ function migrate(d, declared) {
   for (const k of ["weaknesses", "sessions", "homework", "vocab", "strengths", "plan"]) d[k] = arr(d[k]);
   d.vocab = d.vocab.map(v => ({ w: str(v.w || v.word), m: str(v.m || v.meaning), ex: str(v.ex), box: Number(v.box) || 0, due: Number(v.due) || 0, ok: Number(v.ok) || 0, ko: Number(v.ko) || 0, src: v.src || "cours", added: v.added || today(), ...(v.dom ? { dom: v.dom } : {}) })).filter(v => v.w);
   d.coverage = d.coverage && typeof d.coverage === "object" ? d.coverage : {};
+  d.mastered = d.mastered && typeof d.mastered === "object" ? d.mastered : {};
+  d.lastObjectives = arr(d.lastObjectives);
   return d;
 }
 const S = { profile: null, data: { es: null, en: null }, cur: "es", topic: null };
@@ -669,6 +692,124 @@ function domainTopic(l, dom, type, avoid = []) {
     : l === "es" ? (lowLvl ? dom.esL : dom.esH) : (lowLvl ? dom.enL : dom.enH);
   if (!list?.length) list = l === "es" ? dom.esL : dom.enH;
   return pick(list, avoid);
+}
+
+
+/* =========================================================
+   Progression engine: a ladder of skills per level, 3 objectives per lesson,
+   measured progress per lesson and plateau detection
+   ========================================================= */
+const SYLLABUS = {
+  es: {
+    A0: ["saludar y despedirse", "presentarse (nombre, edad, origen)", "ser con nacionalidad y profesión", "los números del 0 al 100", "artículos el, la, un, una", "el plural de los nombres", "verbos en -ar en presente", "tener (edad, familia)", "gustar con cosas que te gustan", "preguntas básicas (qué, dónde, cómo, cuándo)"],
+    A1: ["verbos en -er / -ir en presente", "irregulares: ir, hacer, querer, poder", "estar para lugares y estados", "hay / está", "describir personas con adjetivos concordados", "la hora y la rutina diaria", "verbos reflexivos (levantarse, ducharse)", "ir a + infinitivo (planes)", "pedir en un bar o un restaurante", "los posesivos (mi, tu, su)"],
+    A2: ["pretérito perfecto (he comido)", "pretérito indefinido regular", "indefinido irregular (fui, tuve, hice)", "imperfecto para describir el pasado", "comparativos y superlativos", "pronombres de complemento (lo, la, le)", "muy / mucho", "dar consejos (deberías, tienes que)", "hablar de planes y del tiempo", "conectores: porque, pero, entonces, aunque"],
+    B1: ["contraste indefinido / imperfecto en un relato", "futuro simple", "condicional (me gustaría, podría)", "subjuntivo con deseos (espero que)", "subjuntivo con duda (no creo que)", "pronombres dobles (se lo)", "estilo indirecto básico", "dar tu opinión y argumentar", "por y para", "contar una anécdota con conectores"],
+    B2: ["imperfecto de subjuntivo", "condicionales irreales (si tuviera…)", "subjuntivo en oraciones relativas", "pasiva y se impersonal", "matizar una opinión", "expresiones coloquiales en contexto", "perífrasis (acabar de, seguir + gerundio)", "rebatir con cortesía en un debate"],
+    C1: ["registro formal frente a coloquial", "pluscuamperfecto de subjuntivo", "marcadores discursivos avanzados", "modismos y refranes", "precisión léxica y sinónimos"],
+    C2: ["matices de humor e ironía", "adaptarse a cualquier interlocutor"],
+  },
+  en: {
+    A0: ["introducing yourself", "numbers, dates and times", "present simple", "basic questions"],
+    A1: ["present continuous", "past simple", "talking about your studies", "polite requests"],
+    A2: ["present perfect vs past simple", "describing your experience", "comparatives", "future plans"],
+    B1: ["describing your studies and lab experience", "polite requests in emails", "talking about past projects", "basic medical vocabulary"],
+    B2: ["phrasal verbs for work (follow up, set up, carry out)", "conditionals for risk scenarios", "passive voice in scientific reporting", "describing results (increase, decline, significant)", "the STAR method for interview answers", "raising a problem politely"],
+    C1: ["precise clinical research terminology (AE, SAE, SDV, eCRF)", "hedging in scientific language (may suggest, appears to)", "presenting data and trends", "negotiating timelines diplomatically", "chairing a meeting and handling interruptions", "a concise professional email", "a 90-second 'tell me about yourself'", "explaining a protocol to a non-expert", "giving and receiving feedback", "inversion and emphasis in presentations"],
+    C2: ["persuading senior stakeholders", "idiomatic business English", "handling hostile questions", "summarising a complex study in one minute", "natural collocations and fixed phrases", "switching register: patient, regulator, colleague"],
+  }
+};
+const levelItems = (l, lv) => arr(SYLLABUS[l]?.[lv]);
+function nextItems(l, n) {
+  const d = S.data[l], m = d.mastered || {}, out = [];
+  for (let k = Math.max(0, LEVELS.indexOf(d.level)); k < LEVELS.length && out.length < n; k++)
+    for (const it of levelItems(l, LEVELS[k])) if ((m[it] || 0) < 2 && out.length < n) out.push({ item: it, level: LEVELS[k] });
+  return out;
+}
+function levelProgress(l) {
+  const d = S.data[l], m = d.mastered || {}, items = levelItems(l, d.level);
+  return { done: items.filter(it => (m[it] || 0) >= 2).length, total: items.length };
+}
+const metricsOf = s => s?.metrics && Number.isFinite(s.metrics.ept) ? s.metrics : null;
+function lastMetrics(l, n) { return S.data[l].sessions.map(metricsOf).filter(Boolean).slice(-n); }
+// target length per answer: always a bit more than last time
+function wordsTarget(l) {
+  const m = lastMetrics(l, 3); if (!m.length) return null;
+  const avg = m.reduce((a, x) => a + x.wpt, 0) / m.length;
+  const fresh = Math.max(4, Math.round(avg * 1.15 + 1));
+  // never lower the bar: keep it until reached, then raise it
+  const prev = arr(S.data[l].lastObjectives).find(o => o.kind === "metric");
+  if (!prev?.target) return fresh;
+  return prev.achieved ? Math.max(fresh, prev.target + 1) : Math.max(prev.target, fresh);
+}
+function buildObjectives(l) {
+  const d = S.data[l], obj = [];
+  for (const o of arr(d.lastObjectives).filter(o => !o.achieved && o.kind !== "metric").slice(0, 1)) obj.push({ ...o, id: uid(), achieved: undefined, carried: true });
+  const w = weakLabels(l).find(x => !obj.some(o => o.text.includes(x.label)));
+  if (w) obj.push({ id: uid(), kind: "weak", text: `Ne plus se tromper sur : ${w.label}` });
+  const it = nextItems(l, 3).find(x => !obj.some(o => o.item === x.item));
+  if (it) obj.push({ id: uid(), kind: "new", item: it.item, text: `${(d.mastered?.[it.item] || 0) >= 1 ? "À consolider" : "Nouveau"} (${it.level}) : ${it.item}` });
+  const next = str(d.sessions.at(-1)?.next);
+  if (next && obj.length < 3 && !obj.some(o => o.text === next)) obj.push({ id: uid(), kind: "goal", text: next });
+  const wt = wordsTarget(l);
+  if (wt) obj.push({ id: uid(), kind: "metric", target: wt, text: `Des réponses plus longues : au moins ${wt} mots par intervention en moyenne` });
+  return obj.slice(0, 4);
+}
+function progressionBlock(l) {
+  const d = S.data[l], next = LEVELS[Math.min(LEVELS.length - 1, LEVELS.indexOf(d.level) + 1)];
+  const known = Object.entries(d.mastered || {}).filter(([, n]) => n >= 2).map(([k]) => k).slice(-12);
+  return `\nOBJECTIFS DE PROGRESSION DE CETTE SÉANCE (obligatoires : crée des occasions de travailler chacun) :
+${arr(C.objectives).map(o => "- " + o.text).join("\n") || "- aucun"}
+PROGRESSER À CHAQUE SÉANCE : vise toujours un cran au-dessus du niveau mesuré (${d.level}) : dès que l'élève réussit, introduis des structures et du vocabulaire du niveau ${next}, attends des réponses plus longues et plus précises, et aide-le un peu moins que la dernière fois.${known.length ? `\nDéjà acquis (ne le refais pas, appuie-toi dessus) : ${known.join(" ; ")}` : ""}${d.stretch ? `\nPLATEAU DÉTECTÉ sur les dernières séances : augmente nettement l'exigence aujourd'hui (questions plus complexes, réponses longues exigées, moins d'aide, rythme plus naturel, sujets plus abstraits).` : ""}`;
+}
+// plateau = none of the last 3 lessons beat a personal best (fewer errors or longer answers, 5 % margin)
+function updatePlateau(l) {
+  const d = S.data[l], m = S.data[l].sessions.map(metricsOf).filter(Boolean);
+  if (m.length < 5) { d.stretch = false; return; }
+  const before = m.slice(0, -3), rec = m.slice(-3);
+  const bestEpt = Math.min(...before.map(x => x.ept)), bestWpt = Math.max(...before.map(x => x.wpt));
+  const record = rec.some(x => x.ept < bestEpt * .95 || x.wpt > bestWpt * 1.05);
+  d.stretch = !record;
+}
+/* tiny single-series trend chart: one hue, last point emphasised, hover titles */
+function sparkline(values, { label, unit, betterDown }) {
+  const W = 220, H = 56, P = 8, n = values.length;
+  const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+  const x = i => P + (n === 1 ? (W - 2 * P) / 2 : i * (W - 2 * P) / (n - 1));
+  const y = v => H - P - (v - min) / span * (H - 2 * P);
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("class", "spark"); svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `${label} : ${values.map(v => v.toFixed(1)).join(", ")}`);
+  const mk = (tag, at) => { const e = document.createElementNS(ns, tag); for (const k in at) e.setAttribute(k, at[k]); svg.append(e); return e; };
+  mk("line", { x1: P, x2: W - P, y1: H - P, y2: H - P, class: "spark-base" });
+  if (n > 1) mk("polyline", { points: values.map((v, i) => `${x(i)},${y(v)}`).join(" "), class: "spark-line" });
+  values.forEach((v, i) => { const c = mk("circle", { cx: x(i), cy: y(v), r: i === n - 1 ? 4.5 : 3, class: i === n - 1 ? "spark-last" : "spark-dot" }); const t = document.createElementNS(ns, "title"); t.textContent = `Séance ${i + 1} : ${v.toFixed(1)} ${unit}`; c.append(t); });
+  const last = values[n - 1], first = values[0];
+  const good = n > 1 && (betterDown ? last < first : last > first);
+  return h("div", { class: "spark-box" },
+    h("div", { class: "spark-head" }, h("span", { text: label }), h("b", { text: `${last.toFixed(1)} ${unit}` })),
+    svg,
+    h("small", { class: good ? "trend good" : "trend", text: n > 1 ? `${good ? "En progrès" : "Pas encore mieux"} depuis le début (${first.toFixed(1)} → ${last.toFixed(1)})` : "Première mesure" }));
+}
+function progressionSection(l) {
+  const d = S.data[l];
+  const lp = levelProgress(l), pct = lp.total ? Math.round(lp.done / lp.total * 100) : 0;
+  const m = lastMetrics(l, 10);
+  const lastObj = arr(d.lastObjectives);
+  const upcoming = buildObjectives(l);
+  return h("div", { class: "progression" },
+    d.stretch ? h("p", { class: "plateau", text: "Plateau détecté sur tes derniers cours : le prochain sera plus exigeant pour te faire repasser un cap." }) : null,
+    lp.total ? h("div", null,
+      h("div", { class: "spark-head" }, h("span", { text: `Programme du niveau ${d.level}` }), h("b", { text: `${lp.done} / ${lp.total} acquis` })),
+      h("div", { class: "lvl-bar", role: "img", "aria-label": `${pct} % du niveau ${d.level} acquis` }, h("i", { style: `width:${Math.max(2, pct)}%` }))) : null,
+    m.length ? h("div", { class: "sparks" },
+      sparkline(m.map(x => x.ept), { label: "Erreurs par intervention", unit: "", betterDown: true }),
+      sparkline(m.map(x => x.wpt), { label: "Mots par intervention", unit: "", betterDown: false })) : null,
+    lastObj.length ? h("div", null, h("h3", { style: "font-size:15px;margin-bottom:6px", text: "Objectifs du dernier cours" }),
+      h("ul", { class: "obj-list" }, lastObj.map(o => h("li", { class: o.achieved ? "ok" : "ko", text: (o.achieved ? "✓ " : "✗ ") + o.text })))) : null,
+    h("div", null, h("h3", { style: "font-size:15px;margin-bottom:6px", text: "Objectifs du prochain cours" }),
+      h("ul", { class: "obj-list" }, upcoming.map(o => h("li", { text: "→ " + o.text })))));
 }
 
 /* =========================================================
@@ -1080,7 +1221,7 @@ function convRules(l) {
   return `${TEACHERS[l].intro} Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.
 
 FORMAT DE LA SÉANCE : ${TYPES[C.spec.type].name} · ${C.spec.topic} · durée prévue ${C.spec.minutes} min
-${TYPES[C.spec.type].how()}${goalBlock(l)}${C.spec.domain ? `\n${DOMAIN_BY_ID[C.spec.domain].pro ? "DOMAINE PROFESSIONNEL" : "DOMAINE DE LA VRAIE VIE"} : ${DOMAIN_BY_ID[C.spec.domain].name}. Fais employer le vocabulaire concret et indispensable de ce domaine dans la vie réelle : objets, actions, expressions toutes faites, phrases de survie que les natifs utilisent vraiment.` : ""}
+${TYPES[C.spec.type].how()}${goalBlock(l)}${progressionBlock(l)}${C.spec.domain ? `\n${DOMAIN_BY_ID[C.spec.domain].pro ? "DOMAINE PROFESSIONNEL" : "DOMAINE DE LA VRAIE VIE"} : ${DOMAIN_BY_ID[C.spec.domain].name}. Fais employer le vocabulaire concret et indispensable de ce domaine dans la vie réelle : objets, actions, expressions toutes faites, phrases de survie que les natifs utilisent vraiment.` : ""}
 TEMPS : ${phaseHint()}
 
 ${profileContext(l)}
@@ -1334,6 +1475,7 @@ function progressPanel(l, minutes) {
       h("div", { class: "stat" }, h("b", { text: d.sessions.length }), h("span", { class: "label", text: "Séances" })),
       h("div", { class: "stat" }, h("b", { text: minutes }), h("span", { class: "label", text: "Minutes" }))),
     h("p", { class: "lvl-note", text: d.assessed ? (d.levelNote || `Niveau mesuré par ${tn(l)} pendant tes cours.`) + ` (Tu t'estimais ${d.declared}.)` : `Tu t'estimes ${d.declared}. ${tn(l)} mesurera ton vrai niveau pendant le premier cours.` }),
+    progressionSection(l),
     Object.keys(d.skills).length ? h("div", { class: "skills" }, SKILLS.map(([k, n]) => d.skills[k] == null ? null : h("div", { class: "skill" },
       h("span", { text: n }), h("div", { class: "bar" }, h("i", { style: `width:${Math.max(3, Math.min(100, d.skills[k]))}%` })), h("b", { text: d.skills[k] })))) : null,
     h("h3", { style: "font-size:15px;margin-top:4px", text: "Tes lacunes" }),
@@ -1786,7 +1928,7 @@ const C = { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [],
 
 function startCall(spec) {
   const l = S.cur, d = S.data[l];
-  C.spec = { ...spec }; C.timeUp = false;
+  C.spec = { ...spec }; C.timeUp = false; C.objectives = buildObjectives(l);
   Object.assign(C, { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], used: new Set(),
     targets: dueWords(l, 6), liveLevel: d.assessed ? d.level : null,
     start: now(), busy: false, finals: [], listening: false, lastSay: null, lastTeacherText: "", pending: null, open: true, micOffs: [] });
@@ -1828,6 +1970,8 @@ function startCall(spec) {
       h("div", { class: "cbtn-wrap" }, endBtn, h("span", { text: "Raccrocher" }))));
   document.body.append(view);
   Avatar.mount(cv);
+  if (C.objectives.length) $("#log").append(h("div", { class: "obj-card" }, h("span", { class: "k", text: "Objectifs de ce cours" }),
+    h("ul", null, C.objectives.map(o => h("li", { text: o.text })))));
   Voice.stateCb = on => {
     const tag = $("#tag"); if (!tag) return;
     tag.className = "tag" + (on ? " speaking" : C.busy ? " thinking" : "");
@@ -2173,13 +2317,18 @@ async function endCall() {
   const l = S.cur, d = S.data[l];
   const minutes = Math.max(1, Math.round((now() - C.start) / 60000));
   const studentTurns = C.log.filter(x => x.who === "student").length;
-  const spec = { ...C.spec };
+  const spec = { ...C.spec }, objectives = arr(C.objectives).map(o => ({ ...o }));
   const snapshot = { log: C.log.slice(), errors: C.errors.slice(), betters: C.betters.slice(), gaps: C.gaps.slice(), words: C.words.slice(), used: [...C.used], analyses: C.analyses.slice(), live: C.liveLevel };
   closeCall();
   // vocabulary bookkeeping happens even without a report
   addVocab(l, snapshot.words, "cours", spec.domain);
   markUsed(l, snapshot.used);
   if (studentTurns < 2) { saveLang(l); toast("Cours trop court pour un bilan. La séance reste dans ton programme."); renderLobby(); return; }
+  // measured progress for this lesson
+  const said = snapshot.log.filter(x => x.who === "student").map(x => x.text);
+  const metrics = { ept: Math.round(snapshot.errors.length / Math.max(1, said.length) * 100) / 100, wpt: Math.round(said.reduce((a, t) => a + t.split(/\s+/).filter(Boolean).length, 0) / Math.max(1, said.length) * 10) / 10 };
+  const metricObj = objectives.find(o => o.kind === "metric");
+  if (metricObj) metricObj.achieved = metrics.wpt >= metricObj.target;
   // the session counts: take it off the programme and top the programme up
   d.plan = arr(d.plan).filter(p => p.id !== spec.id);
   if (spec.domain) { d.coverage[spec.domain] = (d.coverage[spec.domain] || 0) + 1; }
@@ -2223,14 +2372,19 @@ NIVEAUX OBSERVÉS RÉPLIQUE PAR RÉPLIQUE : ${signals}
 7. "strengths" : 0 à 3 points forts précis.
 8. "vocab_gaps" : 0 à 6 mots ou expressions supplémentaires qu'il devrait apprendre vu ce qu'il a voulu dire (avec article pour les noms ; "meaning" = définition simple EN ${LANGS[l].name.toUpperCase()}, jamais de traduction ; exemple court).
 9. "homework" : 6 à 8 exercices CIBLÉS : la moitié sur ses lacunes les plus fréquentes, au moins 2 sur le vocabulaire (mots qui lui ont manqué et mots à réviser), et 1 production écrite ("write") de ${isBeginner ? "2-3 phrases simples" : "80-120 mots"} qui oblige à réemployer ces mots. Types : "fill" (phrase à trous ___), "answer" (répondre à une question avec une phrase complète), "rephrase" (reformuler une phrase avec un mot ou une structure imposée), "qcm" (3 "options"), "write". AUCUNE traduction et AUCUN français : toutes les consignes et indices EN ${LANGS[l].name.toUpperCase()}, simples. "expected" = réponse attendue (sauf "write"). Difficulté adaptée au niveau RÉEL.
-${l === "en" ? `Pour James : l'objectif est professionnel (${goalEn()}). Au moins 3 exercices sur le vocabulaire professionnel de la recherche clinique et de la santé vu ou manquant aujourd'hui, et la production écrite peut être une réponse d'entretien ou un e-mail professionnel.\n` : `Pour Elena : l'objectif est de converser avec des Espagnols ; privilégie les phrases utiles à l'oral et les réponses à des questions de la vie réelle.\n`}10. "next_goal" : objectif du prochain cours, en une phrase.
+${l === "en" ? `Pour James : l'objectif est professionnel (${goalEn()}). Au moins 3 exercices sur le vocabulaire professionnel de la recherche clinique et de la santé vu ou manquant aujourd'hui, et la production écrite peut être une réponse d'entretien ou un e-mail professionnel.\n` : `Pour Elena : l'objectif est de converser avec des Espagnols ; privilégie les phrases utiles à l'oral et les réponses à des questions de la vie réelle.\n`}10. "next_goal" : objectif du prochain cours, en une phrase, un cran plus exigeant qu'aujourd'hui.
+11. "objectives" : pour chaque objectif de la séance ci-dessous, "achieved" = true seulement si l'élève l'a clairement réussi dans la transcription, et une note courte en français.
+${objectives.filter(o => o.kind !== "metric").map(o => `   - id "${o.id}" : ${o.text}`).join("\n") || "   (aucun)"}
+12. "demonstrated" : parmi ces points du programme, ceux que l'élève a utilisés correctement et sans aide (copie le texte exact) : ${nextItems(l, 12).map(x => x.item).join(" | ")}
+MESURES : ${metrics.ept} erreur(s) par intervention, ${metrics.wpt} mots par intervention${lastMetrics(l, 1)[0] ? ` (séance précédente : ${lastMetrics(l, 1)[0].ept} et ${lastMetrics(l, 1)[0].wpt})` : ""}.
 
 Réponds uniquement en JSON :
-{"summary":"","message":"","level":"","level_note":"","skills":{"grammaire":0,"vocabulaire":0,"aisance":0,"comprehension":0},"top_mistakes":[{"wrong":"","right":"","rule":""}],"weakness_updates":[{"label":"","delta":1,"note":""}],"strengths":[],"vocab_gaps":[{"word":"","meaning":"","example":""}],"homework":{"title":"","focus":"","exercises":[{"type":"fill","prompt":"","hint":"","expected":""}]},"next_goal":""}`;
+{"summary":"","message":"","level":"","level_note":"","skills":{"grammaire":0,"vocabulaire":0,"aisance":0,"comprehension":0},"top_mistakes":[{"wrong":"","right":"","rule":""}],"weakness_updates":[{"label":"","delta":1,"note":""}],"strengths":[],"vocab_gaps":[{"word":"","meaning":"","example":""}],"homework":{"title":"","focus":"","exercises":[{"type":"fill","prompt":"","hint":"","expected":""}]},"next_goal":"","objectives":[{"id":"","achieved":false,"note":""}],"demonstrated":[]}`;
   let r;
   try { r = await askJSON(prompt, {}); }
   catch (e) {
-    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `${sessionTitle(spec)} (bilan non généré)`, type: spec.type, topic: spec.topic, domain: spec.domain });
+    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `${sessionTitle(spec)} (bilan non généré)`, type: spec.type, topic: spec.topic, domain: spec.domain, metrics });
+    d.lastObjectives = objectives; updatePlateau(l);
     applyWeakness(l, Object.entries(snapshot.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
     saveLang(l);
     card.replaceChildren(h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs et les mots qui t'ont manqué ont quand même été enregistrés." }),
@@ -2241,7 +2395,16 @@ Réponds uniquement en JSON :
   if (LEVELS.includes(r.level)) { d.level = r.level; d.assessed = true; d.levelNote = str(r.level_note).slice(0, 160); }
   if (r.skills && typeof r.skills === "object") for (const [k] of SKILLS) { const v = Number(r.skills[k]); if (Number.isFinite(v)) d.skills[k] = Math.round(Math.max(0, Math.min(100, v))); }
   applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune", spec.domain);
-  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || sessionTitle(spec), next: str(r.next_goal), type: spec.type, topic: spec.topic, domain: spec.domain });
+  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || sessionTitle(spec), next: str(r.next_goal), type: spec.type, topic: spec.topic, domain: spec.domain, metrics });
+  // objectives and skill ladder
+  const res = new Map(arr(r.objectives).map(o => [str(o?.id), o]));
+  for (const o of objectives) if (o.kind !== "metric") { const x = res.get(o.id); o.achieved = !!x?.achieved; o.note = str(x?.note).slice(0, 140); }
+  d.mastered = d.mastered || {};
+  const ladder = new Set(Object.values(SYLLABUS[l]).flat());
+  for (const it of arr(r.demonstrated).map(str)) if (ladder.has(it)) d.mastered[it] = (d.mastered[it] || 0) + 1;
+  for (const o of objectives) if (o.kind === "new" && o.achieved && o.item && !arr(r.demonstrated).includes(o.item)) d.mastered[o.item] = (d.mastered[o.item] || 0) + 1;
+  d.lastObjectives = objectives;
+  updatePlateau(l);
   d.sessions = d.sessions.slice(-30);
   const hwIn = r.homework && typeof r.homework === "object" ? r.homework : null;
   const exs = arr(hwIn?.exercises).filter(ex => str(ex?.prompt)).slice(0, 8);
@@ -2261,6 +2424,10 @@ Réponds uniquement en JSON :
     h("h2", { text: l === "es" ? `¡Buen trabajo, ${S.profile.name}!` : `Well done, ${S.profile.name}!` }),
     h("p", { style: "margin:0", text: str(r.message) }),
     d.assessed ? h("p", { class: "notice", text: (oldLevel && oldLevel !== d.level ? `Niveau mesuré : ${oldLevel} → ${d.level}. ` : oldLevel ? `Niveau mesuré : ${d.level}. ` : `Ton vrai niveau : ${d.level} (tu t'estimais ${d.declared}). `) + d.levelNote }) : null,
+    h("div", null, h("h3", { style: "font-size:16px;margin-bottom:8px", text: "Objectifs du cours" }),
+      h("ul", { class: "obj-list" }, objectives.map(o => h("li", { class: o.achieved ? "ok" : "ko", text: `${o.achieved ? "✓" : "✗"} ${o.text}${o.kind === "metric" ? ` (tu as fait ${metrics.wpt})` : o.note ? " · " + o.note : ""}` }))),
+      h("p", { class: "muted", style: "margin:6px 0 0;font-size:14px", text: `${metrics.ept} erreur(s) et ${metrics.wpt} mots par intervention${lastMetrics(l, 2).length === 2 ? ` · au cours précédent : ${lastMetrics(l, 2)[0].ept} et ${lastMetrics(l, 2)[0].wpt}` : ""}. Ce qui n'est pas réussi revient au prochain cours.` })),
+    d.stretch ? h("p", { class: "plateau", text: "Plateau détecté : le prochain cours montera d'un cran." }) : null,
     mistakes.length ? h("div", null, h("h3", { style: "font-size:16px;margin-bottom:8px", text: "À retenir" }),
       h("div", { style: "display:flex;flex-direction:column;gap:8px" }, mistakes.map(m => h("div", { class: "hw" },
         h("div", null, h("del", { style: "color:var(--err)", text: str(m.wrong) }), "  →  ", h("strong", { style: "color:var(--ok)", text: str(m.right) })),
