@@ -222,7 +222,7 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .log .mic-help .btn{background:#eef2ef;color:#121a1d;border:none}
 .heard{margin:0;font-size:15px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
 .type-pill{font:500 11px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:#f0c05a;color:#121a1d}
-.type-pill.role{background:#8fd0e0}.type-pill.debate{background:#ff9d90}.type-pill.listen{background:#b9a6f0}.type-pill.grammar{background:#9fe0b4}.type-pill.vocab{background:#f3d48f}.type-pill.review{background:#d8d2c6}.type-pill.story{background:#f2b8d0}
+.type-pill.role{background:#8fd0e0}.type-pill.debate{background:#ff9d90}.type-pill.listen{background:#b9a6f0}.type-pill.grammar{background:#9fe0b4}.type-pill.vocab{background:#f3d48f}.type-pill.review{background:#d8d2c6}.type-pill.story{background:#f2b8d0}.type-pill.idioms{background:#c9e27a}
 .type-pill.light{font-size:10px;padding:4px 6px}
 .dur{font:500 12px var(--f-mono);color:var(--call-muted)}
 .linkbtn{background:none;border:none;color:var(--call-fg);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:13px;padding:4px 0;opacity:.85}
@@ -254,6 +254,12 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .cbtn.send{width:auto;padding:0 18px;border-radius:999px;background:#58d68d;color:#121a1d;font-weight:700;height:48px}
 .cbtn.mic.muted-mic{background:#2a3639;color:var(--call-fg);outline:2px dashed rgba(255,255,255,.3)}
 .mic-wrap span{max-width:150px;text-align:center}
+.flash.wide{max-width:680px;max-height:calc(100% - 16px);overflow-y:auto}
+.chip.light{border-color:var(--line);color:var(--fg)}
+.chip.light[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.workshop-list{display:flex;flex-direction:column}
+.ex input[type=text],.ex input:not([type]){background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
+.voice-select{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:100%}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -462,6 +468,8 @@ const TYPES = {
              how: L => `GRAMMAIRE EN ACTION sur le point donné : sans faire de cours magistral, crée des situations et des questions qui OBLIGENT l'élève à utiliser cette structure, encore et encore. Commence par un exemple très clair, puis augmente la difficulté. Glisse des mini-défis (« dis-moi trois choses que… », « transforme cette phrase… »). Félicite chaque emploi correct.` },
   vocab:   { name: "Vocabulaire", min: 10, short: "Apprendre les mots d'un thème",
              how: L => `VOCABULAIRE THÉMATIQUE : introduis 8 à 10 mots utiles du thème, un ou deux à la fois, rendus clairs par le contexte (mets-les dans "new_words"). Fais-les réutiliser tout de suite par l'élève, puis joue : devinettes à partir d'une définition, « quel est le contraire de… », phrases à compléter. Termine par un petit défi qui réemploie tous les mots.` },
+  idioms:  { name: "Expressions & argot", min: 15, short: "Parler comme un natif",
+             how: L => `EXPRESSIONS IDIOMATIQUES : autour du thème donné, introduis 5 à 7 expressions idiomatiques, phrasal verbs ou mots d'argot que les natifs utilisent vraiment (pas de vieilles expressions que personne ne dit). Pour chacune : une petite anecdote ou situation où tu l'utilises naturellement, puis fais deviner le sens par le contexte, puis demande à l'élève de l'utiliser dans une phrase sur sa propre vie. Mets-les dans "new_words" avec une explication simple. Corrige le registre (familier / neutre / formel).` },
   review:  { name: "Révision", min: 10, short: "Tes mots à revoir et tes erreurs",
              how: L => `RÉVISION : fais retravailler à l'élève ses lacunes suivies et les mots à réactiver (listés plus haut), sous forme de quiz oral rapide et vivant : questions directes, phrases à compléter, « comment dit-on… » avec une définition, mini-situations. Reviens sur les erreurs des derniers devoirs.` },
 };
@@ -471,6 +479,7 @@ const BANK = {
     high: ["Las redes sociales", "El medio ambiente", "La cultura española", "Viajar por Latinoamérica", "El cine y las series", "La tecnología", "La educación", "El futuro del trabajo", "La gastronomía", "La música", "La vida en la ciudad o en el campo", "Los recuerdos de infancia"],
     role: ["Pedir en un restaurante", "Reservar una habitación de hotel", "Comprar ropa en una tienda", "Pedir direcciones en la calle", "En la farmacia", "Comprar un billete de tren", "Conocer a alguien en una fiesta", "Alquilar un piso", "En el mercado", "En el aeropuerto", "Llamar al médico", "Una entrevista de trabajo"],
     debate: ["¿Es mejor vivir en la ciudad o en el campo?", "¿Las redes sociales nos hacen más felices?", "¿Hay que prohibir los coches en el centro?", "¿Viajar es la mejor forma de aprender?", "¿El teletrabajo es el futuro?"],
+    idioms: ["Expresiones con 'echar'", "Coloquialismos de España (guay, currar, flipar…)", "Refranes que se usan de verdad", "Expresiones con comida", "Hablar de dinero de forma coloquial", "Expresiones para quedar con amigos"],
     gramLow: ["ser y estar", "los verbos en presente", "gustar", "artículos y género", "hay y está", "los posesivos", "ir a + infinitivo", "las preguntas"],
     gramHigh: ["pretérito indefinido o imperfecto", "el subjuntivo presente", "por y para", "el condicional", "el pretérito perfecto", "los pronombres de complemento", "ser y estar avanzado"],
   },
@@ -479,12 +488,14 @@ const BANK = {
     high: ["AI and the future of work", "Remote work vs the office", "Social media and democracy", "Climate policy", "Startups and entrepreneurship", "Cinema and series", "Ethics of technology", "Personal finance", "Health and wellbeing", "Education systems", "Cities of the future", "Culture shock", "Sport and society", "A book that changed you", "Travel stories", "The news this week"],
     role: ["Job interview for your dream job", "Negotiating a pay rise", "Complaining about a hotel room", "Pitching a startup to an investor", "Dealing with a cancelled flight", "Doctor's appointment", "Small talk at a networking event", "Calling customer service about a wrong bill", "Renting a flat in London", "Handling an angry client"],
     debate: ["Should AI be allowed to replace teachers?", "Is a four-day week realistic?", "Should social media be banned for under-16s?", "Is tourism destroying the places we love?", "Is university still worth it?", "Should billionaires exist?"],
+    idioms: ["Weather idioms (it's chucking it down…)", "Money talk (skint, quid, splash out…)", "Office slang and corporate jargon", "Pub and night-out talk", "Phrasal verbs with get", "Phrasal verbs with put and take", "British understatement and politeness", "Texting and informal English", "Food idioms", "Idioms about time", "London slang", "Sports idioms used at work"],
     gramLow: ["present simple vs continuous", "past simple", "questions", "can / have to", "comparatives"],
     gramHigh: ["mixed conditionals", "inversion for emphasis", "advanced phrasal verbs", "modal verbs of deduction", "articles and determiners", "reported speech", "present perfect vs past simple", "wish / if only", "collocations", "formal vs informal register"],
   }
 };
 const CYCLE_LOW  = ["conv", "vocab", "role", "grammar", "listen", "story", "review"];
 const CYCLE_HIGH = ["debate", "role", "listen", "grammar", "story", "vocab", "conv", "review"];
+const CYCLE_EN_HIGH = ["role", "debate", "idioms", "listen", "story", "grammar", "vocab", "conv", "review"];
 const isLow = l => LEVELS.indexOf(S.data[l].level) <= 2;
 const pick = (list, avoid) => { const fresh = list.filter(x => !avoid.includes(x)); const pool = fresh.length ? fresh : list; return pool[Math.floor(Math.random() * pool.length)]; };
 function topicFor(l, type, avoid = []) {
@@ -493,6 +504,7 @@ function topicFor(l, type, avoid = []) {
   if (type === "role") return pick(b.role, avoid);
   if (type === "debate") return pick(low ? b.high : b.debate, avoid);
   if (type === "review") return l === "es" ? "Tus palabras y tus errores" : "Your words and your mistakes";
+  if (type === "idioms") return pick(b.idioms, avoid);
   if (type === "grammar") {
     const weak = weakLabels(l).map(w => w.label).filter(x => !avoid.includes(x));
     return weak[0] || pick(low ? b.gramLow : b.gramHigh, avoid);
@@ -506,7 +518,7 @@ function nextType(l) {
   const last3 = recent.slice(-3);
   if (dueWords(l, 999).length >= 12 && !last3.includes("review")) return "review";
   if ((weakLabels(l)[0]?.count || 0) >= 3 && !last3.includes("grammar")) return "grammar";
-  const cyc = isLow(l) ? CYCLE_LOW : CYCLE_HIGH;
+  const cyc = isLow(l) ? CYCLE_LOW : l === "en" ? CYCLE_EN_HIGH : [...CYCLE_HIGH.slice(0, 4), "idioms", ...CYCLE_HIGH.slice(4)];
   let t;
   do { d.cycleIdx = ((d.cycleIdx || 0) + 1) % cyc.length; t = cyc[d.cycleIdx]; }
   while ((t === "debate" && isLow(l)) || (last3.slice(-1)[0] === t));
@@ -527,6 +539,8 @@ function makeSession(l, type, topic, minutes, domainId) {
 function ensurePlan(l) {
   const d = S.data[l];
   d.plan = arr(d.plan).filter(p => p && TYPES[p.type]);
+  // programme v2 (domains, idioms, UK material): rebuild suggestions made before it
+  if ((d.planVersion || 0) < 2) { d.plan = d.plan.filter(p => p.type === "diag"); d.planVersion = 2; }
   if (!d.assessed && d.plan[0]?.type !== "diag") d.plan.unshift(makeSession(l, "diag"));
   if (d.assessed) d.plan = d.plan.filter(p => p.type !== "diag");
   let changed = false;
@@ -567,6 +581,35 @@ const DOMAINS = [
   { id: "urgences", name: "Urgences & imprévus", esL: ["¡Socorro!", "He perdido mis llaves", "Un problema en el viaje"], esH: ["Situaciones de emergencia", "Un día en que todo salió mal"], enL: ["Problems"], enH: ["A day when everything went wrong", "Emergencies abroad"], esR: ["Denunciar un robo en la comisaría", "Llamar a urgencias"], enR: ["Reporting a stolen wallet to the police", "Calling emergency services"] },
   { id: "actu", name: "Actualité & société", esL: ["Las noticias de hoy", "Mi país"], esH: ["La actualidad", "Los jóvenes y la política"], enL: ["The news"], enH: ["The news this week", "Is a four-day week realistic?", "Should social media be banned for under-16s?"], esR: ["Una encuesta en la calle"], enR: ["Being interviewed on the street by a journalist"] },
 ];
+
+// richer, UK-based real-life material for James (advanced learners)
+const EXTRA_EN = {
+  identite: { enH: ["Where you see yourself in five years", "Expat life and identity"], enR: ["Introducing yourself at a London dinner party"] },
+  famille: { enH: ["Parenting styles", "Living with your parents as an adult"], enR: ["Sorting out a family argument at Christmas"] },
+  maison: { enH: ["London rents and house shares", "Neighbours from hell"], enR: ["A flat viewing in London", "Arguing with a letting agent about your deposit"] },
+  nourriture: { enH: ["British food: overrated or underrated?", "Veganism and food culture"], enR: ["Ordering a takeaway on the phone"] },
+  restaurant: { enH: ["Pub culture", "Brunch culture"], enR: ["Ordering a round at a busy pub", "Splitting the bill with friends"] },
+  courses: { enH: ["Consumer rights", "Black Friday and impulse buying"], enR: ["Asking for a refund without a receipt"] },
+  vetements: { enH: ["Fast fashion and sustainability"], enR: ["Returning clothes that don't fit"] },
+  sante: { enH: ["The NHS: strengths and struggles", "Burnout"], enR: ["Booking an appointment with your GP", "Explaining symptoms at A&E"] },
+  transports: { enH: ["The Tube vs cycling in London", "Train strikes and delays"], enR: ["Asking for help on the Tube", "Getting a refund for a delayed train"] },
+  voyage: { enH: ["Overtourism", "Your dream road trip"], enR: ["Checking in with a problem at the airport", "Changing a booking with an airline"] },
+  ville: { enH: ["London neighbourhoods", "Housing and gentrification"], enR: ["Reporting a problem to the local council"] },
+  travail: { enH: ["Office politics", "Asking for feedback", "Burnout and quiet quitting"], enR: ["Pitching an idea to your boss", "Running a meeting that goes off track", "Your first day at a London office"] },
+  etudes: { enH: ["Student debt", "Learning a language as an adult"], enR: ["Asking a lecturer for help"] },
+  argent: { enH: ["Saving vs spending", "Crypto and investing"], enR: ["Opening a UK bank account", "Negotiating the price of a used car"] },
+  tech: { enH: ["Privacy and data", "AI in everyday life"], enR: ["Sorting out a broadband problem with your provider"] },
+  loisirs: { enH: ["Festivals and live music", "Weekend getaways from London"], enR: ["Making plans with a flaky friend"] },
+  sport: { enH: ["Football culture in England", "Fitness trends"], enR: ["Signing up for a five-a-side team"] },
+  culture: { enH: ["British TV and humour", "The best book you've read this year"], enR: ["Booking theatre tickets in the West End"] },
+  meteo: { enH: ["Talking about the weather, the British way", "Climate anxiety"], enR: ["Planning a picnic despite the forecast"] },
+  emotions: { enH: ["Stress at work", "Confidence and impostor syndrome"], enR: ["Apologising to a friend you let down"] },
+  fetes: { enH: ["Bonfire Night and British traditions", "Christmas in the UK"], enR: ["Giving a best man speech"] },
+  admin: { enH: ["Visas and paperwork", "Council tax and bills"], enR: ["Registering with a GP surgery", "Calling HMRC about a tax letter"] },
+  urgences: { enH: ["Lost abroad", "Scams and how to avoid them"], enR: ["Calling 999 for an accident", "Reporting a lost passport at the embassy"] },
+  actu: { enH: ["The big story this week", "Politics without the jargon", "Media and fake news"], enR: ["Being interviewed for a radio vox pop"] },
+};
+for (const dm of DOMAINS) { const x = EXTRA_EN[dm.id]; if (x) { dm.enH = [...dm.enH, ...arr(x.enH)]; dm.enR = [...dm.enR, ...arr(x.enR)]; } }
 const DOMAIN_BY_ID = Object.fromEntries(DOMAINS.map(x => [x.id, x]));
 // least-covered domains first, never the last two used; ties shuffled
 function pickDomain(l, opts = {}) {
@@ -805,7 +848,19 @@ const Voice = {
     try { this._browserVoices = speechSynthesis.getVoices() || []; } catch {}
   },
   // best native voice: British man for James, Spain-Spanish woman for Elena; never a French voice
+  _lock: {},
+  voicesFor(lang) { return (this._browserVoices || []).filter(v => (v.lang || "").replace("_", "-").toLowerCase().startsWith(lang)); },
   pickVoice(lang) {
+    // 1. the voice the student chose, 2. the voice already used this session: never switch mid-lesson
+    const chosen = S.profile?.voices?.[lang];
+    const byName = n => n && (this._browserVoices || []).find(v => v.name === n);
+    if (byName(chosen)) return byName(chosen);
+    if (byName(this._lock[lang])) return byName(this._lock[lang]);
+    const v = this._autoVoice(lang);
+    if (v) this._lock[lang] = v.name;
+    return v;
+  },
+  _autoVoice(lang) {
     const want = lang === "en" ? "en-gb" : lang === "es" ? "es-es" : "fr-fr";
     const MALE_EN = /(uk english male|daniel|arthur|oliver|george|ryan|thomas|harry|alfie|elliot|noah|ethan|malcolm)/i;
     const FEMALE = /(female|kate|serena|martha|libby|sonia|hazel|susan|stephanie|fiona|moira|tessa|karen|samantha|maisie|bella|mia)/i;
@@ -815,8 +870,9 @@ const Voice = {
       const vl = (v.lang || "").replace("_", "-").toLowerCase(), n = v.name || "";
       let sc = vl === want ? 100 : vl.startsWith(lang) ? 20 : -1;
       if (sc < 0) continue;
-      if (/natural|online|neural|premium|enhanced/i.test(n)) sc += 15;
-      if (/google/i.test(n)) sc += 8;
+      if (/natural|neural|premium|enhanced/i.test(n)) sc += 15;
+      if (v.localService) sc += 12;
+      else if (/google/i.test(n)) sc += 4;
       if (lang === "en") { if (MALE_EN.test(n)) sc += 30; if (FEMALE.test(n)) sc -= 30; }
       if (lang === "es" && FEMALE_ES.test(n)) sc += 20;
       if (sc > bs) { bs = sc; best = v; }
@@ -824,11 +880,17 @@ const Voice = {
     return best;
   },
   // James always uses a real British voice when the computer has one
+  nativeVoice(lang) {
+    const v = this.pickVoice(lang); if (!v) return null;
+    const vl = (v.lang || "").replace("_", "-").toLowerCase();
+    return (lang === "en" ? vl === "en-gb" : vl.startsWith(lang)) ? v : null;
+  },
   britishVoice() { const v = this.pickVoice("en"); return v && (v.lang || "").replace("_", "-").toLowerCase() === "en-gb" ? v : null; },
   voiceLabel(l) {
     const micCall = micMode() === "call" && CAP.dictation;
     const v = l === "en" ? this.britishVoice() : null;
     if (v) return `Voix : ${v.name} (anglais britannique)`;
+    if (l === "es" && this.nativeVoice("es")) return `Voix : ${this.nativeVoice("es").name}`;
     if (l === "es" && !micCall && this.engine === "claude") return "Voix Claude (espagnol)";
     const b = this.pickVoice(l);
     return b ? `Voix : ${b.name}` : this.label();
@@ -843,8 +905,9 @@ const Voice = {
     const rate = this.slow ? .78 : 1;
     await this.ensureVoices();
     if (myGen !== this.gen) return;
-    // English: a native British voice beats any generic one, in every mode
-    if (parts.every(p => p.lang === "en") && "speechSynthesis" in window && this.britishVoice()) return this._browser(parts, rate, myGen);
+    // one voice per teacher for the whole lesson: a native browser voice when the computer has one
+    const lang0 = parts[0].lang;
+    if ("speechSynthesis" in window && this.nativeVoice(lang0)) return this._browser(parts.map(p => ({ ...p, lang: lang0 })), rate, myGen);
     // Claude's voice cannot play while dictation listens: use the browser voice during an open-mic call
     const micOpen = !!(C.open && CAP.dictation?.active?.());
     if (micOpen) {
@@ -870,7 +933,15 @@ const Voice = {
   _browser(parts, rate, myGen) {
     // split into sentences: Chrome cuts long utterances
     const chunks = [];
-    for (const p of parts) for (const s of p.text.match(/[^.!?¡¿…]+[.!?…]*|[¡¿][^.!?]+[.!?]*/g) || [p.text]) if (s.trim()) chunks.push({ lang: p.lang, text: s.trim() });
+    for (const p of parts) {
+      let buf = "";
+      for (const sn of p.text.match(/[^.!?…]+[.!?…]*/g) || [p.text]) {
+        const t = sn.trim(); if (!t) continue;
+        if (buf && (buf + " " + t).length > 220) { chunks.push({ lang: p.lang, text: buf }); buf = t; }
+        else buf = buf ? buf + " " + t : t;
+      }
+      if (buf) chunks.push({ lang: p.lang, text: buf });
+    }
     const code = { es: "es-ES", en: "en-GB", fr: "fr-FR" };
     return new Promise(resolve => {
       try { speechSynthesis.cancel(); } catch {}
@@ -882,6 +953,7 @@ const Voice = {
         u.lang = code[c.lang]; u.rate = rate * .95;
         const v = this.pickVoice(c.lang);
         if (v) { u.voice = v; u.lang = v.lang; }
+        u.pitch = 1;
         u.onstart = () => this._state(true);
         u.onend = () => next();
         u.onerror = () => next();
@@ -890,7 +962,7 @@ const Voice = {
       next();
       // watchdog: some browsers never fire onend; never leave Elena "speaking" or the page waiting
       const total = chunks.reduce((n, c) => n + c.text.length, 0);
-      setTimeout(() => { if (myGen === this.gen) { try { speechSynthesis.cancel(); } catch {} this.gen++; this._state(false); } resolve(); }, 4000 + total * 110 / rate);
+      setTimeout(() => { if (myGen === this.gen) { try { speechSynthesis.cancel(); } catch {} this.gen++; this._state(false); } resolve(); }, 6000 + total * 160 / rate);
     });
   },
   stop() {
@@ -1086,7 +1158,7 @@ function renderLobby() {
             h("div", { style: "display:flex;flex-direction:column;gap:12px;min-width:0" },
               h("span", { class: "label", text: `${tn(l)} est en ligne · séance du jour` }),
               joinBlock(l),
-              !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec Elena." : "Ouvre cette page dans Claude pour lancer la visio." }) : null))),
+              !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec ton prof." : "Ouvre cette page dans Claude pour lancer la visio." }) : null))),
         programPanel(l),
         soundCheckPanel(l),
         homeworkPanel(l)),
@@ -1129,7 +1201,7 @@ function buildCustom(l, box) {
   const c = S.custom;
   const chipRow = (items, isOn, onPick, label) => h("div", { class: "chips", role: "group", "aria-label": label }, items.map(([val, text]) =>
     h("button", { class: "chip", type: "button", "aria-pressed": String(isOn(val)), onclick: () => { onPick(val); renderLobby(); }, text })));
-  const types = Object.keys(TYPES).filter(t => t !== "diag" && !(t === "debate" && isLow(l)));
+  const types = Object.keys(TYPES).filter(t => t !== "diag" && !((t === "debate" || t === "idioms") && isLow(l)));
   const sugg = (() => {
     const b = BANK[l], low = isLow(l);
     if (DOMAIN_TYPES.includes(c.type)) {
@@ -1144,7 +1216,7 @@ function buildCustom(l, box) {
       }
       return out;
     }
-    const src = c.type === "debate" ? (low ? b.high : b.debate) : c.type === "grammar" ? [...weakLabels(l).map(w => w.label), ...(low ? b.gramLow : b.gramHigh)] : [topicFor(l, "review")];
+    const src = c.type === "idioms" ? b.idioms : c.type === "debate" ? (low ? b.high : b.debate) : c.type === "grammar" ? [...weakLabels(l).map(w => w.label), ...(low ? b.gramLow : b.gramHigh)] : [topicFor(l, "review")];
     return [...new Set(src)].slice(0, 12).map(t => [t, null]);
   })();
   const suggestions = sugg.map(x => x[0]);
@@ -1202,7 +1274,7 @@ function progressPanel(l, minutes) {
       h("div", { class: "stat" }, h("b", { text: d.assessed ? d.level : "?" }), h("span", { class: "label", text: d.assessed ? "Niveau mesuré" : "À évaluer" })),
       h("div", { class: "stat" }, h("b", { text: d.sessions.length }), h("span", { class: "label", text: "Séances" })),
       h("div", { class: "stat" }, h("b", { text: minutes }), h("span", { class: "label", text: "Minutes" }))),
-    h("p", { class: "lvl-note", text: d.assessed ? (d.levelNote || `Niveau mesuré par ${tn(l)} pendant tes cours.`) + ` (Tu t'estimais ${d.declared}.)` : `Tu t'estimes ${d.declared}. Elena mesurera ton vrai niveau pendant le premier cours.` }),
+    h("p", { class: "lvl-note", text: d.assessed ? (d.levelNote || `Niveau mesuré par ${tn(l)} pendant tes cours.`) + ` (Tu t'estimais ${d.declared}.)` : `Tu t'estimes ${d.declared}. ${tn(l)} mesurera ton vrai niveau pendant le premier cours.` }),
     Object.keys(d.skills).length ? h("div", { class: "skills" }, SKILLS.map(([k, n]) => d.skills[k] == null ? null : h("div", { class: "skill" },
       h("span", { text: n }), h("div", { class: "bar" }, h("i", { style: `width:${Math.max(3, Math.min(100, d.skills[k]))}%` })), h("b", { text: d.skills[k] })))) : null,
     h("h3", { style: "font-size:15px;margin-top:4px", text: "Tes lacunes" }),
@@ -1313,8 +1385,17 @@ function soundCheckPanel(l) {
   // show a blocked microphone right away, without asking anything
   Mic.permState().then(st => { if (st === "denied") { helpSlot.replaceChildren(Mic.help("not_granted", l)); status.className = "status bad"; status.textContent = "Micro bloqué pour cette page."; } });
   if (!CAP.dictation) helpSlot.append(Mic.help(null, l));
+  const vs = Voice.voicesFor(l);
+  const voiceSel = vs.length ? h("select", { id: "voice-" + l, class: "voice-select", "aria-label": "Voix du prof" },
+    h("option", { value: "", text: "Voix automatique (la meilleure trouvée)" }),
+    vs.map(v => h("option", { value: v.name, selected: S.profile.voices?.[l] === v.name, text: `${v.name} · ${v.lang}${v.localService ? "" : " (en ligne)"}` }))) : null;
+  if (voiceSel) voiceSel.onchange = () => {
+    S.profile.voices = { ...(S.profile.voices || {}), [l]: voiceSel.value || undefined };
+    delete Voice._lock[l]; saveProfile(); testVoice.click();
+  };
   return h("section", { class: "panel" },
     h("h2", { text: "Son et micro" }),
+    voiceSel ? h("label", { class: "field", style: "gap:4px" }, h("span", { class: "label", text: `Voix ${deTn(l)}` }), voiceSel) : null,
     h("div", { class: "check" }, testVoice, testMic, status), heard, helpSlot);
 }
 
@@ -1328,8 +1409,12 @@ function vocabPanel(l) {
   return h("section", { class: "panel" },
     h("div", { class: "vocab-head" },
       h("h2", { text: "Ton vocabulaire" }),
-      h("button", { class: "btn primary sm", disabled: !due.length, onclick: () => flashcards(l), text: due.length ? `Réviser ${Math.min(due.length, 15)} mots` : "Rien à réviser" })),
-    d.vocab.length ? h("p", { class: "lvl-note", text: `${d.vocab.length} mots dans ta banque · ${acquired} acquis · ${lac} lacune${lac > 1 ? "s" : ""} repérée${lac > 1 ? "s" : ""} en cours. Les mots reviennent à intervalles croissants (1, 2, 4, 8… jours) et Elena les glisse dans vos conversations.` }) : null,
+      h("div", { class: "row", style: "gap:6px" },
+        h("button", { class: "btn primary sm", onclick: () => workshop(l), text: "Atelier d'exercices écrits" }))),
+    h("div", { class: "row", style: "gap:6px" },
+      h("button", { class: "btn sm", disabled: !due.length, onclick: () => flashcards(l), text: due.length ? `Cartes : ${Math.min(due.length, 15)} mots à revoir` : "Cartes : rien à revoir aujourd'hui" }),
+      h("button", { class: "btn sm", disabled: d.vocab.length < 4, onclick: () => flashcards(l, d.vocab.slice().sort(() => Math.random() - .5).slice(0, 15)), text: "Cartes : 15 mots au hasard" })),
+    d.vocab.length ? h("p", { class: "lvl-note", text: `${d.vocab.length} mots dans ta banque · ${acquired} acquis · ${lac} lacune${lac > 1 ? "s" : ""} repérée${lac > 1 ? "s" : ""} en cours. Les mots reviennent à intervalles croissants (1, 2, 4, 8… jours) et ${tn(l)} les glisse dans vos conversations.` }) : null,
     d.vocab.length ? h("div", { class: "vocab" }, d.vocab.slice().sort((a, b) => (b.src === "lacune") - (a.src === "lacune") || a.box - b.box).slice(0, 30).map(v =>
       h("span", { title: v.ex || "" }, v.w + " ", h("em", { text: v.m }), dots(v.box))))
       : h("p", { class: "empty", text: "Les mots nouveaux du cours et ceux qui t'ont manqué arrivent ici, puis tu les révises en cartes." }));
@@ -1347,8 +1432,89 @@ function blankOut(ex, w) {
   const re = new RegExp(core.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig");
   return re.test(ex) ? ex.replace(re, "_____") : ex;
 }
-function flashcards(l) {
-  const queue = dueWords(l, 15).slice();
+
+/* Written vocabulary workshop: exercises on a real-life domain or on your own words, corrected instantly */
+function workshop(l) {
+  const d = S.data[l];
+  const card = h("div", { class: "flash wide", role: "dialog", "aria-label": "Atelier de vocabulaire" });
+  const ov = h("div", { class: "overlay" }, card);
+  document.body.append(ov);
+  const close = () => { Voice.stop(); ov.remove(); saveLang(l); renderLobby(); };
+  const cov = d.coverage || {};
+  const doms = DOMAINS.slice().sort((a, b) => (cov[a.id] || 0) - (cov[b.id] || 0));
+  let pickDom = d.vocab.length >= 6 ? "mine" : doms[0].id, count = 8;
+  const choose = () => {
+    const chip = (val, text, on, fn) => h("button", { class: "chip light", type: "button", "aria-pressed": String(on), onclick: () => { fn(val); choose(); }, text });
+    card.replaceChildren(
+      h("div", { class: "flash-top" }, h("h2", { text: "Atelier de vocabulaire" }), h("button", { class: "btn sm", onclick: close, text: "Fermer" })),
+      h("p", { class: "muted", style: "margin:0", text: `Des exercices écrits, corrigés dès que tu réponds, sans traduction. Les mots ratés vont dans ta banque.` }),
+      h("span", { class: "label", text: "Sur quoi ?" }),
+      h("div", { class: "chips" }, d.vocab.length >= 6 ? chip("mine", `Mes mots (${d.vocab.length})`, pickDom === "mine", v => pickDom = v) : null,
+        doms.map(x => chip(x.id, x.name, pickDom === x.id, v => pickDom = v))),
+      h("span", { class: "label", text: "Combien d'exercices ?" }),
+      h("div", { class: "chips" }, [6, 8, 12].map(n => chip(n, n + " exercices", count === n, v => count = v))),
+      h("button", { class: "btn primary", disabled: !CAP.sample, onclick: generate, text: "Créer mes exercices" }),
+      !CAP.sample ? h("p", { class: "muted", text: "Ouvre la page dans Claude pour générer des exercices." }) : null);
+  };
+  async function generate() {
+    card.replaceChildren(h("div", { class: "row" }, h("div", { class: "spinner" }), h("p", { style: "margin:0", text: "Préparation des exercices…" })));
+    const L = LANGS[l].name.toUpperCase(), dom = DOMAIN_BY_ID[pickDom];
+    const mine = d.vocab.slice().sort((a, b) => a.box - b.box).slice(0, 30).map(v => v.w).join(", ");
+    try {
+      const r = await askJSON(`Crée ${count} exercices ÉCRITS de vocabulaire de ${LANGS[l].name.toLowerCase()} pour un francophone de niveau ${d.level}${l === "en" ? " (anglais britannique)" : " (espagnol d'Espagne)"}.
+${dom ? `Domaine de la vraie vie : ${dom.name}. Choisis les mots les plus utiles au quotidien dans ce domaine, adaptés à son niveau.` : `Travaille ces mots de sa banque (en priorité les premiers) : ${mine}.`}
+Varie les types : "fill" (phrase avec ___ à compléter par le mot), "define" (définition simple → trouver le mot), "synonym" (donner un synonyme ou le contraire), "qcm" (3 "options", une seule correcte), "use" (écrire une phrase personnelle avec le mot donné).
+Toutes les consignes, définitions et indices EN ${L} simple : JAMAIS de français, jamais de traduction.
+"expected" = réponse attendue, variantes séparées par " / " ("" pour "use"). "word" = le mot travaillé (avec article pour un nom), "meaning" = définition très simple EN ${L}, "example" = phrase d'exemple courte.
+Réponds uniquement en JSON : {"exercises":[{"type":"fill","prompt":"","expected":"","options":[],"hint":"","word":"","meaning":"","example":""}]}`, { effort: "low" });
+      const list = arr(r.exercises).filter(e => str(e?.prompt)).slice(0, 12).map(e => ({
+        type: ["fill", "define", "synonym", "qcm", "use"].includes(e.type) ? e.type : "fill",
+        prompt: str(e.prompt), expected: str(e.expected), hint: str(e.hint),
+        options: arr(e.options).map(str).filter(Boolean).length >= 2 ? arr(e.options).map(str).filter(Boolean) : undefined,
+        word: str(e.word), meaning: str(e.meaning), example: str(e.example)
+      })).map(e => (e.type === "qcm" && !e.options ? { ...e, type: "fill" } : e));
+      if (!list.length) throw { code: "invalid_json" };
+      run(list, dom);
+    } catch (e) {
+      card.replaceChildren(h("h2", { text: "Exercices indisponibles" }), h("p", { text: errCopy(e) }),
+        h("div", { class: "row" }, h("button", { class: "btn primary", onclick: generate, text: "Réessayer" }), h("button", { class: "btn", onclick: close, text: "Fermer" })));
+    }
+  }
+  function run(list, dom) {
+    const score = h("p", { class: "notice", hidden: true });
+    const body = h("div", { class: "workshop-list" });
+    const refresh = () => {
+      const doneN = list.filter(isChecked).length, good = list.filter(e => e.correct).length;
+      prog.textContent = `${doneN}/${list.length} corrigés · ${good} juste${good > 1 ? "s" : ""}`;
+      if (doneN === list.length) { score.hidden = false; score.textContent = `Terminé : ${good}/${list.length}. ${good === list.length ? "Parfait !" : "Les mots ratés sont dans ta banque et reviendront en cartes."}`; }
+    };
+    const prog = h("span", { class: "label" });
+    list.forEach((ex, i) => {
+      const blockHolder = h("div");
+      const render = () => blockHolder.replaceChildren(exerciseBlock(l, ex, i, {
+        idBase: `ws-${i}`,
+        words: ex.word ? [{ word: ex.word, meaning: ex.meaning, example: ex.example }] : [],
+        onChecked: () => {
+          if (ex.correct && ex.word) markUsed(l, [ex.word]);
+          if (!ex.correct && ex.word && dom) { const v = d.vocab.find(x => vocabKey(x.w) === vocabKey(ex.word)); if (v && !v.dom) v.dom = dom.id; }
+          render(); refresh(); saveLang(l);
+          if (ex.word) Voice.speak([{ lang: l, text: ex.word }], l);
+          body.querySelector(`#ws-${i + 1}`)?.focus();
+        }
+      }));
+      render(); body.append(blockHolder);
+    });
+    card.replaceChildren(
+      h("div", { class: "flash-top" }, h("h2", { text: dom ? dom.name : "Mes mots" }), h("button", { class: "btn sm", onclick: close, text: "Fermer" })),
+      prog, body, score,
+      h("div", { class: "row" }, h("button", { class: "btn", onclick: () => choose(), text: "Autre série" })));
+    refresh();
+    body.querySelector("#ws-0")?.focus();
+  }
+  choose();
+}
+function flashcards(l, list) {
+  const queue = (list || dueWords(l, 15)).slice();
   if (!queue.length) return;
   const retried = new Set();
   let done = 0, good = 0;
@@ -1408,43 +1574,101 @@ function homeworkPanel(l) {
   const list = d.homework.slice().reverse().slice(0, 4);
   return h("section", { class: "panel" },
     h("h2", { text: "Devoirs" }),
-    list.length ? list.map(hw => homeworkCard(l, hw)) : h("p", { class: "empty", text: "À la fin de chaque cours, Elena te prépare des exercices ciblés sur tes lacunes et ton vocabulaire. Ils arriveront ici." }));
+    list.length ? list.map(hw => homeworkCard(l, hw)) : h("p", { class: "empty", text: `À la fin de chaque cours, ${tn(l)} te prépare des exercices ciblés sur tes lacunes et ton vocabulaire. Ils arriveront ici.` }));
 }
 function homeworkCard(l, hw) {
   const open = hw.status !== "done" && hw === S.data[l].homework.filter(x => x.status !== "done").at(-1);
   const body = h("div", { hidden: !open });
-  const card = h("article", { class: "hw" },
+  const exs = arr(hw.exercises);
+  const checked = exs.filter(isChecked).length;
+  const card = h("article", { class: "hw", id: "hw-" + hw.id },
     h("div", { class: "hw-head" },
       h("div", { style: "min-width:0" }, h("h3", { style: "font-size:17px", text: hw.title }), h("p", { class: "muted", style: "margin:2px 0 0;font-size:14px", text: hw.focus })),
-      h("span", { class: "pill " + (hw.status === "done" ? "done" : "todo"), text: hw.status === "done" ? `Fait · ${hw.score}/10` : `À rendre · ${fmtDate(hw.date)}` })),
+      h("span", { class: "pill " + (hw.status === "done" ? "done" : "todo"), text: hw.status === "done" ? `Fait · ${hw.score}/10` : checked ? `${checked}/${exs.length} corrigés` : `À faire · ${fmtDate(hw.date)}` })),
     h("button", { class: "btn sm", style: "align-self:flex-start", "aria-expanded": String(open), onclick: e => {
       body.hidden = !body.hidden; e.currentTarget.setAttribute("aria-expanded", String(!body.hidden)); e.currentTarget.textContent = body.hidden ? "Voir les exercices" : "Masquer";
     }, text: open ? "Masquer" : "Voir les exercices" }),
     body);
-  arr(hw.exercises).forEach((ex, i) => {
-    const id = `ex-${hw.id}-${i}`;
-    let input;
-    if (ex.type === "qcm" && arr(ex.options).length) {
-      input = h("div", { class: "opts", role: "radiogroup", "aria-labelledby": id + "-q" }, ex.options.map(o => h("label", null,
-        h("input", { type: "radio", name: id, value: o, checked: ex.answer === o, disabled: hw.status === "done" }), o)));
-      input.addEventListener("change", e => { ex.answer = e.target.value; saveDraft(l); });
-    } else {
-      input = h("textarea", { id, rows: ex.type === "write" ? 4 : 1, placeholder: ex.type === "write" ? "Écris ici…" : "Ta réponse", disabled: hw.status === "done" });
-      input.value = ex.answer || "";
-      input.addEventListener("input", () => { ex.answer = input.value; saveDraft(l); });
-    }
-    body.append(h("div", { class: "ex" },
-      h("label", { for: id, id: id + "-q", style: "font-weight:600" }, `${i + 1}. `, ex.prompt),
-      ex.hint ? h("small", { class: "muted", text: "Indice : " + ex.hint }) : null,
-      input,
-      ex.feedback ? h("div", { class: "fb " + (ex.correct ? "good" : "bad") }, ex.correct ? "Correct. " : "À revoir. ", ex.feedback) : null));
-  });
-  if (hw.status !== "done") {
-    const btn = h("button", { class: "btn primary", style: "align-self:flex-start;margin-top:6px", text: `Rendre mes devoirs à ${tn(l)}` });
-    btn.onclick = () => gradeHomework(l, hw, btn);
-    body.append(btn);
-  } else if (hw.comment) body.append(h("p", { class: "notice", text: tn(l) + " : " + hw.comment }));
+  exs.forEach((ex, i) => body.append(exerciseBlock(l, ex, i, {
+    idBase: `ex-${hw.id}-${i}`,
+    onDraft: () => saveDraft(l),
+    onChecked: () => { finishHomeworkIfDone(l, hw); saveLang(l); refreshHomework(l, hw, i); }
+  })));
+  if (hw.status === "done" && hw.comment) body.append(h("p", { class: "notice", text: hw.comment }));
   return card;
+}
+function refreshHomework(l, hw, i) {
+  const old = document.getElementById("hw-" + hw.id); if (!old) return renderLobby();
+  const fresh = homeworkCard(l, hw); fresh.querySelector("div[hidden]")?.removeAttribute("hidden");
+  old.replaceWith(fresh);
+  const next = fresh.querySelector(`#ex-${hw.id}-${i + 1}`) || fresh.querySelector(`[name="ex-${hw.id}-${i + 1}"]`);
+  next?.focus?.();
+}
+function finishHomeworkIfDone(l, hw) {
+  const exs = arr(hw.exercises);
+  if (hw.status === "done" || !exs.length || exs.some(e => !isChecked(e))) return;
+  const good = exs.filter(e => e.correct).length;
+  hw.score = Math.round(good / exs.length * 10); hw.status = "done"; hw.doneAt = today();
+  hw.comment = `${good} bonne${good > 1 ? "s" : ""} réponse${good > 1 ? "s" : ""} sur ${exs.length}. ${hw.score >= 8 ? "Excellent travail !" : hw.score >= 5 ? "Bien, revois les points en rouge." : "Ces points reviendront au prochain cours pour que tu les maîtrises."}`;
+  toast(`Devoirs terminés : ${hw.score}/10`);
+}
+/* One exercise with an instant check. Used by homework and the vocabulary workshop. */
+function exerciseBlock(l, ex, i, { idBase, onDraft, onChecked, words }) {
+  const done = isChecked(ex);
+  let input;
+  if (ex.type === "qcm" && arr(ex.options).length) {
+    input = h("div", { class: "opts", role: "radiogroup", "aria-labelledby": idBase + "-q" }, ex.options.map(o => h("label", null,
+      h("input", { type: "radio", name: idBase, value: o, checked: ex.answer === o, disabled: done }), o)));
+    input.addEventListener("change", e => { ex.answer = e.target.value; onDraft?.(); });
+  } else {
+    const multi = ex.type === "write" || ex.type === "use";
+    input = h(multi ? "textarea" : "input", { id: idBase, rows: multi ? 3 : undefined, autocomplete: "off", spellcheck: "false", placeholder: multi ? (l === "es" ? "Escribe aquí…" : "Write here…") : (l === "es" ? "Tu respuesta" : "Your answer"), disabled: done });
+    input.value = ex.answer || "";
+    input.addEventListener("input", () => { ex.answer = input.value; onDraft?.(); });
+  }
+  const check = h("button", { class: "btn sm primary", type: "button", hidden: done, text: l === "es" ? "Comprobar" : "Check" });
+  const fb = h("div", { class: "fb " + (ex.correct ? "good" : "bad"), hidden: !done },
+    h("strong", { text: ex.correct ? (l === "es" ? "¡Correcto! " : "Correct! ") : (l === "es" ? "Casi… " : "Not quite… ") }), ex.feedback || "");
+  const run = async () => {
+    if (!str(ex.answer)) { input.focus?.(); return; }
+    check.disabled = true; check.textContent = "…";
+    try {
+      const r = await gradeOne(l, ex);
+      ex.correct = r.correct; ex.feedback = r.feedback; ex.checked = true;
+      if (!r.correct && r.category) applyWeakness(l, [{ label: r.category, delta: 1 }]);
+      if (!r.correct && arr(words).length) addVocab(l, words, "lacune");
+      onChecked?.();
+    } catch (e) { check.disabled = false; check.textContent = l === "es" ? "Comprobar" : "Check"; toast(errCopy(e)); }
+  };
+  check.onclick = run;
+  if (input.tagName === "INPUT") input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); run(); } });
+  return h("div", { class: "ex" },
+    h("label", { for: idBase, id: idBase + "-q", style: "font-weight:600" }, `${i + 1}. `, ex.prompt),
+    ex.hint ? h("small", { class: "muted", text: ex.hint }) : null,
+    input, h("div", { class: "row" }, check), fb);
+}
+const isChecked = ex => !!(ex.checked || ex.feedback);
+function expectedList(ex) { return str(ex.expected).split(/\s*(?:\/|\||;| or | o )\s*/).map(norm).filter(Boolean); }
+/* Instant grading: exact answers locally (no wait), anything open-ended by Claude in a few seconds */
+async function gradeOne(l, ex) {
+  const ans = str(ex.answer), exp = expectedList(ex);
+  if (ex.type === "qcm" && ex.expected) {
+    const ok = norm(ans) === norm(ex.expected);
+    return { correct: ok, feedback: ok ? "" : `→ ${ex.expected}` };
+  }
+  if (exp.length && exp.includes(norm(ans))) {
+    const accentsOff = !str(ex.expected).split(/\s*(?:\/|\||;)\s*/).some(e => e.trim().toLowerCase() === ans.toLowerCase().replace(/[.!?]$/, ""));
+    return { correct: true, feedback: accentsOff && l === "es" ? `(${l === "es" ? "ojo con los acentos" : ""}: ${ex.expected})` : "" };
+  }
+  const L = LANGS[l].name.toUpperCase();
+  const r = await askJSON(`Corrige un exercice de ${LANGS[l].name.toLowerCase()} d'un apprenant (niveau ${S.data[l].level}).
+Consigne : ${ex.prompt}${ex.options ? "\nChoix : " + ex.options.join(" / ") : ""}${ex.expected ? "\nRéponse attendue (d'autres réponses correctes sont acceptables) : " + ex.expected : ""}
+Réponse de l'élève : ${ans}
+Accepte toute réponse correcte et naturelle, même différente de la réponse attendue. Ignore les majuscules et la ponctuation.
+"feedback" : EN ${L} simple (jamais en français), 1 ou 2 phrases : si c'est faux, donne la bonne réponse et la raison ; si c'est juste mais améliorable, propose la version plus naturelle ; si c'est parfait, "".
+"category" : si c'est faux, libellé court en français du type d'erreur (ex. "ser / estar", "prépositions", "vocabulaire"), sinon "".
+Réponds uniquement en JSON : {"correct":true,"feedback":"","category":""}`, { modelTier: "quick" });
+  return { correct: !!r.correct, feedback: str(r.feedback), category: str(r.category) };
 }
 let draftTimer;
 function saveDraft(l) { clearTimeout(draftTimer); draftTimer = setTimeout(() => saveLang(l), 900); }
