@@ -247,6 +247,9 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .life-meta{font-size:12px;color:var(--muted)}
 .life-tile.new{border-style:dashed}
 .life-tile.started{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
+.life-tile.pro .life-name{color:var(--sky)}
+.goal{width:100%;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px}
+.type-pill.interview{background:#ffb27a}
 .life-tile.solid{border-color:var(--ok);box-shadow:inset 3px 0 0 var(--ok);background:var(--ok-bg)}
 [hidden]{display:none!important}
 .mini-select{background:transparent;color:var(--call-fg);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:3px 8px;font-size:12px;max-width:100%}
@@ -383,7 +386,7 @@ const LANGS = {
 };
 const TEACHERS = {
   es: { name: "Elena", intro: "Tu es Elena, professeure particulière d'espagnol, née et élevée à Séville, chaleureuse, drôle et exigeante. Tu parles l'espagnol d'Espagne (vosotros, vocabulaire d'Espagne)." },
-  en: { name: "James", intro: "Tu es James, professeur particulier d'anglais, Londonien né et élevé à Londres, chaleureux, plein d'humour et exigeant. Tu parles l'anglais britannique de Londres : vocabulaire et tournures UK (flat, queue, mate, cheers, brilliant, fancy…), jamais américain." }
+  en: { name: "James", intro: "Tu es James, Londonien né et élevé à Londres, ancien attaché de recherche clinique (CRA) devenu chef de projet dans une CRO, aujourd'hui coach d'anglais professionnel pour les métiers de la recherche clinique et de la santé. Chaleureux, plein d'humour et exigeant. Tu parles l'anglais britannique de Londres : vocabulaire et tournures UK (flat, queue, mate, cheers, brilliant, fancy…), jamais américain." }
 };
 const tn = l => TEACHERS[l === "en" ? "en" : "es"].name;
 const deTn = l => (l === "en" ? "de James" : "d'Elena");
@@ -470,6 +473,8 @@ const TYPES = {
              how: L => `VOCABULAIRE THÉMATIQUE : introduis 8 à 10 mots utiles du thème, un ou deux à la fois, rendus clairs par le contexte (mets-les dans "new_words"). Fais-les réutiliser tout de suite par l'élève, puis joue : devinettes à partir d'une définition, « quel est le contraire de… », phrases à compléter. Termine par un petit défi qui réemploie tous les mots.` },
   idioms:  { name: "Expressions & argot", min: 15, short: "Parler comme un natif",
              how: L => `EXPRESSIONS IDIOMATIQUES : autour du thème donné, introduis 5 à 7 expressions idiomatiques, phrasal verbs ou mots d'argot que les natifs utilisent vraiment (pas de vieilles expressions que personne ne dit). Pour chacune : une petite anecdote ou situation où tu l'utilises naturellement, puis fais deviner le sens par le contexte, puis demande à l'élève de l'utiliser dans une phrase sur sa propre vie. Mets-les dans "new_words" avec une explication simple. Corrige le registre (familier / neutre / formel).` },
+  interview: { name: "Entretien d'embauche", min: 20, short: "Simulation d'entretien en anglais",
+             how: L => `ENTRETIEN D'EMBAUCHE SIMULÉ pour le poste donné : tu joues le recruteur ou le futur manager (CRO, laboratoire pharmaceutique, hôpital ou marque de cosmétique). Déroulé réaliste : accueil et small talk, « tell me about yourself », motivation pour la recherche clinique, questions techniques (ICH-GCP, monitoring, consentement, gestion des événements indésirables, oncologie ou cosmétique selon le poste), questions comportementales à traiter avec la méthode STAR, une mise en situation, puis les questions du candidat. Une question à la fois ; relance si la réponse est vague, trop courte ou manque d'exemples. Reste dans le rôle ; dans les 2 dernières minutes, sors du rôle et donne un retour franc : ce qui convainc, ce qui manque, et les formulations professionnelles à retenir.` },
   review:  { name: "Révision", min: 10, short: "Tes mots à revoir et tes erreurs",
              how: L => `RÉVISION : fais retravailler à l'élève ses lacunes suivies et les mots à réactiver (listés plus haut), sous forme de quiz oral rapide et vivant : questions directes, phrases à compléter, « comment dit-on… » avec une définition, mini-situations. Reviens sur les erreurs des derniers devoirs.` },
 };
@@ -487,24 +492,29 @@ const BANK = {
     low:  ["Introducing yourself", "Daily routine", "Food and cooking", "Hobbies", "Travel", "Work and studies", "Family and friends", "Shopping"],
     high: ["AI and the future of work", "Remote work vs the office", "Social media and democracy", "Climate policy", "Startups and entrepreneurship", "Cinema and series", "Ethics of technology", "Personal finance", "Health and wellbeing", "Education systems", "Cities of the future", "Culture shock", "Sport and society", "A book that changed you", "Travel stories", "The news this week"],
     role: ["Job interview for your dream job", "Negotiating a pay rise", "Complaining about a hotel room", "Pitching a startup to an investor", "Dealing with a cancelled flight", "Doctor's appointment", "Small talk at a networking event", "Calling customer service about a wrong bill", "Renting a flat in London", "Handling an angry client"],
-    debate: ["Should AI be allowed to replace teachers?", "Is a four-day week realistic?", "Should social media be banned for under-16s?", "Is tourism destroying the places we love?", "Is university still worth it?", "Should billionaires exist?"],
-    idioms: ["Weather idioms (it's chucking it down…)", "Money talk (skint, quid, splash out…)", "Office slang and corporate jargon", "Pub and night-out talk", "Phrasal verbs with get", "Phrasal verbs with put and take", "British understatement and politeness", "Texting and informal English", "Food idioms", "Idioms about time", "London slang", "Sports idioms used at work"],
+    debate: ["Should placebo-controlled trials still be allowed?", "Is animal testing for cosmetics ever justified?", "Should patients be paid to take part in trials?", "Can AI replace clinical research associates?", "Should every trial result be published, even negative ones?", "Are 'clean beauty' claims misleading?", "Should AI be allowed to replace teachers?", "Is a four-day week realistic?", "Should social media be banned for under-16s?", "Is tourism destroying the places we love?", "Is university still worth it?", "Should billionaires exist?"],
+    idioms: ["Business idioms (touch base, ballpark figure, on the same page…)", "Meeting and email phrases that sound native", "Corporate jargon in pharma and CROs", "Interview phrases that impress", "Weather idioms (it's chucking it down…)", "Money talk (skint, quid, splash out…)", "Office slang and corporate jargon", "Pub and night-out talk", "Phrasal verbs with get", "Phrasal verbs with put and take", "British understatement and politeness", "Texting and informal English", "Food idioms", "Idioms about time", "London slang", "Sports idioms used at work"],
     gramLow: ["present simple vs continuous", "past simple", "questions", "can / have to", "comparatives"],
     gramHigh: ["mixed conditionals", "inversion for emphasis", "advanced phrasal verbs", "modal verbs of deduction", "articles and determiners", "reported speech", "present perfect vs past simple", "wish / if only", "collocations", "formal vs informal register"],
   }
 };
 const CYCLE_LOW  = ["conv", "vocab", "role", "grammar", "listen", "story", "review"];
 const CYCLE_HIGH = ["debate", "role", "listen", "grammar", "story", "vocab", "conv", "review"];
-const CYCLE_EN_HIGH = ["role", "debate", "idioms", "listen", "story", "grammar", "vocab", "conv", "review"];
+const CYCLE_EN_HIGH = ["role", "interview", "listen", "vocab", "conv", "idioms", "story", "grammar", "debate", "review"];
+// Spanish: real conversations first, understanding spoken Spanish and answering spontaneously
+const CYCLE_ES_LOW = ["conv", "listen", "role", "vocab", "story", "conv", "listen", "review", "grammar"];
+const CYCLE_ES_HIGH = ["conv", "listen", "role", "story", "debate", "idioms", "conv", "vocab", "review", "grammar"];
 const isLow = l => LEVELS.indexOf(S.data[l].level) <= 2;
 const pick = (list, avoid) => { const fresh = list.filter(x => !avoid.includes(x)); const pool = fresh.length ? fresh : list; return pool[Math.floor(Math.random() * pool.length)]; };
 function topicFor(l, type, avoid = []) {
   const b = BANK[l], low = isLow(l), d = S.data[l];
-  if (type === "diag") return l === "es" ? "Conocerse" : "Getting to know you";
+  if (type === "diag") return l === "es" ? "Conocerse" : "Your studies and career plans";
   if (type === "role") return pick(b.role, avoid);
-  if (type === "debate") return pick(low ? b.high : b.debate, avoid);
+  if (type === "debate") return pick(low ? b.high : (l === "en" && Math.random() < .75 ? b.debate.slice(0, 6) : b.debate), avoid);
   if (type === "review") return l === "es" ? "Tus palabras y tus errores" : "Your words and your mistakes";
-  if (type === "idioms") return pick(b.idioms, avoid);
+  // James: debates and idioms lean towards the professional world (first entries) 3 times out of 4
+  const proFirst = (list, n) => (l === "en" && Math.random() < .75 ? list.slice(0, n) : list);
+  if (type === "idioms") return pick(proFirst(b.idioms, 4), avoid);
   if (type === "grammar") {
     const weak = weakLabels(l).map(w => w.label).filter(x => !avoid.includes(x));
     return weak[0] || pick(low ? b.gramLow : b.gramHigh, avoid);
@@ -518,19 +528,19 @@ function nextType(l) {
   const last3 = recent.slice(-3);
   if (dueWords(l, 999).length >= 12 && !last3.includes("review")) return "review";
   if ((weakLabels(l)[0]?.count || 0) >= 3 && !last3.includes("grammar")) return "grammar";
-  const cyc = isLow(l) ? CYCLE_LOW : l === "en" ? CYCLE_EN_HIGH : [...CYCLE_HIGH.slice(0, 4), "idioms", ...CYCLE_HIGH.slice(4)];
+  const cyc = l === "en" ? (isLow(l) ? CYCLE_LOW : CYCLE_EN_HIGH) : (isLow(l) ? CYCLE_ES_LOW : CYCLE_ES_HIGH);
   let t;
   do { d.cycleIdx = ((d.cycleIdx || 0) + 1) % cyc.length; t = cyc[d.cycleIdx]; }
   while ((t === "debate" && isLow(l)) || (last3.slice(-1)[0] === t));
   return t;
 }
-const DOMAIN_TYPES = ["conv", "role", "story", "listen", "vocab"];
+const DOMAIN_TYPES = ["conv", "role", "story", "listen", "vocab", "interview"];
 function makeSession(l, type, topic, minutes, domainId) {
   type = TYPES[type] ? type : "conv";
   let domain = DOMAIN_BY_ID[domainId] ? domainId : null;
   if (!topic) {
     if (DOMAIN_TYPES.includes(type)) {
-      const dom = DOMAIN_BY_ID[domainId] || pickDomain(l, { needRole: type === "role" });
+      const dom = type === "interview" ? DOMAIN_BY_ID.p_interview : DOMAIN_BY_ID[domainId] || pickDomain(l, { needRole: type === "role" });
       domain = dom.id; topic = domainTopic(l, dom, type, recentTopics(l));
     } else topic = topicFor(l, type, recentTopics(l));
   }
@@ -540,7 +550,7 @@ function ensurePlan(l) {
   const d = S.data[l];
   d.plan = arr(d.plan).filter(p => p && TYPES[p.type]);
   // programme v2 (domains, idioms, UK material): rebuild suggestions made before it
-  if ((d.planVersion || 0) < 2) { d.plan = d.plan.filter(p => p.type === "diag"); d.planVersion = 2; }
+  if ((d.planVersion || 0) < 3) { d.plan = d.plan.filter(p => p.type === "diag"); d.planVersion = 3; }
   if (!d.assessed && d.plan[0]?.type !== "diag") d.plan.unshift(makeSession(l, "diag"));
   if (d.assessed) d.plan = d.plan.filter(p => p.type !== "diag");
   let changed = false;
@@ -610,20 +620,52 @@ const EXTRA_EN = {
   actu: { enH: ["The big story this week", "Politics without the jargon", "Media and fake news"], enR: ["Being interviewed for a radio vox pop"] },
 };
 for (const dm of DOMAINS) { const x = EXTRA_EN[dm.id]; if (x) { dm.enH = [...dm.enH, ...arr(x.enH)]; dm.enR = [...dm.enR, ...arr(x.enR)]; } }
-const DOMAIN_BY_ID = Object.fromEntries(DOMAINS.map(x => [x.id, x]));
+
+/* =========================================================
+   English for clinical research careers (James): professional domains
+   ========================================================= */
+const PRO_DOMAINS = [
+  { id: "p_trials", pro: true, name: "Essais cliniques : phases & design", enH: ["Phase I to IV: what changes at each stage", "Randomisation, blinding and placebo", "Primary and secondary endpoints", "Inclusion and exclusion criteria", "Adaptive and decentralised trials"], enR: ["Explaining your trial design to a new colleague", "Discussing eligibility criteria with a principal investigator"] },
+  { id: "p_gcp", pro: true, name: "BPC/GCP & réglementation", enH: ["ICH-GCP in plain English", "EMA, FDA and MHRA: who does what", "Ethics committees and approvals", "Informed consent: what makes it valid", "Audits and inspections"], enR: ["Preparing a site for a regulatory inspection", "Answering an auditor's questions about consent forms"] },
+  { id: "p_monitor", pro: true, name: "Monitoring ARC/CRA", enH: ["A day in the life of a CRA", "Source data verification", "Site initiation, monitoring and close-out visits", "Raising and resolving queries", "Protocol deviations"], enR: ["Site initiation visit with a principal investigator", "Handling a protocol deviation with a study coordinator", "Chasing overdue data entry with a busy site"] },
+  { id: "p_safety", pro: true, name: "Sécurité patient & vigilance", enH: ["Adverse events vs serious adverse events", "Causality and expectedness", "SUSARs and reporting timelines", "Risk-benefit balance"], enR: ["Reporting an SAE to the sponsor within 24 hours", "Calling an investigator about a missing safety report"] },
+  { id: "p_onco", pro: true, name: "Oncologie", enH: ["Cancer staging and grading", "Chemotherapy, targeted therapy and immunotherapy", "RECIST, overall survival and progression-free survival", "Biomarkers and precision oncology", "Supporting patients through cancer treatment"], enR: ["Discussing tumour response with an oncologist", "Presenting oncology trial results to the team"] },
+  { id: "p_cosmeto", pro: true, name: "Cosmétique & dermatologie", enH: ["How a cosmetic product is developed", "Claims substantiation and efficacy studies", "Safety assessment and the EU Cosmetics Regulation", "Patch tests and skin tolerance", "Clean beauty and consumer trends"], enR: ["Challenging a marketing claim with the brand team", "Briefing volunteers before a skin tolerance study"] },
+  { id: "p_patient", pro: true, name: "Patients : recrutement & communication", enH: ["Patient recruitment and retention", "The patient journey in a trial", "Patient-reported outcomes", "Talking to patients without jargon"], enR: ["Explaining informed consent to an anxious patient", "A patient wants to withdraw from the study"] },
+  { id: "p_data", pro: true, name: "Données & biostatistiques", enH: ["eCRFs, databases and database lock", "p-values and confidence intervals in plain English", "Sample size and statistical power", "Data integrity and ALCOA+"], enR: ["Explaining a data discrepancy to a data manager"] },
+  { id: "p_pm", pro: true, name: "Gestion de projet clinique", enH: ["Timelines, milestones and critical path", "Budgets and site payments", "Risk management and mitigation plans", "Sponsor, CRO and vendor relationships", "KPIs and study dashboards"], enR: ["Negotiating a timeline delay with the sponsor", "Running a kick-off meeting", "Giving a project status update to stakeholders"] },
+  { id: "p_docs", pro: true, name: "Documents & rédaction médicale", enH: ["Protocol, investigator's brochure and CSR", "SOPs and the trial master file", "Writing clear professional emails", "Summarising a scientific paper"], enR: ["Asking a site to correct essential documents", "Presenting a scientific paper at journal club"] },
+  { id: "p_interview", pro: true, name: "Entretiens d'embauche", enH: ["Tell me about yourself", "Why clinical research?", "Strengths, weaknesses and failures", "Competency questions with the STAR method", "Questions to ask the recruiter", "Salary and contract negotiation"], enR: ["Job interview for a CRA position at a CRO", "Interview for a clinical project manager role", "Panel interview at a cosmetics company", "Phone screening with a recruiter"] },
+  { id: "p_comms", pro: true, name: "Réunions, e-mails & présentations", enH: ["Leading a meeting in English", "Disagreeing politely", "Presenting data with confidence", "Small talk with international colleagues"], enR: ["A difficult teleconference with three sites", "Presenting your project to senior management"] },
+  { id: "p_science", pro: true, name: "Science clinique & labo", enH: ["Pharmacokinetics and pharmacodynamics", "Biomarkers and assays", "Sample handling and the central lab", "From preclinical to first-in-human"], enR: ["Sorting out a sample shipment problem with the central lab"] },
+  { id: "p_ethics", pro: true, name: "Éthique, RGPD & droits du patient", enH: ["Vulnerable populations in research", "Data privacy and GDPR", "Confidentiality and pseudonymisation", "Ethics of placebo"], enR: ["Answering a patient's questions about their data"] },
+  { id: "p_market", pro: true, name: "Santé publique & accès au marché", enH: ["How a drug reaches patients", "HTA, NICE and reimbursement", "Real-world evidence", "The pharma industry today"], enR: ["Pitching the value of a new therapy to a payer"] },
+  { id: "p_career", pro: true, name: "Carrière & réseau", enH: ["Building your CV for clinical research", "LinkedIn and networking", "Conferences and career fairs", "Your five-year career plan"], enR: ["Networking at a clinical research conference", "Asking a manager for a promotion"] },
+];
+for (const dm of PRO_DOMAINS) { dm.enL = dm.enH; dm.esL = dm.esH = dm.esR = []; }
+const domainsFor = l => (l === "en" ? [...PRO_DOMAINS, ...DOMAINS] : DOMAINS);
+const DEFAULT_GOAL_EN = "Attachée de recherche clinique (ARC/CRA) puis cheffe de projet : études en science clinique, cosmétique, oncologie, santé du patient. Préparer les entretiens et travailler en anglais.";
+const goalEn = () => str(S.profile?.goalEn) || DEFAULT_GOAL_EN;
+const DOMAIN_BY_ID = Object.fromEntries([...DOMAINS, ...PRO_DOMAINS].map(x => [x.id, x]));
 // least-covered domains first, never the last two used; ties shuffled
 function pickDomain(l, opts = {}) {
   const d = S.data[l];
   const cov = d.coverage || {};
   const recent = [...d.sessions.slice(-3).map(s => s.domain), ...arr(d.plan).map(p => p.domain)].filter(Boolean).slice(-4);
-  let pool = DOMAINS.filter(x => !recent.includes(x.id) && (!opts.needRole || (l === "es" ? x.esR : x.enR)?.length));
-  if (!pool.length) pool = DOMAINS.slice();
+  let base = DOMAINS;
+  if (l === "en") {
+    const last = [...d.sessions.slice(-5).map(s => s.domain), ...arr(d.plan).map(p => p.domain)].filter(Boolean).slice(-5);
+    const lifeLately = last.some(id => DOMAIN_BY_ID[id] && !DOMAIN_BY_ID[id].pro);
+    base = !lifeLately && last.length >= 4 ? DOMAINS : PRO_DOMAINS.filter(x => x.id !== "p_interview");
+  }
+  let pool = base.filter(x => !recent.includes(x.id) && (!opts.needRole || (l === "es" ? x.esR : x.enR)?.length));
+  if (!pool.length) pool = base.slice();
   const score = x => (cov[x.id] || 0) * 10 + d.vocab.filter(v => v.dom === x.id).length / 5 + Math.random() * 3;
   return pool.sort((a, b) => score(a) - score(b))[0];
 }
 function domainTopic(l, dom, type, avoid = []) {
   const lowLvl = isLow(l);
-  let list = type === "role" ? (l === "es" ? dom.esR : dom.enR)
+  let list = type === "role" || type === "interview" ? (l === "es" ? dom.esR : dom.enR)
     : l === "es" ? (lowLvl ? dom.esL : dom.esH) : (lowLvl ? dom.enL : dom.enH);
   if (!list?.length) list = l === "es" ? dom.esL : dom.enH;
   return pick(list, avoid);
@@ -1020,6 +1062,10 @@ function adaptHint() {
   else if (errs <= .5 && a.length >= 2) action = "MONTE d'un cran : structures plus complexes, vocabulaire plus précis, questions plus ouvertes";
   return `Mesure en direct (${a.length} dernières interventions) : ${errs.toFixed(1)} erreur(s) par intervention en moyenne${obs ? ", niveau observé ≈ " + obs : ""}. → ${action}.`;
 }
+function goalBlock(l) {
+  if (l === "en") return `\nOBJECTIF PROFESSIONNEL DE ${S.profile.name} : ${goalEn()}\nPriorité : le vocabulaire professionnel exact de la recherche clinique, de la santé, de l'oncologie et de la cosmétique, et l'anglais du travail (réunions, e-mails, présentations, entretiens). Exige les termes précis (« adverse event », pas « bad effect »). Même sur un sujet de la vie quotidienne, fais des liens avec son futur métier quand c'est naturel.`;
+  return `\nOBJECTIF : tenir de vraies conversations avec des Espagnols, comprendre l'espagnol parlé réel et répondre spontanément. Utilise l'espagnol oral courant (vale, pues, o sea, ¿sabes?, venga, ¡qué guay!), adapté à son niveau. Vérifie souvent qu'il a compris en lui demandant de redire l'idée avec ses mots. Fais-le parler plus que toi : questions ouvertes, relances, réactions spontanées.`;
+}
 function phaseHint() {
   const sp = C.spec, el = (now() - C.start) / 60000, tot = sp.minutes, left = tot - el;
   if (el < Math.max(1, tot * .15)) return `début (${Math.round(el)} min sur ${tot}) : salutation et échauffement très courts, puis lance l'activité.`;
@@ -1034,7 +1080,7 @@ function convRules(l) {
   return `${TEACHERS[l].intro} Tu donnes un cours EN VISIO, à l'oral, à ${S.profile.name}. Séance en ${LANGS[l].name.toLowerCase()}.
 
 FORMAT DE LA SÉANCE : ${TYPES[C.spec.type].name} · ${C.spec.topic} · durée prévue ${C.spec.minutes} min
-${TYPES[C.spec.type].how()}${C.spec.domain ? `\nDOMAINE DE LA VRAIE VIE : ${DOMAIN_BY_ID[C.spec.domain].name}. Fais employer le vocabulaire concret et indispensable de ce domaine dans la vie réelle : objets, actions, expressions toutes faites, phrases de survie que les natifs utilisent vraiment.` : ""}
+${TYPES[C.spec.type].how()}${goalBlock(l)}${C.spec.domain ? `\n${DOMAIN_BY_ID[C.spec.domain].pro ? "DOMAINE PROFESSIONNEL" : "DOMAINE DE LA VRAIE VIE"} : ${DOMAIN_BY_ID[C.spec.domain].name}. Fais employer le vocabulaire concret et indispensable de ce domaine dans la vie réelle : objets, actions, expressions toutes faites, phrases de survie que les natifs utilisent vraiment.` : ""}
 TEMPS : ${phaseHint()}
 
 ${profileContext(l)}
@@ -1065,7 +1111,7 @@ Niveau estimé jusqu'ici : ${C.liveLevel || d.level}${d.assessed ? "" : " (non v
 Lacunes déjà suivies (réutilise ces libellés exacts si c'est le même problème) : ${weakLabels(l).map(w => w.label).join(" ; ") || "aucune"}
 Mots cibles qu'on veut lui faire réutiliser : ${C.targets.map(v => v.w).join(", ") || "aucun"}
 
-Ce que la prof venait de dire : « ${teacherLine || "(début de séance)"} »
+${l === "en" ? `Objectif professionnel de l'élève : ${goalEn()}. Pour "vocab_gaps" et "better", privilégie la terminologie professionnelle exacte (recherche clinique, santé, oncologie, cosmétique, entretien) et signale le vocabulaire trop vague pour un contexte pro.\n` : ""}Ce que le prof venait de dire : « ${teacherLine || "(début de séance)"} »
 Ce que l'élève a répondu${said.startsWith("[oral]") ? " (transcrit par reconnaissance vocale : ignore ponctuation, majuscules et accents manquants)" : ""} : « ${said.replace(/^\[oral\]\s*/, "")} »
 
 Fais :
@@ -1201,12 +1247,12 @@ function buildCustom(l, box) {
   const c = S.custom;
   const chipRow = (items, isOn, onPick, label) => h("div", { class: "chips", role: "group", "aria-label": label }, items.map(([val, text]) =>
     h("button", { class: "chip", type: "button", "aria-pressed": String(isOn(val)), onclick: () => { onPick(val); renderLobby(); }, text })));
-  const types = Object.keys(TYPES).filter(t => t !== "diag" && !((t === "debate" || t === "idioms") && isLow(l)));
+  const types = Object.keys(TYPES).filter(t => t !== "diag" && !(t === "interview" && l !== "en") && !((t === "debate" || t === "idioms") && isLow(l)));
   const sugg = (() => {
     const b = BANK[l], low = isLow(l);
     if (DOMAIN_TYPES.includes(c.type)) {
       const cov = S.data[l].coverage || {};
-      const doms = DOMAINS.slice().sort((a, b2) => (cov[a.id] || 0) - (cov[b2.id] || 0));
+      const doms = domainsFor(l).slice().sort((a, b2) => (b2.pro ? 1 : 0) - (a.pro ? 1 : 0) || (cov[a.id] || 0) - (cov[b2.id] || 0));
       if (c.domain) doms.sort((a, b2) => (b2.id === c.domain) - (a.id === c.domain));
       const out = [];
       for (const dm of doms) {
@@ -1256,15 +1302,28 @@ function programPanel(l) {
 function lifePanel(l) {
   const d = S.data[l], cov = d.coverage || {};
   const words = id => d.vocab.filter(v => v.dom === id).length;
-  const touched = DOMAINS.filter(x => (cov[x.id] || 0) > 0).length;
   const state = x => { const n = cov[x.id] || 0, w = words(x.id); return n >= 3 && w >= 15 ? "solid" : n >= 1 ? "started" : "new"; };
+  const grid = list => h("div", { class: "life" }, list.map(x => h("button", { class: "life-tile " + state(x) + (x.pro ? " pro" : ""), type: "button", title: `${cov[x.id] || 0} séance(s), ${words(x.id)} mot(s)`,
+    onclick: () => { const type = x.id === "p_interview" ? "interview" : "vocab"; S.custom = { type, minutes: TYPES[type].min, topic: domainTopic(l, x, type), domain: x.id }; renderLobby(); $(".join")?.scrollIntoView({ behavior: "smooth", block: "start" }); } },
+    h("span", { class: "life-name", text: x.name }),
+    h("span", { class: "life-meta", text: (cov[x.id] ? `${cov[x.id]} séance${cov[x.id] > 1 ? "s" : ""}` : "à découvrir") + (words(x.id) ? ` · ${words(x.id)} mots` : "") }))));
+  const count = list => `${list.filter(x => (cov[x.id] || 0) > 0).length} / ${list.length}`;
+  if (l === "en") {
+    const goal = h("textarea", { id: "goal-en", rows: 3, class: "goal", "aria-label": "Ton objectif professionnel" });
+    goal.value = goalEn();
+    goal.addEventListener("change", () => { S.profile.goalEn = goal.value.trim(); saveProfile(); toast("Objectif enregistré : James s'y adapte dès le prochain cours."); });
+    return h("section", { class: "panel" },
+      h("div", { class: "vocab-head" }, h("h2", { text: "Ton anglais pro" }), h("span", { class: "pill", text: `${count(PRO_DOMAINS)} domaines pro abordés` })),
+      h("label", { class: "field", style: "gap:4px" }, h("span", { class: "label", text: "Ton objectif (James construit les cours dessus)" }), goal),
+      h("p", { class: "lvl-note", text: "Environ 4 séances sur 5 portent sur la recherche clinique, la santé et ton futur métier, avec des simulations d'entretien. Clique sur un domaine pour préparer une séance dessus." }),
+      grid(PRO_DOMAINS),
+      h("div", { class: "vocab-head", style: "margin-top:6px" }, h("h3", { style: "font-size:15px", text: "Vie quotidienne au Royaume-Uni" }), h("span", { class: "pill", text: count(DOMAINS) })),
+      grid(DOMAINS));
+  }
   return h("section", { class: "panel" },
-    h("div", { class: "vocab-head" }, h("h2", { text: "La vraie vie" }), h("span", { class: "pill", text: `${touched} / ${DOMAINS.length} domaines abordés` })),
-    h("p", { class: "lvl-note", text: "Les 24 domaines dont tu as besoin au quotidien. Le programme va d'abord vers ceux que tu n'as pas encore travaillés. Clique sur un domaine pour préparer une séance dessus." }),
-    h("div", { class: "life" }, DOMAINS.map(x => h("button", { class: "life-tile " + state(x), type: "button", title: `${cov[x.id] || 0} séance(s), ${words(x.id)} mot(s)`,
-      onclick: () => { S.custom = { type: "vocab", minutes: 10, topic: domainTopic(l, x, "vocab"), domain: x.id }; renderLobby(); $(".join")?.scrollIntoView({ behavior: "smooth", block: "start" }); } },
-      h("span", { class: "life-name", text: x.name }),
-      h("span", { class: "life-meta", text: (cov[x.id] ? `${cov[x.id]} séance${cov[x.id] > 1 ? "s" : ""}` : "à découvrir") + (words(x.id) ? ` · ${words(x.id)} mots` : "") })))));
+    h("div", { class: "vocab-head" }, h("h2", { text: "La vraie vie" }), h("span", { class: "pill", text: `${count(DOMAINS)} domaines abordés` })),
+    h("p", { class: "lvl-note", text: "Les 24 domaines dont tu as besoin pour parler avec les gens au quotidien. Le programme va d'abord vers ceux que tu n'as pas encore travaillés, avec surtout de la conversation et de la compréhension orale. Clique sur un domaine pour préparer une séance dessus." }),
+    grid(DOMAINS));
 }
 function progressPanel(l, minutes) {
   const d = S.data[l];
@@ -1441,7 +1500,7 @@ function workshop(l) {
   document.body.append(ov);
   const close = () => { Voice.stop(); ov.remove(); saveLang(l); renderLobby(); };
   const cov = d.coverage || {};
-  const doms = DOMAINS.slice().sort((a, b) => (cov[a.id] || 0) - (cov[b.id] || 0));
+  const doms = domainsFor(l).slice().sort((a, b) => (b.pro ? 1 : 0) - (a.pro ? 1 : 0) || (cov[a.id] || 0) - (cov[b.id] || 0));
   let pickDom = d.vocab.length >= 6 ? "mine" : doms[0].id, count = 8;
   const choose = () => {
     const chip = (val, text, on, fn) => h("button", { class: "chip light", type: "button", "aria-pressed": String(on), onclick: () => { fn(val); choose(); }, text });
@@ -1462,7 +1521,7 @@ function workshop(l) {
     const mine = d.vocab.slice().sort((a, b) => a.box - b.box).slice(0, 30).map(v => v.w).join(", ");
     try {
       const r = await askJSON(`Crée ${count} exercices ÉCRITS de vocabulaire de ${LANGS[l].name.toLowerCase()} pour un francophone de niveau ${d.level}${l === "en" ? " (anglais britannique)" : " (espagnol d'Espagne)"}.
-${dom ? `Domaine de la vraie vie : ${dom.name}. Choisis les mots les plus utiles au quotidien dans ce domaine, adaptés à son niveau.` : `Travaille ces mots de sa banque (en priorité les premiers) : ${mine}.`}
+${l === "en" ? `Objectif professionnel de l'apprenant : ${goalEn()}.\n` : ""}${dom ? `Domaine : ${dom.name}. Choisis les mots les plus utiles au quotidien dans ce domaine, adaptés à son niveau.` : `Travaille ces mots de sa banque (en priorité les premiers) : ${mine}.`}
 Varie les types : "fill" (phrase avec ___ à compléter par le mot), "define" (définition simple → trouver le mot), "synonym" (donner un synonyme ou le contraire), "qcm" (3 "options", une seule correcte), "use" (écrire une phrase personnelle avec le mot donné).
 Toutes les consignes, définitions et indices EN ${L} simple : JAMAIS de français, jamais de traduction.
 "expected" = réponse attendue, variantes séparées par " / " ("" pour "use"). "word" = le mot travaillé (avec article pour un nom), "meaning" = définition très simple EN ${L}, "example" = phrase d'exemple courte.
@@ -2164,7 +2223,7 @@ NIVEAUX OBSERVÉS RÉPLIQUE PAR RÉPLIQUE : ${signals}
 7. "strengths" : 0 à 3 points forts précis.
 8. "vocab_gaps" : 0 à 6 mots ou expressions supplémentaires qu'il devrait apprendre vu ce qu'il a voulu dire (avec article pour les noms ; "meaning" = définition simple EN ${LANGS[l].name.toUpperCase()}, jamais de traduction ; exemple court).
 9. "homework" : 6 à 8 exercices CIBLÉS : la moitié sur ses lacunes les plus fréquentes, au moins 2 sur le vocabulaire (mots qui lui ont manqué et mots à réviser), et 1 production écrite ("write") de ${isBeginner ? "2-3 phrases simples" : "80-120 mots"} qui oblige à réemployer ces mots. Types : "fill" (phrase à trous ___), "answer" (répondre à une question avec une phrase complète), "rephrase" (reformuler une phrase avec un mot ou une structure imposée), "qcm" (3 "options"), "write". AUCUNE traduction et AUCUN français : toutes les consignes et indices EN ${LANGS[l].name.toUpperCase()}, simples. "expected" = réponse attendue (sauf "write"). Difficulté adaptée au niveau RÉEL.
-10. "next_goal" : objectif du prochain cours, en une phrase.
+${l === "en" ? `Pour James : l'objectif est professionnel (${goalEn()}). Au moins 3 exercices sur le vocabulaire professionnel de la recherche clinique et de la santé vu ou manquant aujourd'hui, et la production écrite peut être une réponse d'entretien ou un e-mail professionnel.\n` : `Pour Elena : l'objectif est de converser avec des Espagnols ; privilégie les phrases utiles à l'oral et les réponses à des questions de la vie réelle.\n`}10. "next_goal" : objectif du prochain cours, en une phrase.
 
 Réponds uniquement en JSON :
 {"summary":"","message":"","level":"","level_note":"","skills":{"grammaire":0,"vocabulaire":0,"aisance":0,"comprehension":0},"top_mistakes":[{"wrong":"","right":"","rule":""}],"weakness_updates":[{"label":"","delta":1,"note":""}],"strengths":[],"vocab_gaps":[{"word":"","meaning":"","example":""}],"homework":{"title":"","focus":"","exercises":[{"type":"fill","prompt":"","hint":"","expected":""}]},"next_goal":""}`;
