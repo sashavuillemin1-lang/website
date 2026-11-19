@@ -307,6 +307,20 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .coach .improved{background:rgba(139,227,176,.08);border-left:3px solid #8be3b0;padding:6px 8px;border-radius:4px;color:#eef2ef;line-height:1.5}
 .coach .gap-chip{border:none;cursor:pointer}
 .type-pill.mock{background:#ff8f6b}
+.fix.accent{background:#1d2633;border-color:rgba(160,180,255,.35)}
+.fix.accent .gap-chip{border:none;cursor:pointer}
+.acc-drill{border-top:1px solid var(--line)}
+.acc-head{width:100%;display:flex;justify-content:space-between;gap:8px;align-items:center;background:none;border:none;padding:12px 0;cursor:pointer;font-weight:600;text-align:left;color:var(--fg)}
+.acc-items{display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.acc-tip{margin:0;font-size:14px;background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.acc-item{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:10px;padding:10px}
+.acc-text{font-size:16px;font-weight:500}
+.acc-out{display:flex;flex-direction:column;gap:3px}
+.acc-words{display:flex;flex-wrap:wrap;gap:4px;font-size:15px}
+.acc-words .ok{color:var(--ok)}
+.acc-words .ko{color:var(--err);text-decoration:underline wavy;text-underline-offset:3px}
+.acc-top{display:flex;flex-direction:column;gap:6px}
+.acc-top .gap-chip{color:var(--fg);background:var(--surface-2)}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -433,6 +447,9 @@ const TEACHERS = {
   en: { name: "James", intro: "Tu es James, Londonien né et élevé à Londres, ancien attaché de recherche clinique (CRA) devenu chef de projet dans une CRO, aujourd'hui coach d'anglais professionnel pour les métiers de la recherche clinique et de la santé. Chaleureux, plein d'humour et exigeant. Tu parles l'anglais britannique de Londres : vocabulaire et tournures UK (flat, queue, mate, cheers, brilliant, fancy…), jamais américain." }
 };
 const tn = l => TEACHERS[l === "en" ? "en" : "es"].name;
+const CLAUDE_VOICES = ["buttery", "airy", "glassy", "rounded"];
+const wantsClaudeVoice = l => str(S.profile?.voices?.[l]).startsWith("claude:");
+const claudeVoice = l => { const v = str(S.profile?.voices?.[l]).replace("claude:", ""); return CLAUDE_VOICES.includes(v) ? v : l === "en" ? "rounded" : "airy"; };
 const deTn = l => (l === "en" ? "de James" : "d'Elena");
 const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
 const LEVEL_LABEL = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A2 · élémentaire", B1: "B1 · intermédiaire", B2: "B2 · avancé", C1: "C1 · autonome", C2: "C2 · maîtrise" };
@@ -851,6 +868,7 @@ function progressionSection(l) {
    Interview preparation (James): the student pastes a brief, Claude structures it,
    then mock interviews question by question with coaching after every answer
    ========================================================= */
+const ACCENT_RULE = `${'"accent" : les mots que la reconnaissance vocale a visiblement mal compris révèlent un problème de prononciation ; pour chacun {"heard","meant","issue" (son en cause : th, h, i / ee, accent tonique, -ed, voyelles faibles, r, rythme),"tip" (conseil en anglais simple)}. Maximum 3, vide si rien de net.'}`;
 const interviewActive = d => !!(d?.interview?.questions?.length) && (!d.interview.date || d.interview.date >= today().slice(0, 10));
 function daysTo(iso) { if (!iso) return null; const t = new Date(iso + "T12:00:00"); return Math.round((t - new Date(today().slice(0, 10) + "T12:00:00")) / 864e5); }
 function mockSession(l, qIndex) {
@@ -990,7 +1008,8 @@ ${q.tips ? "CONSIGNES DU CANDIDAT POUR CETTE QUESTION : " + q.tips + "\n" : ""}$
 Réponds uniquement en JSON, toutes les explications EN ANGLAIS simple et court :
 {"grammar":[{"wrong":"","right":"","why":""}],"vocab":[{"said":"","better":"","why":""}],"structure":"2-3 phrases : contenu, structure (STAR pour une question comportementale), longueur, ce qui manque ou ce qui est risqué",
 "improved":"version améliorée en anglais britannique naturel, à la première personne, fidèle à son profil réel, phrases courtes faciles à dire, 60 à 130 mots selon la question",
-"pronounce":[{"term":"","ipa":"","say":"syllabes, accent en MAJUSCULES"}],"score":7,"fluent":false}
+"pronounce":[{"term":"","ipa":"","say":"syllabes, accent en MAJUSCULES"}],"accent":[{"heard":"","meant":"","issue":"","tip":""}],"score":7,"fluent":false}
+${oral ? ACCENT_RULE : '"accent" : [] (réponse tapée au clavier).'}
 "fluent" = true seulement si la réponse est prête pour le vrai entretien : contenu complet et pertinent, au plus une petite erreur, structure claire, longueur adaptée. "pronounce" : 2 à 4 mots techniques de la réponse à bien prononcer.`, { effort: "low" });
   } catch (e) {
     C.log.pop(); C.busy = false;
@@ -1004,6 +1023,8 @@ Réponds uniquement en JSON, toutes les explications EN ANGLAIS simple et court 
   const score = Math.max(0, Math.min(10, Math.round(Number(r.score) || 0)));
   const fluent = !!r.fluent && score >= 7;
   grammar.forEach(g => C.errors.push({ original: str(g.wrong), corrected: str(g.right), explanation: str(g.why), category: "entretien" }));
+  const acc = oral ? arr(r.accent).filter(x => str(x?.meant) && norm(x.meant) !== norm(x.heard)).slice(0, 3) : [];
+  if (acc.length) noteAccent(l, acc);
   vocab.forEach(v => C.betters.push({ said: str(v.said), better: str(v.better) }));
   C.analyses.push({ errors: grammar.length, level: null });
   q.attempts = (q.attempts || 0) + 1; q.best = Math.max(q.best || 0, score); if (fluent) q.fluent = true; q.lastImproved = str(r.improved);
@@ -1014,6 +1035,7 @@ Réponds uniquement en JSON, toutes les explications EN ANGLAIS simple et court 
     grammar.length ? h("div", null, h("span", { class: "k", text: "Grammaire" }), grammar.map(g => h("div", null, h("del", { text: str(g.wrong) }), "  →  ", h("ins", { text: str(g.right) }), str(g.why) ? h("p", { text: str(g.why) }) : null))) : null,
     vocab.length ? h("div", null, h("span", { class: "k", text: "Plus naturel" }), vocab.map(v => h("div", null, h("del", { text: str(v.said) }), "  →  ", h("ins", { text: str(v.better) }), str(v.why) ? h("p", { text: str(v.why) }) : null))) : null,
     str(r.structure) ? h("div", null, h("span", { class: "k", text: "Structure" }), h("p", { text: str(r.structure) })) : null,
+    acc.length ? accentCard(l, acc) : null,
     improved ? h("div", null, h("span", { class: "k", text: "Version améliorée" }), h("p", { class: "improved", text: improved })) : null,
     arr(r.pronounce).length ? h("div", { class: "words" }, arr(r.pronounce).filter(p => str(p?.term)).map(p => h("button", { class: "gap-chip", type: "button", title: str(p.ipa), onclick: () => Voice.speak([{ lang: "en", text: str(p.term) }], "en"), text: `🔊 ${str(p.term)} · ${str(p.say)}` }))) : null,
     h("div", { class: "row" },
@@ -1046,6 +1068,119 @@ function mockNext(action, text, oral) {
   }
   M.pos++; M.tries = 0;
   teacherTurn(answer + mockAsk(M.queue[M.pos], false), null);
+}
+
+
+/* =========================================================
+   Accent coach: what speech recognition misheard reveals about the student's accent,
+   plus targeted drills (French speakers' typical sounds) with a word-by-word check
+   ========================================================= */
+const ACCENT_DRILLS = {
+  en: [
+    { issue: "th", title: "Le « th » (think, this)", tip: "Put the tip of your tongue between your teeth and blow: think = /θɪŋk/, not « sink ». For « this », same position but with voice.", items: ["I think the third trial starts on Thursday.", "This is the data that they gathered.", "Both of these methods are worth it.", "Thank you for the thorough feedback."] },
+    { issue: "h", title: "Le « h » qui s'entend", tip: "Breathe out on the h: hospital, haematology. Don't drop it, and don't add one to « I » or « our ».", items: ["Her hospital has a huge haematology unit.", "He handled the hold-up at the hub site.", "How has the hearing gone?", "I am happy to help."] },
+    { issue: "i / ee", title: "i court / ee long (ship / sheep)", tip: "Short /ɪ/ is relaxed and quick (fill, sit). Long /iː/ is smiling and longer (feel, seat).", items: ["We need to fill in the field.", "The sheep is on the ship.", "Please sit in this seat.", "I feel it will fit the timeline."] },
+    { issue: "accent tonique", title: "L'accent tonique des mots longs", tip: "English stresses one syllable strongly and swallows the others: in-VES-ti-ga-tor, PRO-to-col, RE-gu-la-to-ry. French stresses the last syllable: avoid it.", items: ["The investigator signed the protocol.", "Pharmacovigilance is a regulatory requirement.", "We need a feasibility questionnaire.", "The development of the photograph was a photographic success."] },
+    { issue: "-ed", title: "Les terminaisons en -ed", tip: "Three sounds: /t/ after voiceless sounds (worked = workt), /d/ after voiced (monitored), /ɪd/ only after t or d (activated, recruited).", items: ["We monitored, recruited and reported.", "The site was activated and approved.", "I worked, checked and finished the report.", "She decided and planned the visit."] },
+    { issue: "voyelles faibles", title: "Les voyelles avalées (schwa)", tip: "Unstressed syllables become a soft « uh » /ə/: com-fta-ble, cho-co-lat → CHOK-luht, a-BOUT.", items: ["It's a comfortable office about an hour away.", "We'll talk about it on Wednesday.", "The chocolate was on the table.", "I'd like a cup of tea."] },
+    { issue: "r", title: "Le « r » anglais", tip: "Curl the tongue back without touching the roof of the mouth, no throat sound. In British English, don't pronounce r at the end of a word: « doctor » = DOK-tuh.", items: ["Our research results are ready.", "The rare disease registry grew rapidly.", "The doctor wrote a report.", "Remember to record the reason."] },
+    { issue: "rythme", title: "Rythme et liaison des mots", tip: "Link words together and stress only the important ones: « I'd LIKE to TALK about my EXperience ».", items: ["Could you tell me a bit more about the team?", "I'd like to talk about my experience in start-up.", "What would success look like after six months?", "That's a really good question."] },
+  ],
+  es: [
+    { issue: "r / rr", title: "La « r » et la « rr »", tip: "La r simple es un toque rápido de la lengua (pero). La rr vibra varias veces (perro). Nunca en la garganta.", items: ["El perro corre rápido.", "Pero quiero una pera.", "Roberto vive en Barcelona.", "Me gusta el arroz con carne."] },
+    { issue: "jota", title: "La « jota » (j, ge, gi)", tip: "Un sonido fuerte en el fondo de la boca, como al echar aliento caliente: Juan, gente.", items: ["Juan trabaja en Jerez.", "La gente joven viaja mucho.", "El jamón es mejor aquí.", "Mi hijo juega en el jardín."] },
+    { issue: "b / v", title: "B et V se prononcent pareil", tip: "En español, b y v suenan igual, como una b suave entre los labios.", items: ["Vivo en Valencia.", "Voy a beber vino.", "Mi abuelo vive en Bilbao.", "La ventana está abierta."] },
+    { issue: "vocales", title: "Les cinq voyelles nettes", tip: "Solo cinco vocales, siempre claras: a, e, i, o, u. La « u » es « ou » y la « e » nunca es muda.", items: ["Tengo que comer temprano.", "Una mujer usa un mapa.", "El tomate está muy bueno.", "Me encanta este parque."] },
+    { issue: "ll / y", title: "La « ll » et la « y »", tip: "Se pronuncian casi como el « y » de « yoyo ».", items: ["Me llamo Yolanda.", "La calle está llena.", "Ayer llovió mucho.", "Yo llevo la llave."] },
+    { issue: "accent tonique", title: "L'accent tonique", tip: "Las palabras que terminan en vocal, n o s llevan el acento en la penúltima sílaba (CA-sa, HA-blan). Si hay tilde, se acentúa ahí (ca-FÉ).", items: ["Mi médico es simpático.", "Hablan español en el café.", "El examen es el miércoles.", "La música es fantástica."] },
+  ]
+};
+// word-by-word comparison of what was meant and what was understood
+function wordDiff(target, heard) {
+  const A = norm(target).split(" ").filter(Boolean), B = norm(heard).split(" ").filter(Boolean);
+  const dp = Array.from({ length: A.length + 1 }, () => new Array(B.length + 1).fill(0));
+  for (let i = A.length - 1; i >= 0; i--) for (let j = B.length - 1; j >= 0; j--) dp[i][j] = A[i] === B[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const ok = new Set(); let i = 0, j = 0;
+  while (i < A.length && j < B.length) { if (A[i] === B[j]) { ok.add(i); i++; j++; } else if (dp[i + 1][j] >= dp[i][j + 1]) i++; else j++; }
+  const words = str(target).split(/\s+/).filter(Boolean);
+  return { words: words.map((w, k) => ({ w, ok: ok.has(k) })), score: A.length ? ok.size / A.length : 0 };
+}
+function noteAccent(l, issues) {
+  const d = S.data[l]; d.accent = d.accent || {};
+  for (const x of arr(issues)) { const k = str(x?.issue).slice(0, 40); if (k) d.accent[k] = (d.accent[k] || 0) + 1; }
+}
+function accentWorkshop(l) {
+  const d = S.data[l];
+  const card = h("div", { class: "flash wide", role: "dialog", "aria-label": "Atelier accent" });
+  const ov = h("div", { class: "overlay" }, card);
+  document.body.append(ov);
+  const close = () => { Voice.stop(); try { if (CAP.dictation?.active()) CAP.dictation.stop(); } catch {} ov.remove(); saveLang(l); renderLobby(); };
+  let drills = ACCENT_DRILLS[l].slice();
+  const iv = l === "en" ? d.interview : null;
+  if (iv?.vocab?.length) drills.push({ issue: "mots d'entretien", title: "Les mots clés de ton entretien", tip: "Listen first, then copy the stress pattern shown in capitals.", items: iv.vocab.slice(0, 12).map(v => v.term) });
+  // the sounds the recognizer struggled with in your lessons come first
+  const seen = d.accent || {};
+  const rank = x => -(Object.entries(seen).filter(([k]) => k.toLowerCase().includes(x.issue.toLowerCase()) || x.issue.toLowerCase().includes(k.toLowerCase())).reduce((a, [, n]) => a + n, 0));
+  drills.sort((a, b) => rank(a) - rank(b));
+  const top = Object.entries(seen).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const list = h("div", { class: "workshop-list" });
+  drills.forEach(dr => {
+    const res = (d.accentDrill || {})[dr.issue];
+    const body = h("div", { class: "acc-items", hidden: true });
+    const head = h("button", { class: "acc-head", type: "button", "aria-expanded": "false", onclick: () => { body.hidden = !body.hidden; head.setAttribute("aria-expanded", String(!body.hidden)); } },
+      h("span", { text: dr.title }), h("small", { class: "muted", text: res ? `${res.ok}/${res.tries} réussies` : "à travailler" }));
+    body.append(h("p", { class: "acc-tip", text: dr.tip }), ...dr.items.map(t => accentItem(l, dr, t)));
+    list.append(h("div", { class: "acc-drill" }, head, body));
+  });
+  card.append(
+    h("div", { class: "flash-top" }, h("h2", { text: "Atelier accent" }), h("button", { class: "btn sm", onclick: close, text: "Fermer" })),
+    h("p", { class: "muted", style: "margin:0", text: `Écoute la phrase avec une voix native, dis-la, et regarde ce que la reconnaissance vocale a compris, mot par mot. Un mot en rouge = un son à travailler. ${CAP.dictation ? "" : "Le micro n'est pas disponible dans cette fenêtre : tu peux quand même écouter."}` }),
+    top.length ? h("div", { class: "acc-top" }, h("span", { class: "label", text: "Ce que tes cours ont révélé" }), h("div", { class: "words" }, top.map(([k, n]) => h("span", { class: "gap-chip", text: `${k} · ${n}×` })))) : null,
+    list);
+  list.querySelector(".acc-head")?.click();
+}
+function accentItem(l, dr, text) {
+  const out = h("div", { class: "acc-out" });
+  const listen = h("button", { class: "btn sm", type: "button", text: "Écouter", onclick: () => Voice.speak([{ lang: l, text }], l) });
+  const slow = h("button", { class: "btn sm", type: "button", text: "Lentement", onclick: async () => { const s = Voice.slow; Voice.slow = true; await Voice.speak([{ lang: l, text }], l); Voice.slow = s; } });
+  const say = h("button", { class: "btn sm primary", type: "button", disabled: !CAP.dictation, text: "Je la dis" });
+  say.onclick = () => {
+    const dd = CAP.dictation; if (!dd) return;
+    if (dd.active()) { dd.stop().catch(() => {}); return; }
+    Voice.stop();
+    const heard = []; let offs = [], silence = 0;
+    const finish = () => {
+      offs.forEach(f => { try { f(); } catch {} }); clearTimeout(silence); say.textContent = "Je la dis";
+      const got = heard.join(" ");
+      if (!got) { out.replaceChildren(h("small", { class: "muted", text: "Rien entendu. Parle près du micro et réessaie." })); return; }
+      const r = wordDiff(text, got);
+      const d = S.data[l]; d.accentDrill = d.accentDrill || {};
+      const st = d.accentDrill[dr.issue] = d.accentDrill[dr.issue] || { tries: 0, ok: 0 };
+      st.tries++; if (r.score >= .9) st.ok++;
+      saveLang(l);
+      out.replaceChildren(
+        h("div", { class: "acc-words" }, r.words.map(x => h("span", { class: x.ok ? "ok" : "ko", text: x.w }))),
+        h("small", { class: "muted", text: `Compris : « ${got} »` }),
+        h("small", { class: r.score >= .9 ? "trend good" : "trend", text: r.score >= .9 ? "Très clair ✓" : r.score >= .6 ? "Presque : réécoute les mots en rouge et recommence." : "Recommence lentement, mot par mot, après avoir réécouté." }));
+    };
+    offs = [
+      dd.onFinal(({ text: t }) => { if (str(t)) { heard.push(str(t)); clearTimeout(silence); silence = setTimeout(() => dd.stop().catch(() => {}), 1200); } }),
+      dd.onState(({ state }) => { if (state === "listening") say.textContent = "J'écoute… (stop)"; if (state === "idle") finish(); })
+    ];
+    Mic.start(l).catch(e => { offs.forEach(f => f()); out.replaceChildren(h("small", { class: "muted", text: e?.code === "not_granted" ? "Micro refusé." : "Le micro n'a pas démarré." })); });
+    setTimeout(() => { if (dd.active()) dd.stop().catch(() => {}); }, 12000);
+  };
+  return h("div", { class: "acc-item" }, h("div", { class: "acc-text", text }), h("div", { class: "row", style: "gap:6px" }, listen, slow, say), out);
+}
+function accentCard(l, issues) {
+  const list = arr(issues).filter(x => str(x?.meant));
+  if (!list.length) return null;
+  return h("div", { class: "fix accent" }, h("span", { class: "k", text: "Ton accent" }),
+    list.map(x => h("div", null,
+      h("button", { class: "gap-chip", type: "button", title: "Écouter le mot", onclick: () => Voice.speak([{ lang: l, text: str(x.meant) }], l), text: "🔊 " + str(x.meant) }),
+      str(x.heard) ? h("span", { class: "muted", text: `  compris « ${str(x.heard)} »` }) : null,
+      str(x.issue) ? h("strong", { text: `  · ${str(x.issue)}` }) : null,
+      str(x.tip) ? h("p", { text: str(x.tip) }) : null)));
 }
 
 /* =========================================================
@@ -1302,10 +1437,11 @@ const Voice = {
   nativeVoice(lang) {
     const v = this.pickVoice(lang); if (!v) return null;
     const vl = (v.lang || "").replace("_", "-").toLowerCase();
-    return (lang === "en" ? vl === "en-gb" : vl.startsWith(lang)) ? v : null;
+    return vl.startsWith(lang) ? v : null;
   },
   britishVoice() { const v = this.pickVoice("en"); return v && (v.lang || "").replace("_", "-").toLowerCase() === "en-gb" ? v : null; },
   voiceLabel(l) {
+    if (CAP.tts && (wantsClaudeVoice(l) || !this.nativeVoice(l))) return `Voix de Claude « ${claudeVoice(l)} » (${l === "en" ? "anglais" : "espagnol"} natif)`;
     const micCall = micMode() === "call" && CAP.dictation;
     const v = l === "en" ? this.britishVoice() : null;
     if (v) return `Voix : ${v.name} (anglais britannique)`;
@@ -1326,28 +1462,26 @@ const Voice = {
     if (myGen !== this.gen) return;
     // one voice per teacher for the whole lesson: a native browser voice when the computer has one
     const lang0 = parts[0].lang;
-    if ("speechSynthesis" in window && this.nativeVoice(lang0)) return this._browser(parts.map(p => ({ ...p, lang: lang0 })), rate, myGen);
-    // Claude's voice cannot play while dictation listens: use the browser voice during an open-mic call
-    const micOpen = !!(C.open && CAP.dictation?.active?.());
-    if (micOpen) {
-      if ("speechSynthesis" in window) return this._browser(parts, rate, myGen);
-      if (!this._warned) { this._warned = true; toast("Pas de voix disponible pendant que le micro est ouvert : lis les sous-titres, ou passe en mode Talkie."); }
-      return;
-    }
-    if (this.engine === "claude") {
-      try {
-        await CAP.tts.speak(parts.map(p => ({ text: p.text, language: p.lang })), { voice: "airy", rate });
-        return;
-      } catch (e) {
-        if (e?.code === "busy" && "speechSynthesis" in window && myGen === this.gen) return this._browser(parts, rate, myGen);
+    parts = parts.map(p => ({ ...p, lang: lang0 }));
+    const native = !wantsClaudeVoice(lang0) && "speechSynthesis" in window ? this.nativeVoice(lang0) : null;
+    if (native) return this._browser(parts, rate, myGen);
+    // no voice of this language on the computer (or Claude's voice chosen): use Claude's native voice,
+    // never let the browser read English or Spanish with a French voice
+    if (CAP.tts && this.engine === "claude") {
+      if (C.open && CAP.dictation?.active?.()) { try { await CAP.dictation.stop(); } catch {} }   // Claude's voice cannot play while listening
+      const lines = parts.map(p => ({ text: p.text, language: p.lang }));
+      const opts = { voice: claudeVoice(lang0), rate };
+      try { await CAP.tts.speak(lines, opts); return; }
+      catch (e) {
         if (["stopped", "busy"].includes(e?.code) || e?.reason === "replaced" || e?.reason === "viewer_stopped") return;
-        if (e?.code === "rate_limited") { await new Promise(r => setTimeout(r, Math.min(4000, e.retryAfterMs || 1500))); if (myGen !== this.gen) return; try { await CAP.tts.speak(parts.map(p => ({ text: p.text, language: p.lang })), { voice: "airy", rate }); return; } catch {} }
+        if (e?.code === "rate_limited") { await new Promise(r => setTimeout(r, Math.min(4000, e.retryAfterMs || 1500))); if (myGen !== this.gen) return; try { await CAP.tts.speak(lines, opts); return; } catch {} }
         console.warn("tts", e);
         if (e?.code === "not_granted" || e?.code === "unavailable") this.engine = ("speechSynthesis" in window) ? "browser" : "none";
         if (myGen !== this.gen) return;
       }
     }
-    if ("speechSynthesis" in window && this.engine !== "none") return this._browser(parts, rate, myGen);
+    if ("speechSynthesis" in window && this.voicesFor(lang0).length) return this._browser(parts, rate, myGen);
+    if (!this._warned) { this._warned = true; toast(`Aucune voix ${lang0 === "en" ? "anglaise" : "espagnole"} disponible ici : lis les sous-titres, et vois « Son, micro & accent » pour en installer une.`); }
   },
   _browser(parts, rate, myGen) {
     // split into sentences: Chrome cuts long utterances
@@ -1497,12 +1631,13 @@ Fais :
 2. "better" : 0 à 2 formulations correctes mais améliorables (plus naturel, plus précis, plus riche) adaptées à son niveau : {"said","better","why" (EN ${LANGS[l].name.toUpperCase()}, simple)}.
 3. "vocab_gaps" : les mots qui lui ont manqué ou qu'il devrait apprendre d'après cette réponse : mots dits en français, contournements, mot trop basique à enrichir, mot mal choisi. {"word" (en ${LANGS[l].name.toLowerCase()}, avec article pour un nom ${l === "es" ? "espagnol" : ""}),"meaning" (définition très simple EN ${LANGS[l].name.toUpperCase()}, jamais en français),"example" (phrase courte d'exemple)}. Maximum 3.
 4. "used_targets" : les mots cibles qu'il a employés correctement.
+6. "accent" : seulement si le texte vient de la reconnaissance vocale ([oral]) : les mots que la reconnaissance a visiblement mal compris (mot absurde dans le contexte, quasi-homophone) révèlent un problème de prononciation. Pour chacun : {"heard":"ce qui a été transcrit","meant":"le mot voulu","issue":"son en cause, libellé court parmi : th, h, i / ee, accent tonique, -ed, voyelles faibles, r, rythme, r / rr, jota, b / v, vocales, ll / y","tip":"conseil de prononciation en anglais simple, 1 phrase"}. Maximum 3, tableau vide si rien de net.
 5. "level" : le niveau CECRL que cette intervention démontre (${LEVELS.join(", ")}). Juge sur ce qui est réellement produit : complexité, exactitude, étendue du vocabulaire. Une phrase très courte et simple ne prouve pas un niveau élevé.
 Si l'intervention est en français, considère que l'élève ne savait pas le dire : propose la phrase en ${LANGS[l].name.toLowerCase()} en "corrections" (original = sa phrase en français) et les mots manquants en "vocab_gaps".
 Tout le texte destiné à l'élève (explanation, why, meaning) est EN ${LANGS[l].name.toUpperCase()}, jamais en français.
 
 Réponds uniquement en JSON :
-{"corrections":[{"original":"","corrected":"","explanation":"","category":""}],"better":[{"said":"","better":"","why":""}],"vocab_gaps":[{"word":"","meaning":"","example":""}],"used_targets":[],"level":"B1"}`;
+{"corrections":[{"original":"","corrected":"","explanation":"","category":""}],"better":[{"said":"","better":"","why":""}],"vocab_gaps":[{"word":"","meaning":"","example":""}],"used_targets":[],"level":"B1","accent":[{"heard":"","meant":"","issue":"","tip":""}]}`;
 }
 
 /* =========================================================
@@ -1825,16 +1960,27 @@ function soundCheckPanel(l) {
   Mic.permState().then(st => { if (st === "denied") { helpSlot.replaceChildren(Mic.help("not_granted", l)); status.className = "status bad"; status.textContent = "Micro bloqué pour cette page."; } });
   if (!CAP.dictation) helpSlot.append(Mic.help(null, l));
   const vs = Voice.voicesFor(l);
-  const voiceSel = vs.length ? h("select", { id: "voice-" + l, class: "voice-select", "aria-label": "Voix du prof" },
+  const voiceSel = vs.length || CAP.tts ? h("select", { id: "voice-" + l, class: "voice-select", "aria-label": "Voix du prof" },
     h("option", { value: "", text: "Voix automatique (la meilleure trouvée)" }),
-    vs.map(v => h("option", { value: v.name, selected: S.profile.voices?.[l] === v.name, text: `${v.name} · ${v.lang}${v.localService ? "" : " (en ligne)"}` }))) : null;
+    CAP.tts ? h("optgroup", { label: `Voix de Claude (${l === "en" ? "anglais" : "espagnol"} natif, micro en mode talkie)` },
+      CLAUDE_VOICES.map(v => h("option", { value: "claude:" + v, selected: S.profile.voices?.[l] === "claude:" + v, text: `Claude · ${v}` }))) : null,
+    vs.length ? h("optgroup", { label: "Voix de ton ordinateur (micro ouvert possible)" },
+      vs.map(v => h("option", { value: v.name, selected: S.profile.voices?.[l] === v.name, text: `${v.name} · ${v.lang}${v.localService ? "" : " (en ligne)"}` }))) : null) : null;
+  const L = l === "en" ? "anglaise (English United Kingdom)" : "espagnole (Español España)";
+  const noVoiceHelp = !vs.length ? h("div", { class: "mic-help", style: "background:var(--surface-2)" },
+    h("strong", { text: `Ton ordinateur n'a pas de voix ${l === "en" ? "anglaise" : "espagnole"} installée.` }),
+    h("p", { text: CAP.tts ? `${tn(l)} utilise donc la voix de Claude, une vraie voix native. Pour avoir aussi le micro ouvert pendant tout l'appel, installe une voix ${L} :` : `Installe une voix ${L} pour entendre ${tn(l)} :` }),
+    h("p", { text: "Mac : Réglages Système → Accessibilité → Contenu énoncé → Voix du système → Gérer les voix → English (United Kingdom), par ex. Daniel." }),
+    h("p", { text: "Windows : Paramètres → Heure et langue → Voix → Ajouter des voix → English (United Kingdom)." }),
+    h("p", { text: "Puis recharge la page et choisis la voix ici." })) : null;
   if (voiceSel) voiceSel.onchange = () => {
     S.profile.voices = { ...(S.profile.voices || {}), [l]: voiceSel.value || undefined };
     delete Voice._lock[l]; saveProfile(); testVoice.click();
   };
   return h("section", { class: "panel" },
-    h("h2", { text: "Son et micro" }),
+    h("div", { class: "vocab-head" }, h("h2", { text: "Son, micro & accent" }), h("button", { class: "btn sm primary", type: "button", onclick: () => accentWorkshop(l), text: "Atelier accent" })),
     voiceSel ? h("label", { class: "field", style: "gap:4px" }, h("span", { class: "label", text: `Voix ${deTn(l)}` }), voiceSel) : null,
+    noVoiceHelp,
     h("div", { class: "check" }, testVoice, testMic, status), heard, helpSlot);
 }
 
@@ -2237,7 +2383,9 @@ function spaceKey(e) {
   e.preventDefault(); $("#mic")?.click();
 }
 
-const micMode = () => (S.profile.micMode === "ptt" ? "ptt" : "call");
+// open-mic calls need a voice that can talk while the mic listens (a browser voice of the right language)
+const autoTalkie = l => !!CAP.tts && (wantsClaudeVoice(l) || !("speechSynthesis" in window) || !Voice.nativeVoice(l));
+const micMode = () => (S.profile.micMode === "ptt" || autoTalkie(S.cur) ? "ptt" : "call");
 const patience = () => [2000, 3000, 5000].includes(Number(S.profile.patience)) ? Number(S.profile.patience) : 3000;
 function setupMic(btn) {
   const d = CAP.dictation;
@@ -2353,6 +2501,11 @@ function micSettings() {
     toast(mode.value === "call" ? "Micro ouvert : appuie une fois sur le micro, puis parle comme dans un appel." : "Mode talkie : un appui sur le micro par phrase.");
   };
   pat.onchange = () => { S.profile.patience = Number(pat.value); saveProfile(); };
+  if (autoTalkie(S.cur)) {
+    mode.disabled = true; mode.value = "ptt";
+    return h("div", { style: "display:flex;flex-direction:column;gap:4px" }, h("div", { class: "row", style: "gap:6px" }, mode, pat),
+      h("span", { class: "label", style: "text-transform:none;letter-spacing:0;color:#f0c05a", text: "Voix de Claude : appuie sur le micro (ou espace) pour répondre. Installe une voix native pour le micro ouvert (Son, micro & accent)." }));
+  }
   return h("div", { class: "row", style: "gap:6px" }, mode, pat);
 }
 function showMicHelp(code) {
@@ -2412,6 +2565,8 @@ async function analyse(content, bubble) {
       str(b.why) ? h("p", { text: str(b.why) }) : null));
     C.betters.push({ said: str(b.said), better: str(b.better) });
   });
+  const acc = content.startsWith("[oral]") ? arr(r.accent).filter(x => str(x?.meant) && norm(x.meant) !== norm(x.heard)).slice(0, 3) : [];
+  if (acc.length) { const ac = accentCard(l, acc); if (ac) bubble.append(ac); noteAccent(l, acc); saveLang(l); }
   if (!fixes.length && !better.length) bubble.append(h("div", { class: "fix ok" }, h("p", { text: l === "es" ? "¡Perfecto! Aucune erreur." : "Spot on. No mistakes." })));
   if (gaps.length) {
     const n = addVocab(l, gaps, "lacune", C.spec?.domain);
@@ -2694,6 +2849,7 @@ Réponds uniquement en JSON :
       S.data.en = migrate(S.data.en, "C1");
     }
     Voice.init();
+    await Voice.ensureVoices();
     render();
   } catch (e) {
     console.error(e);
