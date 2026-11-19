@@ -449,7 +449,7 @@ const LANGS = {
 };
 const TEACHERS = {
   es: { name: "Elena", intro: "Tu es Elena, professeure particulière d'espagnol, née et élevée à Séville, chaleureuse, drôle et exigeante. Tu parles l'espagnol d'Espagne (vosotros, vocabulaire d'Espagne)." },
-  en: { name: "James", intro: "Tu es James, Londonien né et élevé à Londres, ancien attaché de recherche clinique (CRA) devenu chef de projet dans une CRO, aujourd'hui coach d'anglais professionnel pour les métiers de la recherche clinique et de la santé. Chaleureux, plein d'humour et exigeant. Tu parles l'anglais britannique de Londres : vocabulaire et tournures UK (flat, queue, mate, cheers, brilliant, fancy…), jamais américain." }
+  en: { name: "James", intro: "Tu es James, Londonien né et élevé à Londres, ancien attaché de recherche clinique (CRA) devenu chef de projet dans une CRO, aujourd'hui coach d'anglais professionnel pour les métiers de la recherche clinique et de la santé. Chaleureux, posé et exigeant. Tu parles un anglais britannique soigné et professionnel, celui d'un cadre d'une entreprise pharmaceutique à Londres : naturel, précis, poli, phrases claires et bien construites, vocabulaire et orthographe britanniques (flat, schedule, colleague, programme…), jamais américain. PAS d'argot ni de familiarités forcées : jamais « mate », « hiya », « cheers », « innit », « bloody », « brilliant » à tout bout de champ. Tu parles comme dans une vraie réunion ou un vrai entretien professionnel au Royaume-Uni." }
 };
 const tn = l => TEACHERS[l === "en" ? "en" : "es"].name;
 const CLAUDE_VOICES = ["buttery", "airy", "glassy", "rounded"];
@@ -457,6 +457,9 @@ const ACCENT_CODE = { en: "en-GB", es: "es-ES" };
 // a computer voice the student picked by name (any accent they liked when listening)
 const chosenSystemVoice = l => { const n = str(S.profile?.voices?.[l]); return n && !n.startsWith("claude:") && "speechSynthesis" in window ? Voice.voicesFor(l).find(v => v.name === n) || null : null; };
 const wantsClaudeVoice = l => str(S.profile?.voices?.[l]).startsWith("claude:");
+// James: Claude's natural en-GB voice by default (Chrome's British voice is old, robotic and can switch
+// to the computer's French voice mid-sentence). Elena keeps the computer's Spanish voice the student liked.
+const claudeFirst = l => l === "en" && !!CAP.tts;
 const claudeVoice = l => { const v = str(S.profile?.voices?.[l]).replace("claude:", ""); return CLAUDE_VOICES.includes(v) ? v : l === "en" ? "rounded" : "airy"; };
 const deTn = l => (l === "en" ? "de James" : "d'Elena");
 const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
@@ -1450,7 +1453,7 @@ const Voice = {
   britishVoice() { const v = this.pickVoice("en"); return v && (v.lang || "").replace("_", "-").toLowerCase() === "en-gb" ? v : null; },
   voiceLabel(l) {
     const sys = chosenSystemVoice(l); if (sys) return `Voix : ${sys.name} (${sys.lang})`;
-    if (CAP.tts && (wantsClaudeVoice(l) || !this.nativeVoice(l))) return `Voix de Claude « ${claudeVoice(l)} » (${l === "en" ? "anglais britannique, en-GB" : "espagnol d'Espagne"})`;
+    if (CAP.tts && (wantsClaudeVoice(l) || claudeFirst(l) || !this.nativeVoice(l))) return `Voix de Claude « ${claudeVoice(l)} » (${l === "en" ? "anglais britannique, en-GB" : "espagnol d'Espagne"})`;
     const micCall = micMode() === "call" && CAP.dictation;
     const v = l === "en" ? this.britishVoice() : null;
     if (v) return `Voix : ${v.name} (anglais britannique)`;
@@ -1472,7 +1475,8 @@ const Voice = {
     // one voice per teacher for the whole lesson: a native browser voice when the computer has one
     const lang0 = parts[0].lang;
     parts = parts.map(p => ({ ...p, lang: lang0 }));
-    const native = !wantsClaudeVoice(lang0) && "speechSynthesis" in window ? (chosenSystemVoice(lang0) || this.nativeVoice(lang0)) : null;
+    const native = wantsClaudeVoice(lang0) || !("speechSynthesis" in window) ? null
+      : chosenSystemVoice(lang0) || (claudeFirst(lang0) ? null : this.nativeVoice(lang0));
     if (native) return this._browser(parts, rate, myGen);
     // no voice of this language on the computer (or Claude's voice chosen): use Claude's native voice,
     // never let the browser read English or Spanish with a French voice
@@ -1934,7 +1938,7 @@ function soundCheckPanel(l) {
   const testVoice = h("button", { class: "btn sm", text: `Tester la voix ${deTn(l)}`, onclick: async () => {
     status.className = "status"; status.textContent = `Lecture en cours… tu dois entendre ${tn(l)}.`;
     const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! Soy Elena. ¿Me oyes bien? Si me oyes, todo está listo.` }]
-                             : [{ lang: "en", text: `Hiya ${S.profile.name}, I'm James. Can you hear me alright? Brilliant, then we're all set.` }];
+                             : [{ lang: "en", text: `Hello ${S.profile.name}, I'm James. Can you hear me clearly? Good, then we're all set.` }];
     await Voice.speak(parts, l);
     status.className = "status " + (Voice.engine === "none" ? "bad" : "ok");
     status.textContent = Voice.engine === "none" ? "Aucune voix disponible dans ce navigateur : tu liras les sous-titres." : `${Voice.voiceLabel(l)}. Si tu n'as rien entendu, monte le volume et vérifie que l'onglet n'est pas en sourdine.`;
@@ -1970,11 +1974,14 @@ function soundCheckPanel(l) {
   if (!CAP.dictation) helpSlot.append(Mic.help(null, l));
   const vs = Voice.voicesFor(l).slice().sort((x, y) => (Voice._autoVoice(l) === y) - (Voice._autoVoice(l) === x));
   const sample = l === "en" ? `Good morning ${S.profile.name}, I'm James. Shall we start with a quick question about your studies?` : `¡Hola ${S.profile.name}! Soy Elena. ¿Qué tal estás hoy?`;
-  const current = () => wantsClaudeVoice(l) ? S.profile.voices[l] : (S.profile.voices?.[l] || (Voice.nativeVoice(l) ? Voice.nativeVoice(l).name : CAP.tts ? "claude:" + claudeVoice(l) : ""));
+  const current = () => wantsClaudeVoice(l) ? S.profile.voices[l] : (S.profile.voices?.[l] || (!claudeFirst(l) && Voice.nativeVoice(l) ? Voice.nativeVoice(l).name : CAP.tts ? "claude:" + claudeVoice(l) : ""));
   const accentOf = v => { const c = (v.lang || "").replace("_", "-").toLowerCase(); return c === "en-gb" ? "accent britannique" : c === "en-us" ? "accent américain" : c === "en-au" ? "accent australien" : c === "en-ie" ? "accent irlandais" : c === "en-in" ? "accent indien" : c === "es-es" ? "espagnol d'Espagne" : c.startsWith("es") ? "espagnol d'Amérique" : v.lang; };
   const isGB = v => (v.lang || "").replace("_", "-").toLowerCase() === (l === "en" ? "en-gb" : "es-es");
-  const sysOpt = v => ({ id: v.name, name: v.name, note: accentOf(v) + (v.localService ? "" : " · en ligne") + (l === "en" && accentOf(v) !== "accent britannique" ? " (pas britannique)" : ""), voice: v });
-  const options = [
+  const sysOpt = v => ({ id: v.name, name: v.name, note: accentOf(v) + (v.localService ? "" : " · voix en ligne : peut se couper ou changer de voix") + (l === "en" && accentOf(v) !== "accent britannique" ? " (pas britannique)" : ""), voice: v });
+  const options = l === "en" ? [
+    ...(CAP.tts ? CLAUDE_VOICES.map(v => ({ id: "claude:" + v, name: `Claude · ${v}`, note: "voix naturelle, anglais britannique (en-GB) · micro en mode talkie" })) : []),
+    ...vs.filter(isGB).map(sysOpt), ...vs.filter(v => !isGB(v)).map(sysOpt)
+  ] : [
     ...vs.filter(isGB).map(sysOpt),
     ...(CAP.tts ? CLAUDE_VOICES.map(v => ({ id: "claude:" + v, name: `Claude · ${v}`, note: `${l === "en" ? "anglais britannique (en-GB)" : "espagnol d'Espagne"}, micro en mode talkie` })) : []),
     ...vs.filter(v => !isGB(v)).map(sysOpt)
@@ -2406,7 +2413,7 @@ function spaceKey(e) {
 }
 
 // open-mic calls need a voice that can talk while the mic listens (a browser voice of the right language)
-const autoTalkie = l => !!CAP.tts && (wantsClaudeVoice(l) || !("speechSynthesis" in window) || !(chosenSystemVoice(l) || Voice.nativeVoice(l)));
+const autoTalkie = l => !!CAP.tts && (wantsClaudeVoice(l) || !("speechSynthesis" in window) || !(chosenSystemVoice(l) || (!claudeFirst(l) && Voice.nativeVoice(l))));
 const micMode = () => (S.profile.micMode === "ptt" || autoTalkie(S.cur) ? "ptt" : "call");
 const patience = () => [2000, 3000, 5000].includes(Number(S.profile.patience)) ? Number(S.profile.patience) : 3000;
 function setupMic(btn) {
@@ -2872,6 +2879,7 @@ Réponds uniquement en JSON :
     }
     Voice.init();
     await Voice.ensureVoices();
+    if (S.profile && !S.profile.voiceReset2) { if (S.profile.voices?.en) delete S.profile.voices.en; S.profile.voiceReset2 = true; saveProfile(); }
     const oldEn = str(S.profile?.voices?.en);
     if (oldEn && !oldEn.startsWith("claude:")) {
       const v = Voice.voicesFor("en").find(x => x.name === oldEn);
