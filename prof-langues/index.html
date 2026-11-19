@@ -284,6 +284,29 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .obj-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;font-size:13.5px}
 .obj-card ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
 .obj-card .k{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted)}
+.iv-qs{display:flex;flex-direction:column}
+.iv-q{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding-block:8px;border-top:1px solid var(--line)}
+.iv-q:first-child{border-top:none}
+.iv-qt{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.iv-state{font:500 12px var(--f-mono);text-align:center;border-radius:8px;padding:5px 0;background:var(--surface-2);color:var(--muted)}
+.iv-state.ok{background:var(--ok-bg);color:var(--ok)}
+.iv-state.mid{background:var(--err-bg);color:var(--err)}
+.iv-vocab{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.pr-chip{border:1px solid var(--line);border-radius:10px;padding:9px 10px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.pr-term{font-weight:600}
+.pr-ipa{font:12px var(--f-mono);color:var(--muted);overflow-wrap:anywhere}
+.pr-status{font-size:12px;color:var(--muted)}
+.pr-status.ok{color:var(--ok)}.pr-status.ko{color:var(--err)}
+.coach{background:#1f2a2e;border:1px solid rgba(108,182,201,.35);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;width:100%;text-align:left;font-size:13.5px}
+.coach-head{display:flex;justify-content:space-between;align-items:center}
+.coach-head b{font:600 13px var(--f-mono);color:#f3d48f}
+.coach-head b.ok{color:#8be3b0}
+.coach .k{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted);display:block;margin-bottom:2px}
+.coach del{color:#ff9d90}.coach ins{color:#8be3b0;text-decoration:none;font-weight:600}
+.coach p{margin:2px 0 0;color:#dfe6e3}
+.coach .improved{background:rgba(139,227,176,.08);border-left:3px solid #8be3b0;padding:6px 8px;border-radius:4px;color:#eef2ef;line-height:1.5}
+.coach .gap-chip{border:none;cursor:pointer}
+.type-pill.mock{background:#ff8f6b}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -498,6 +521,7 @@ const TYPES = {
              how: L => `EXPRESSIONS IDIOMATIQUES : autour du thème donné, introduis 5 à 7 expressions idiomatiques, phrasal verbs ou mots d'argot que les natifs utilisent vraiment (pas de vieilles expressions que personne ne dit). Pour chacune : une petite anecdote ou situation où tu l'utilises naturellement, puis fais deviner le sens par le contexte, puis demande à l'élève de l'utiliser dans une phrase sur sa propre vie. Mets-les dans "new_words" avec une explication simple. Corrige le registre (familier / neutre / formel).` },
   interview: { name: "Entretien d'embauche", min: 20, short: "Simulation d'entretien en anglais",
              how: L => `ENTRETIEN D'EMBAUCHE SIMULÉ pour le poste donné : tu joues le recruteur ou le futur manager (CRO, laboratoire pharmaceutique, hôpital ou marque de cosmétique). Déroulé réaliste : accueil et small talk, « tell me about yourself », motivation pour la recherche clinique, questions techniques (ICH-GCP, monitoring, consentement, gestion des événements indésirables, oncologie ou cosmétique selon le poste), questions comportementales à traiter avec la méthode STAR, une mise en situation, puis les questions du candidat. Une question à la fois ; relance si la réponse est vague, trop courte ou manque d'exemples. Reste dans le rôle ; dans les 2 dernières minutes, sors du rôle et donne un retour franc : ce qui convainc, ce qui manque, et les formulations professionnelles à retenir.` },
+  mock:    { name: "Entretien blanc", min: 45, short: "Simulation de ton vrai entretien, question par question", how: () => "" },
   review:  { name: "Révision", min: 10, short: "Tes mots à revoir et tes erreurs",
              how: L => `RÉVISION : fais retravailler à l'élève ses lacunes suivies et les mots à réactiver (listés plus haut), sous forme de quiz oral rapide et vivant : questions directes, phrases à compléter, « comment dit-on… » avec une définition, mini-situations. Reviens sur les erreurs des derniers devoirs.` },
 };
@@ -576,6 +600,16 @@ function ensurePlan(l) {
   if ((d.planVersion || 0) < 3) { d.plan = d.plan.filter(p => p.type === "diag"); d.planVersion = 3; }
   if (!d.assessed && d.plan[0]?.type !== "diag") d.plan.unshift(makeSession(l, "diag"));
   if (d.assessed) d.plan = d.plan.filter(p => p.type !== "diag");
+  // an upcoming interview comes first: a full mock a day, plus drills on answers that are not ready yet
+  d.plan = d.plan.filter(p => p.type !== "mock");
+  if (l === "en" && interviewActive(d)) {
+    const day = today().slice(0, 10);
+    const fullToday = d.sessions.some(s => s.type === "mock" && s.mockQ == null && str(s.date).slice(0, 10) === day);
+    const drills = d.interview.questions.map((q, i) => ({ q, i })).filter(x => x.q.drill && !x.q.fluent).slice(0, 2);
+    const front = [...(fullToday ? [] : [mockSession(l, null)]), ...drills.map(x => mockSession(l, x.i))];
+    if (!front.length) { const weak = d.interview.questions.map((q, i) => ({ q, i })).filter(x => !x.q.fluent).slice(0, 1); front.push(...weak.map(x => mockSession(l, x.i))); }
+    d.plan = [...front, ...d.plan];
+  }
   let changed = false;
   while (d.plan.length < 6) { d.plan.push(makeSession(l, nextType(l))); changed = true; }
   d.plan.length = 6;
@@ -810,6 +844,208 @@ function progressionSection(l) {
       h("ul", { class: "obj-list" }, lastObj.map(o => h("li", { class: o.achieved ? "ok" : "ko", text: (o.achieved ? "✓ " : "✗ ") + o.text })))) : null,
     h("div", null, h("h3", { style: "font-size:15px;margin-bottom:6px", text: "Objectifs du prochain cours" }),
       h("ul", { class: "obj-list" }, upcoming.map(o => h("li", { text: "→ " + o.text })))));
+}
+
+
+/* =========================================================
+   Interview preparation (James): the student pastes a brief, Claude structures it,
+   then mock interviews question by question with coaching after every answer
+   ========================================================= */
+const interviewActive = d => !!(d?.interview?.questions?.length) && (!d.interview.date || d.interview.date >= today().slice(0, 10));
+function daysTo(iso) { if (!iso) return null; const t = new Date(iso + "T12:00:00"); return Math.round((t - new Date(today().slice(0, 10) + "T12:00:00")) / 864e5); }
+function mockSession(l, qIndex) {
+  const iv = S.data[l].interview;
+  const q = qIndex == null ? null : iv.questions[qIndex];
+  return { id: uid(), type: "mock", topic: q ? `Drill : ${q.q}` : `Complet · ${iv.role || "poste visé"}`, minutes: q ? 10 : 45, mockQ: qIndex == null ? null : qIndex, domain: "p_interview" };
+}
+async function parseBrief(l, raw) {
+  const r = await askJSON(`Voici le brief qu'un candidat a écrit pour préparer un entretien d'embauche en anglais. Structure-le fidèlement, sans rien inventer.
+BRIEF :
+"""${raw.slice(0, 14000)}"""
+
+Réponds uniquement en JSON :
+{"company":"","role":"","recruiter":"nom de la personne qui fait passer l'entretien, sinon \\"\\"","format":"format et durée","date":"AAAA-MM-JJ (jour de l'entretien ; si seule la semaine est connue, le premier jour de cette semaine ; sinon \\"\\")",
+"job":"missions et exigences du poste, résumées en anglais, 120 mots max","profile":"profil du candidat résumé en anglais avec tous les faits utiles (diplômes, postes, dates, outils, réalisations), 180 mots max",
+"questions":[{"q":"question en anglais","tips":"consignes du candidat pour cette question (point faible, stratégie, cible…) en français, sinon \\"\\"","drill":false,"prepared":"réponse préparée par le candidat pour cette question, mot pour mot, sinon \\"\\""}],
+"vocab":[{"term":"terme anglais","ipa":"transcription API en anglais britannique","say":"syllabes avec la syllabe accentuée en MAJUSCULES, ex. in-VES-ti-gay-tuh","definition":"définition simple en anglais"}],
+"askThem":["questions du candidat pour le recruteur"],"expectations":"ce que le candidat attend du coach, 1 phrase"}
+"drill" = true pour les questions que le candidat veut répéter jusqu'à ce que ce soit fluide. Ajoute au vocabulaire les termes techniques difficiles à prononcer du brief (maximum 30).`, {});
+  const qs = arr(r.questions).filter(q => str(q?.q)).slice(0, 25).map(q => ({ q: str(q.q), tips: str(q.tips), drill: !!q.drill, prepared: str(q.prepared), attempts: 0, best: 0, fluent: false }));
+  if (!qs.length) throw { code: "invalid_json" };
+  return {
+    company: str(r.company), role: str(r.role), recruiter: str(r.recruiter), format: str(r.format),
+    date: /^\d{4}-\d{2}-\d{2}$/.test(str(r.date)) ? str(r.date) : "",
+    job: str(r.job).slice(0, 1500), profile: str(r.profile).slice(0, 2500), expectations: str(r.expectations),
+    questions: qs,
+    vocab: arr(r.vocab).filter(v => str(v?.term)).slice(0, 30).map(v => ({ term: str(v.term), ipa: str(v.ipa), say: str(v.say), definition: str(v.definition), ok: 0 })),
+    askThem: arr(r.askThem).map(str).filter(Boolean).slice(0, 8), created: today()
+  };
+}
+function interviewPanel(l) {
+  if (l !== "en") return null;
+  const d = S.data[l], iv = d.interview;
+  const panel = h("section", { class: "panel iv" });
+  if (!iv) {
+    const ta = h("textarea", { id: "brief", rows: 6, class: "goal", placeholder: "Colle ici ton brief : le poste, ton profil, les questions à travailler, tes réponses préparées, le vocabulaire clé…" });
+    const go = h("button", { class: "btn primary", disabled: !CAP.sample, text: "Préparer mon entretien" });
+    go.onclick = async () => {
+      if (ta.value.trim().length < 80) { toast("Colle un brief un peu plus complet (poste, profil, questions)."); return; }
+      go.disabled = true; go.textContent = "James lit ton brief…";
+      try { d.interview = await parseBrief(l, ta.value); d.interview.raw = ta.value.slice(0, 14000); saveLang(l); renderLobby(); toast("Entretien préparé : ton programme commence par un entretien blanc."); }
+      catch (e) { go.disabled = false; go.textContent = "Préparer mon entretien"; toast(errCopy(e)); }
+    };
+    panel.append(h("h2", { text: "Préparer un entretien" }),
+      h("p", { class: "lvl-note", text: "James lit ton brief, joue la personne qui te fait passer l'entretien, te pose les questions une par une et corrige chaque réponse (grammaire, mots plus naturels, version améliorée, prononciation). Tes informations restent privées dans ton compte." }),
+      ta, go);
+    return panel;
+  }
+  const dd = daysTo(iv.date);
+  const fluentN = iv.questions.filter(q => q.fluent).length;
+  panel.append(
+    h("div", { class: "vocab-head" }, h("h2", { text: "Ton entretien" }),
+      dd != null ? h("span", { class: "pill " + (dd <= 3 ? "todo" : ""), text: dd > 0 ? `J-${dd}` : dd === 0 ? "Aujourd'hui" : "Passé" }) : null),
+    h("p", { style: "margin:0;font-weight:600", text: [iv.role, iv.company].filter(Boolean).join(" · ") }),
+    h("p", { class: "lvl-note", text: [iv.format, iv.recruiter ? `James joue ${iv.recruiter}` : ""].filter(Boolean).join(" · ") }),
+    h("div", { class: "row" },
+      h("button", { class: "btn primary", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null)), text: "Entretien blanc complet" }),
+      h("span", { class: "muted", style: "font-size:13px", text: `${fluentN} / ${iv.questions.length} réponses prêtes` })),
+    h("h3", { style: "font-size:15px;margin-top:4px", text: "Les questions" }),
+    h("div", { class: "iv-qs" }, iv.questions.map((q, i) => h("div", { class: "iv-q" },
+      h("span", { class: "iv-state " + (q.fluent ? "ok" : q.attempts ? "mid" : ""), title: q.fluent ? "Prête" : q.attempts ? "À retravailler" : "Pas encore travaillée", text: q.fluent ? "✓" : q.attempts ? q.best + "/10" : "·" }),
+      h("div", { style: "min-width:0" }, h("div", { class: "iv-qt", text: q.q }), q.drill ? h("small", { class: "muted", text: "À répéter jusqu'à ce que ce soit fluide" }) : null),
+      h("button", { class: "btn sm", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, i)), text: "S'entraîner" })))),
+    iv.vocab.length ? h("h3", { style: "font-size:15px;margin-top:4px", text: "Prononciation des mots clés" }) : null,
+    iv.vocab.length ? h("div", { class: "iv-vocab" }, iv.vocab.map(v => pronounceChip(l, v))) : null,
+    h("div", { class: "row" },
+      h("button", { class: "btn sm", onclick: () => { delete d.interview; saveLang(l); renderLobby(); }, text: "Nouveau brief" })));
+  return panel;
+}
+/* a key term: listen (British voice, slow), then say it: dictation tells what it understood */
+function pronounceChip(l, v) {
+  const status = h("small", { class: "pr-status", text: v.ok ? "Compris ✓" : "" });
+  const listen = h("button", { class: "btn sm", type: "button", text: "Écouter", onclick: async () => { const s = Voice.slow; Voice.slow = true; await Voice.speak([{ lang: "en", text: v.term }], "en"); Voice.slow = s; } });
+  const say = h("button", { class: "btn sm", type: "button", disabled: !CAP.dictation, title: CAP.dictation ? "" : "Micro indisponible dans cette fenêtre", text: "Je le dis" });
+  say.onclick = () => {
+    const dd = CAP.dictation; if (!dd) return;
+    if (dd.active()) { dd.stop().catch(() => {}); return; }
+    Voice.stop();
+    let heard = [], offs = [];
+    const done = () => {
+      offs.forEach(f => { try { f(); } catch {} }); say.textContent = "Je le dis";
+      const got = heard.join(" ");
+      if (!got) { status.textContent = "Rien entendu, réessaie."; return; }
+      const ok = norm(got).includes(norm(v.term)) || lev(norm(got), norm(v.term)) <= Math.max(1, Math.floor(norm(v.term).length / 8));
+      status.textContent = ok ? "Compris ✓" : `Entendu : « ${got} »`;
+      status.className = "pr-status " + (ok ? "ok" : "ko");
+      if (ok) { v.ok = (v.ok || 0) + 1; saveLang(l); }
+    };
+    offs = [dd.onFinal(({ text }) => { if (str(text)) { heard.push(str(text)); dd.stop().catch(() => {}); } }),
+            dd.onState(({ state }) => { if (state === "listening") say.textContent = "J'écoute…"; if (state === "idle") done(); })];
+    Mic.start("en").catch(e => { offs.forEach(f => f()); say.textContent = "Je le dis"; status.textContent = e?.code === "not_granted" ? "Micro refusé" : "Micro indisponible"; });
+    setTimeout(() => { if (dd.active()) dd.stop().catch(() => {}); }, 6000);
+  };
+  return h("div", { class: "pr-chip" },
+    h("div", { class: "pr-term", text: v.term }),
+    h("div", { class: "pr-ipa", text: [v.say, v.ipa ? `/${v.ipa.replace(/^\/|\/$/g, "")}/` : ""].filter(Boolean).join("  ·  ") }),
+    h("div", { class: "row", style: "gap:6px" }, listen, say), status);
+}
+/* --- the mock interview inside the call --- */
+function mockRules(l) {
+  const iv = S.data[l].interview;
+  return `${TEACHERS.en.intro}
+Aujourd'hui tu fais passer un ENTRETIEN BLANC à ${S.profile.name}, en anglais, en jouant ${iv.recruiter || "le ou la recruteuse"}${iv.company ? " de " + iv.company : ""}, pour le poste : ${iv.role || "le poste visé"}. Format du vrai entretien : ${iv.format || "visio"}.
+LE POSTE : ${iv.job}
+PROFIL DU CANDIDAT : ${iv.profile}
+RÈGLES :
+- Tu suis exactement les consignes entre crochets du dernier message : elles disent quelle question poser ou s'il faut faire refaire une réponse.
+- Dans le rôle, sois une recruteuse réaliste et professionnelle : britannique, bienveillante, précise. Une seule question à la fois. 1 à 3 phrases, à l'oral, pas de liste, pas de markdown.
+- Tu ne corriges pas la réponse dans ta réplique (le coaching écrit s'affiche à côté), sauf si la consigne te demande de sortir du rôle.
+- Les messages qui commencent par [oral] viennent de la reconnaissance vocale.
+FORMAT : uniquement un objet JSON : {"say":[{"lang":"en","text":"ta réplique"}],"new_words":[]}`;
+}
+function mockQueue(spec) {
+  const iv = S.data.en.interview;
+  return spec.mockQ != null ? [spec.mockQ] : iv.questions.map((_, i) => i);
+}
+function mockAsk(i, first) {
+  const iv = S.data.en.interview, q = iv.questions[i];
+  return first
+    ? `[Début de l'entretien. Joue ${iv.recruiter || "la recruteuse"} : salue ${S.profile.name} comme au début d'un appel ${iv.format || "en visio"}, présente-toi en une phrase${iv.company ? " (" + iv.company + ")" : ""}, annonce brièvement le déroulé, puis pose cette question : « ${q.q} »]`
+    : `[Reste dans le rôle. Réagis très brièvement et naturellement à sa réponse (une phrase, sans corriger), puis pose la question suivante : « ${q.q} »]`;
+}
+async function mockAnswer(text, oral, bubble) {
+  const l = "en", d = S.data[l], iv = d.interview, M = C.mock;
+  const qi = M.queue[M.pos], q = iv.questions[qi];
+  C.log.push({ who: "student", text });
+  C.busy = true; Voice.stateCb?.(false);
+  const wait = h("span", { class: "checking", text: "James prépare le coaching de ta réponse…" });
+  bubble.append(wait); scrollLog();
+  let r;
+  try {
+    r = await askJSON(`Tu es un coach d'entretien expert des CRO et de la recherche clinique, et professeur d'anglais britannique. Analyse la réponse orale du candidat à une question d'entretien.
+POSTE : ${iv.role} ${iv.company ? "chez " + iv.company : ""}. ${iv.job}
+PROFIL RÉEL DU CANDIDAT (n'invente rien au-delà) : ${iv.profile}
+QUESTION : ${q.q}
+${q.tips ? "CONSIGNES DU CANDIDAT POUR CETTE QUESTION : " + q.tips + "\n" : ""}${q.prepared ? "RÉPONSE QU'IL AVAIT PRÉPARÉE : " + q.prepared + "\n" : ""}RÉPONSE DONNÉE (transcription vocale : ignore ponctuation et majuscules) : « ${text} »
+Réponds uniquement en JSON, toutes les explications EN ANGLAIS simple et court :
+{"grammar":[{"wrong":"","right":"","why":""}],"vocab":[{"said":"","better":"","why":""}],"structure":"2-3 phrases : contenu, structure (STAR pour une question comportementale), longueur, ce qui manque ou ce qui est risqué",
+"improved":"version améliorée en anglais britannique naturel, à la première personne, fidèle à son profil réel, phrases courtes faciles à dire, 60 à 130 mots selon la question",
+"pronounce":[{"term":"","ipa":"","say":"syllabes, accent en MAJUSCULES"}],"score":7,"fluent":false}
+"fluent" = true seulement si la réponse est prête pour le vrai entretien : contenu complet et pertinent, au plus une petite erreur, structure claire, longueur adaptée. "pronounce" : 2 à 4 mots techniques de la réponse à bien prononcer.`, { effort: "low" });
+  } catch (e) {
+    C.log.pop(); C.busy = false;
+    wait.replaceWith(h("button", { class: "retry", onclick: ev => { ev.currentTarget.remove(); if (!C.busy) mockAnswer(text, oral, bubble); }, text: "Coaching indisponible · réessayer" }));
+    return;
+  }
+  if (!C.open) return;
+  wait.remove();
+  const grammar = arr(r.grammar).filter(g => str(g?.wrong) && str(g?.right));
+  const vocab = arr(r.vocab).filter(v => str(v?.said) && str(v?.better));
+  const score = Math.max(0, Math.min(10, Math.round(Number(r.score) || 0)));
+  const fluent = !!r.fluent && score >= 7;
+  grammar.forEach(g => C.errors.push({ original: str(g.wrong), corrected: str(g.right), explanation: str(g.why), category: "entretien" }));
+  vocab.forEach(v => C.betters.push({ said: str(v.said), better: str(v.better) }));
+  C.analyses.push({ errors: grammar.length, level: null });
+  q.attempts = (q.attempts || 0) + 1; q.best = Math.max(q.best || 0, score); if (fluent) q.fluent = true; q.lastImproved = str(r.improved);
+  saveLang(l);
+  const improved = str(r.improved);
+  const card = h("div", { class: "coach" },
+    h("div", { class: "coach-head" }, h("span", { class: "k", text: "Coaching" }), h("b", { class: fluent ? "ok" : "", text: `${score}/10${fluent ? " · prête ✓" : ""}` })),
+    grammar.length ? h("div", null, h("span", { class: "k", text: "Grammaire" }), grammar.map(g => h("div", null, h("del", { text: str(g.wrong) }), "  →  ", h("ins", { text: str(g.right) }), str(g.why) ? h("p", { text: str(g.why) }) : null))) : null,
+    vocab.length ? h("div", null, h("span", { class: "k", text: "Plus naturel" }), vocab.map(v => h("div", null, h("del", { text: str(v.said) }), "  →  ", h("ins", { text: str(v.better) }), str(v.why) ? h("p", { text: str(v.why) }) : null))) : null,
+    str(r.structure) ? h("div", null, h("span", { class: "k", text: "Structure" }), h("p", { text: str(r.structure) })) : null,
+    improved ? h("div", null, h("span", { class: "k", text: "Version améliorée" }), h("p", { class: "improved", text: improved })) : null,
+    arr(r.pronounce).length ? h("div", { class: "words" }, arr(r.pronounce).filter(p => str(p?.term)).map(p => h("button", { class: "gap-chip", type: "button", title: str(p.ipa), onclick: () => Voice.speak([{ lang: "en", text: str(p.term) }], "en"), text: `🔊 ${str(p.term)} · ${str(p.say)}` }))) : null,
+    h("div", { class: "row" },
+      improved ? h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: improved }], "en"), text: "Écouter la version améliorée" }) : null,
+      h("button", { class: "retry", type: "button", onclick: () => mockNext("redo"), text: "Refaire cette réponse" }),
+      M.pos < M.queue.length - 1 ? h("button", { class: "retry", type: "button", onclick: () => mockNext("next"), text: "Question suivante" }) : null));
+  bubble.append(card); scrollLog();
+  C.busy = false;
+  // drilled questions come back until they are fluent (max 6 tries per lesson)
+  M.tries = (M.tries || 0) + 1;
+  const drill = (q.drill || M.queue.length === 1) && !fluent && M.tries < 6;
+  mockNext(drill ? "redo" : "next", text, oral);
+}
+function mockNext(action, text, oral) {
+  if (!C.open || C.busy) return;
+  const M = C.mock, iv = S.data.en.interview;
+  const answer = text != null ? (oral ? "[oral] " : "") + text + "\n\n" : "";
+  if (action === "redo") {
+    const q = iv.questions[M.queue[M.pos]];
+    teacherTurn(`${answer}[Sors brièvement du rôle, en coach bienveillant : en une phrase, dis le point le plus important à améliorer, puis demande-lui de refaire sa réponse à la même question en s'appuyant sur la version améliorée affichée : « ${q.q} »]`, null);
+    return;
+  }
+  if (text == null) M.tries = 0;
+  if (M.pos >= M.queue.length - 1) {
+    M.finished = true;
+    teacherTurn(`${answer}[C'était la dernière question. Remercie et explique les prochaines étapes comme une vraie recruteuse, puis sors du rôle et donne en 2 phrases les priorités à travailler avant le vrai entretien.]`, null);
+    const log = $("#log");
+    if (log) log.append(h("div", { class: "timeup" }, h("strong", { text: "Entretien terminé." }), h("p", { text: "Raccroche pour ton bilan et tes devoirs, ou refais une question depuis le carnet." }), h("button", { class: "retry", onclick: () => endCall(), text: "Terminer et voir mon bilan" })));
+    return;
+  }
+  M.pos++; M.tries = 0;
+  teacherTurn(answer + mockAsk(M.queue[M.pos], false), null);
 }
 
 /* =========================================================
@@ -1215,6 +1451,7 @@ function phaseHint() {
   return `le temps prévu (${tot} min) est écoulé : conclus MAINTENANT en 1 ou 2 phrases (mini récapitulatif, au revoir) et mets "done": true.`;
 }
 function convRules(l) {
+  if (C.spec?.type === "mock" && S.data[l].interview) return mockRules(l);
   const d = S.data[l];
   const due = C.targets.map(v => `${v.w} (${v.m})`).join(", ");
   const diag = !d.assessed;
@@ -1346,6 +1583,7 @@ function renderLobby() {
               h("span", { class: "label", text: `${tn(l)} est en ligne · séance du jour` }),
               joinBlock(l),
               !CAP.sample ? h("p", { style: "margin:0;color:#f0c05a;font-size:13px", text: window.claude?.use ? "Claude n'est pas disponible ici : connecte-toi à claude.ai pour parler avec ton prof." : "Ouvre cette page dans Claude pour lancer la visio." }) : null))),
+        interviewPanel(l),
         programPanel(l),
         soundCheckPanel(l),
         homeworkPanel(l)),
@@ -1388,7 +1626,7 @@ function buildCustom(l, box) {
   const c = S.custom;
   const chipRow = (items, isOn, onPick, label) => h("div", { class: "chips", role: "group", "aria-label": label }, items.map(([val, text]) =>
     h("button", { class: "chip", type: "button", "aria-pressed": String(isOn(val)), onclick: () => { onPick(val); renderLobby(); }, text })));
-  const types = Object.keys(TYPES).filter(t => t !== "diag" && !(t === "interview" && l !== "en") && !((t === "debate" || t === "idioms") && isLow(l)));
+  const types = Object.keys(TYPES).filter(t => t !== "diag" && t !== "mock" && !(t === "interview" && l !== "en") && !((t === "debate" || t === "idioms") && isLow(l)));
   const sugg = (() => {
     const b = BANK[l], low = isLow(l);
     if (DOMAIN_TYPES.includes(c.type)) {
@@ -1928,7 +2166,7 @@ const C = { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [],
 
 function startCall(spec) {
   const l = S.cur, d = S.data[l];
-  C.spec = { ...spec }; C.timeUp = false; C.objectives = buildObjectives(l);
+  C.spec = { ...spec }; C.timeUp = false; C.objectives = buildObjectives(l); C.mock = null;
   Object.assign(C, { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], used: new Set(),
     targets: dueWords(l, 6), liveLevel: d.assessed ? d.level : null,
     start: now(), busy: false, finals: [], listening: false, lastSay: null, lastTeacherText: "", pending: null, open: true, micOffs: [] });
@@ -1986,6 +2224,11 @@ function startCall(spec) {
   }, 1000);
   setupMic(micBtn);
   document.addEventListener("keydown", spaceKey);
+  if (C.spec.type === "mock" && d.interview) {
+    C.mock = { queue: mockQueue(C.spec), pos: 0, tries: 0 };
+    teacherTurn(mockAsk(C.mock.queue[0], true), null);
+    return;
+  }
   teacherTurn(`[La séance commence : ${TYPES[C.spec.type].name}, « ${C.spec.topic} », ${C.spec.minutes} minutes. Salue ${S.profile.name} par son prénom comme au début d'une visio, annonce en une phrase ce qu'on va faire aujourd'hui${d.homework.at(-1)?.status === "todo" ? ", demande d'un mot s'il a pu faire ses devoirs" : ""}, puis lance directement l'activité.]`, null);
 }
 function spaceKey(e) {
@@ -2131,6 +2374,7 @@ function userSays(text, oral, isHelp) {
   const bubble = h("div", { class: "msg u" + (isHelp ? " help" : "") }, h("span", { class: "who", text: S.profile.name }), h("div", { class: "bubble", text }));
   $("#log")?.append(bubble); scrollLog();
   const content = (oral ? "[oral] " : "") + text;
+  if (C.spec?.type === "mock" && C.mock && !isHelp) { mockAnswer(text, oral, bubble); return; }
   if (!isHelp) {
     C.log.push({ who: "student", text });
     analyse(content, bubble);
@@ -2372,7 +2616,7 @@ NIVEAUX OBSERVÉS RÉPLIQUE PAR RÉPLIQUE : ${signals}
 7. "strengths" : 0 à 3 points forts précis.
 8. "vocab_gaps" : 0 à 6 mots ou expressions supplémentaires qu'il devrait apprendre vu ce qu'il a voulu dire (avec article pour les noms ; "meaning" = définition simple EN ${LANGS[l].name.toUpperCase()}, jamais de traduction ; exemple court).
 9. "homework" : 6 à 8 exercices CIBLÉS : la moitié sur ses lacunes les plus fréquentes, au moins 2 sur le vocabulaire (mots qui lui ont manqué et mots à réviser), et 1 production écrite ("write") de ${isBeginner ? "2-3 phrases simples" : "80-120 mots"} qui oblige à réemployer ces mots. Types : "fill" (phrase à trous ___), "answer" (répondre à une question avec une phrase complète), "rephrase" (reformuler une phrase avec un mot ou une structure imposée), "qcm" (3 "options"), "write". AUCUNE traduction et AUCUN français : toutes les consignes et indices EN ${LANGS[l].name.toUpperCase()}, simples. "expected" = réponse attendue (sauf "write"). Difficulté adaptée au niveau RÉEL.
-${l === "en" ? `Pour James : l'objectif est professionnel (${goalEn()}). Au moins 3 exercices sur le vocabulaire professionnel de la recherche clinique et de la santé vu ou manquant aujourd'hui, et la production écrite peut être une réponse d'entretien ou un e-mail professionnel.\n` : `Pour Elena : l'objectif est de converser avec des Espagnols ; privilégie les phrases utiles à l'oral et les réponses à des questions de la vie réelle.\n`}10. "next_goal" : objectif du prochain cours, en une phrase, un cran plus exigeant qu'aujourd'hui.
+${spec.type === "mock" && d.interview ? `C'était un ENTRETIEN BLANC pour le poste ${d.interview.role}${d.interview.company ? " chez " + d.interview.company : ""} (entretien réel : ${d.interview.date || "bientôt"}). Les devoirs : réécrire au propre les 2 réponses les plus faibles en version courte et naturelle, et le vocabulaire clé du poste.\n` : ""}${l === "en" ? `Pour James : l'objectif est professionnel (${goalEn()}). Au moins 3 exercices sur le vocabulaire professionnel de la recherche clinique et de la santé vu ou manquant aujourd'hui, et la production écrite peut être une réponse d'entretien ou un e-mail professionnel.\n` : `Pour Elena : l'objectif est de converser avec des Espagnols ; privilégie les phrases utiles à l'oral et les réponses à des questions de la vie réelle.\n`}10. "next_goal" : objectif du prochain cours, en une phrase, un cran plus exigeant qu'aujourd'hui.
 11. "objectives" : pour chaque objectif de la séance ci-dessous, "achieved" = true seulement si l'élève l'a clairement réussi dans la transcription, et une note courte en français.
 ${objectives.filter(o => o.kind !== "metric").map(o => `   - id "${o.id}" : ${o.text}`).join("\n") || "   (aucun)"}
 12. "demonstrated" : parmi ces points du programme, ceux que l'élève a utilisés correctement et sans aide (copie le texte exact) : ${nextItems(l, 12).map(x => x.item).join(" | ")}
@@ -2383,7 +2627,7 @@ Réponds uniquement en JSON :
   let r;
   try { r = await askJSON(prompt, {}); }
   catch (e) {
-    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `${sessionTitle(spec)} (bilan non généré)`, type: spec.type, topic: spec.topic, domain: spec.domain, metrics });
+    d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: `${sessionTitle(spec)} (bilan non généré)`, type: spec.type, topic: spec.topic, domain: spec.domain, metrics, ...(spec.type === "mock" ? { mockQ: spec.mockQ ?? null } : {}) });
     d.lastObjectives = objectives; updatePlateau(l);
     applyWeakness(l, Object.entries(snapshot.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
     saveLang(l);
@@ -2395,7 +2639,7 @@ Réponds uniquement en JSON :
   if (LEVELS.includes(r.level)) { d.level = r.level; d.assessed = true; d.levelNote = str(r.level_note).slice(0, 160); }
   if (r.skills && typeof r.skills === "object") for (const [k] of SKILLS) { const v = Number(r.skills[k]); if (Number.isFinite(v)) d.skills[k] = Math.round(Math.max(0, Math.min(100, v))); }
   applyWeakness(l, r.weakness_updates); addStrengths(l, r.strengths); addVocab(l, r.vocab_gaps, "lacune", spec.domain);
-  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || sessionTitle(spec), next: str(r.next_goal), type: spec.type, topic: spec.topic, domain: spec.domain, metrics });
+  d.sessions.push({ date: today(), minutes, errors: snapshot.errors.length, summary: str(r.summary) || sessionTitle(spec), next: str(r.next_goal), type: spec.type, topic: spec.topic, domain: spec.domain, metrics, ...(spec.type === "mock" ? { mockQ: spec.mockQ ?? null } : {}) });
   // objectives and skill ladder
   const res = new Map(arr(r.objectives).map(o => [str(o?.id), o]));
   for (const o of objectives) if (o.kind !== "metric") { const x = res.get(o.id); o.achieved = !!x?.achieved; o.note = str(x?.note).slice(0, 140); }
