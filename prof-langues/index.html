@@ -449,7 +449,7 @@ const LANGS = {
 };
 const TEACHERS = {
   es: { name: "Elena", intro: "Tu es Elena, professeure particulière d'espagnol, née et élevée à Séville, chaleureuse, drôle et exigeante. Tu parles l'espagnol d'Espagne (vosotros, vocabulaire d'Espagne)." },
-  en: { name: "James", intro: "Tu es James, Londonien né et élevé à Londres, ancien attaché de recherche clinique (CRA) devenu chef de projet dans une CRO, aujourd'hui coach d'anglais professionnel pour les métiers de la recherche clinique et de la santé. Chaleureux, posé et exigeant. Tu parles un anglais britannique soigné et professionnel, celui d'un cadre d'une entreprise pharmaceutique à Londres : naturel, précis, poli, phrases claires et bien construites, vocabulaire et orthographe britanniques (flat, schedule, colleague, programme…), jamais américain. PAS d'argot ni de familiarités forcées : jamais « mate », « hiya », « cheers », « innit », « bloody », « brilliant » à tout bout de champ. Tu parles comme dans une vraie réunion ou un vrai entretien professionnel au Royaume-Uni." }
+  en: { name: "Emma", intro: "Tu es Emma, Londonienne née et élevée à Londres, ancienne attachée de recherche clinique (CRA) devenue cheffe de projet dans une CRO, aujourd'hui coach d'anglais professionnel pour les métiers de la recherche clinique et de la santé. Chaleureuse, posée et exigeante. Tu parles un anglais britannique soigné et professionnel, celui d'un cadre d'une entreprise pharmaceutique à Londres : naturel, précis, poli, phrases claires et bien construites, vocabulaire et orthographe britanniques (flat, schedule, colleague, programme…), jamais américain. PAS d'argot ni de familiarités forcées : jamais « mate », « hiya », « cheers », « innit », « bloody », « brilliant » à tout bout de champ. Tu parles comme dans une vraie réunion ou un vrai entretien professionnel au Royaume-Uni." }
 };
 const tn = l => TEACHERS[l === "en" ? "en" : "es"].name;
 const CLAUDE_VOICES = ["buttery", "airy", "glassy", "rounded"];
@@ -457,11 +457,11 @@ const ACCENT_CODE = { en: "en-GB", es: "es-ES" };
 // a computer voice the student picked by name (any accent they liked when listening)
 const chosenSystemVoice = l => { const n = str(S.profile?.voices?.[l]); return n && !n.startsWith("claude:") && "speechSynthesis" in window ? Voice.voicesFor(l).find(v => v.name === n) || null : null; };
 const wantsClaudeVoice = l => str(S.profile?.voices?.[l]).startsWith("claude:");
-// James: Claude's natural en-GB voice by default (Chrome's British voice is old, robotic and can switch
+// Emma: Claude's natural en-GB voice by default (Chrome's British voice is old, robotic and can switch
 // to the computer's French voice mid-sentence). Elena keeps the computer's Spanish voice the student liked.
 const claudeFirst = l => l === "en" && !!CAP.tts;
 const claudeVoice = l => { const v = str(S.profile?.voices?.[l]).replace("claude:", ""); return CLAUDE_VOICES.includes(v) ? v : l === "en" ? "rounded" : "airy"; };
-const deTn = l => (l === "en" ? "de James" : "d'Elena");
+const deTn = l => (l === "en" ? "d'Emma" : "d'Elena");
 const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
 const LEVEL_LABEL = { A0: "A0 · grand débutant", A1: "A1 · débutant", A2: "A2 · élémentaire", B1: "B1 · intermédiaire", B2: "B2 · avancé", C1: "C1 · autonome", C2: "C2 · maîtrise" };
 const SKILLS = [["grammaire", "Grammaire"], ["vocabulaire", "Vocabulaire"], ["aisance", "Aisance orale"], ["comprehension", "Compréhension"]];
@@ -587,7 +587,7 @@ function topicFor(l, type, avoid = []) {
   if (type === "role") return pick(b.role, avoid);
   if (type === "debate") return pick(low ? b.high : (l === "en" && Math.random() < .75 ? b.debate.slice(0, 6) : b.debate), avoid);
   if (type === "review") return l === "es" ? "Tus palabras y tus errores" : "Your words and your mistakes";
-  // James: debates and idioms lean towards the professional world (first entries) 3 times out of 4
+  // Emma: debates and idioms lean towards the professional world (first entries) 3 times out of 4
   const proFirst = (list, n) => (l === "en" && Math.random() < .75 ? list.slice(0, n) : list);
   if (type === "idioms") return pick(proFirst(b.idioms, 4), avoid);
   if (type === "grammar") {
@@ -677,7 +677,7 @@ const DOMAINS = [
   { id: "actu", name: "Actualité & société", esL: ["Las noticias de hoy", "Mi país"], esH: ["La actualidad", "Los jóvenes y la política"], enL: ["The news"], enH: ["The news this week", "Is a four-day week realistic?", "Should social media be banned for under-16s?"], esR: ["Una encuesta en la calle"], enR: ["Being interviewed on the street by a journalist"] },
 ];
 
-// richer, UK-based real-life material for James (advanced learners)
+// richer, UK-based real-life material for Emma (advanced learners)
 const EXTRA_EN = {
   identite: { enH: ["Where you see yourself in five years", "Expat life and identity"], enR: ["Introducing yourself at a London dinner party"] },
   famille: { enH: ["Parenting styles", "Living with your parents as an adult"], enR: ["Sorting out a family argument at Christmas"] },
@@ -707,7 +707,7 @@ const EXTRA_EN = {
 for (const dm of DOMAINS) { const x = EXTRA_EN[dm.id]; if (x) { dm.enH = [...dm.enH, ...arr(x.enH)]; dm.enR = [...dm.enR, ...arr(x.enR)]; } }
 
 /* =========================================================
-   English for clinical research careers (James): professional domains
+   English for clinical research careers (Emma): professional domains
    ========================================================= */
 const PRO_DOMAINS = [
   { id: "p_trials", pro: true, name: "Essais cliniques : phases & design", enH: ["Phase I to IV: what changes at each stage", "Randomisation, blinding and placebo", "Primary and secondary endpoints", "Inclusion and exclusion criteria", "Adaptive and decentralised trials"], enR: ["Explaining your trial design to a new colleague", "Discussing eligibility criteria with a principal investigator"] },
@@ -876,7 +876,7 @@ function progressionSection(l) {
 
 
 /* =========================================================
-   Interview preparation (James): the student pastes a brief, Claude structures it,
+   Interview preparation (Emma): the student pastes a brief, Claude structures it,
    then mock interviews question by question with coaching after every answer
    ========================================================= */
 const ACCENT_RULE = `${'"accent" : les mots que la reconnaissance vocale a visiblement mal compris révèlent un problème de prononciation ; pour chacun {"heard","meant","issue" (son en cause : th, h, i / ee, accent tonique, -ed, voyelles faibles, r, rythme),"tip" (conseil en anglais simple)}. Maximum 3, vide si rien de net.'}`;
@@ -919,12 +919,12 @@ function interviewPanel(l) {
     const go = h("button", { class: "btn primary", disabled: !CAP.sample, text: "Préparer mon entretien" });
     go.onclick = async () => {
       if (ta.value.trim().length < 80) { toast("Colle un brief un peu plus complet (poste, profil, questions)."); return; }
-      go.disabled = true; go.textContent = "James lit ton brief…";
+      go.disabled = true; go.textContent = "Emma lit ton brief…";
       try { d.interview = await parseBrief(l, ta.value); d.interview.raw = ta.value.slice(0, 14000); saveLang(l); renderLobby(); toast("Entretien préparé : ton programme commence par un entretien blanc."); }
       catch (e) { go.disabled = false; go.textContent = "Préparer mon entretien"; toast(errCopy(e)); }
     };
     panel.append(h("h2", { text: "Préparer un entretien" }),
-      h("p", { class: "lvl-note", text: "James lit ton brief, joue la personne qui te fait passer l'entretien, te pose les questions une par une et corrige chaque réponse (grammaire, mots plus naturels, version améliorée, prononciation). Tes informations restent privées dans ton compte." }),
+      h("p", { class: "lvl-note", text: "Emma lit ton brief, joue la personne qui te fait passer l'entretien, te pose les questions une par une et corrige chaque réponse (grammaire, mots plus naturels, version améliorée, prononciation). Tes informations restent privées dans ton compte." }),
       ta, go);
     return panel;
   }
@@ -934,7 +934,7 @@ function interviewPanel(l) {
     h("div", { class: "vocab-head" }, h("h2", { text: "Ton entretien" }),
       dd != null ? h("span", { class: "pill " + (dd <= 3 ? "todo" : ""), text: dd > 0 ? `J-${dd}` : dd === 0 ? "Aujourd'hui" : "Passé" }) : null),
     h("p", { style: "margin:0;font-weight:600", text: [iv.role, iv.company].filter(Boolean).join(" · ") }),
-    h("p", { class: "lvl-note", text: [iv.format, iv.recruiter ? `James joue ${iv.recruiter}` : ""].filter(Boolean).join(" · ") }),
+    h("p", { class: "lvl-note", text: [iv.format, iv.recruiter ? `Emma joue ${iv.recruiter}` : ""].filter(Boolean).join(" · ") }),
     h("div", { class: "row" },
       h("button", { class: "btn primary", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null)), text: "Entretien blanc complet" }),
       h("span", { class: "muted", style: "font-size:13px", text: `${fluentN} / ${iv.questions.length} réponses prêtes` })),
@@ -1007,7 +1007,7 @@ async function mockAnswer(text, oral, bubble) {
   const qi = M.queue[M.pos], q = iv.questions[qi];
   C.log.push({ who: "student", text });
   C.busy = true; Voice.stateCb?.(false);
-  const wait = h("span", { class: "checking", text: "James prépare le coaching de ta réponse…" });
+  const wait = h("span", { class: "checking", text: "Emma prépare le coaching de ta réponse…" });
   bubble.append(wait); scrollLog();
   let r;
   try {
@@ -1250,74 +1250,73 @@ const Avatar = (() => {
     x.setTransform(1, 0, 0, 1, 0, 0);
     x.drawImage(drawBg(w, hgt), 0, 0);
     const portrait = cv.dataset.mode === "portrait";
-    const male = cv.dataset.teacher === "en";
+    // Elena (Spanish): long dark hair, teal jumper, orange scarf. Emma (English): auburn bob, navy blazer, glasses
+    const emma = cv.dataset.teacher === "en";
+    const P = emma ? { top: "#26324a", skin: "#e8b896", neck: "#d9a582", hair: "#9a4e2c", shine: "rgba(255,220,180,.14)", blush: "rgba(214,96,80,.14)", brow: "#6e3a1f" }
+                   : { top: "#1f5a6b", skin: "#dca07c", neck: "#c98d6b", hair: "#2d1c14", shine: "rgba(255,255,255,.07)", blush: "rgba(214,96,80,.18)", brow: "#2d1c14" };
     const s = portrait ? Math.min(w, hgt) / 300 : Math.min(w / 520, hgt / 360);
     const sway = st.listening ? 0 : Math.sin(t * .7) * 2;
     const bob = Math.sin(t * (st.speaking ? 3.2 : 1.1)) * (st.speaking ? 2.2 : 1) + (st.listening ? Math.max(0, Math.sin(t * 2.4)) * 3 : 0);
     const breathe = 1 + Math.sin(t * 1.6) * .006;
     const cx = w / 2 + sway * s, cy = (portrait ? hgt * .48 : hgt * .5);
     x.save(); x.translate(cx, cy); x.scale(s, s);
-    // shoulders / sweater (breathing)
+    // shoulders (breathing)
     x.save(); x.translate(0, 120); x.scale(breathe, breathe); x.translate(0, -120);
-    x.fillStyle = male ? "#283a5b" : "#1f5a6b";
+    x.fillStyle = P.top;
     x.beginPath(); x.moveTo(-175, 270); x.bezierCurveTo(-165, 150, -92, 118, 0, 116); x.bezierCurveTo(92, 118, 165, 150, 175, 270); x.closePath(); x.fill();
-    x.fillStyle = "rgba(0,0,0,.12)";
-    x.beginPath(); x.moveTo(-60, 270); x.quadraticCurveTo(-70, 180, -40, 128); x.lineTo(-30, 128); x.quadraticCurveTo(-56, 190, -48, 270); x.fill();
+    if (emma) {
+      // white top in the blazer's V, lapels
+      x.fillStyle = "#f1f3f6";
+      x.beginPath(); x.moveTo(-34, 118); x.lineTo(34, 118); x.lineTo(0, 200); x.closePath(); x.fill();
+      x.strokeStyle = "rgba(0,0,0,.25)"; x.lineWidth = 3;
+      x.beginPath(); x.moveTo(-36, 118); x.lineTo(-6, 206); x.moveTo(36, 118); x.lineTo(6, 206); x.stroke();
+    } else {
+      x.fillStyle = "rgba(0,0,0,.12)";
+      x.beginPath(); x.moveTo(-60, 270); x.quadraticCurveTo(-70, 180, -40, 128); x.lineTo(-30, 128); x.quadraticCurveTo(-56, 190, -48, 270); x.fill();
+    }
     x.restore();
     // head group (bob + tilt)
     x.save(); x.translate(0, bob); x.rotate(Math.sin(t * .5) * .015 + (st.thinking ? .04 : 0));
-    // back hair, falling past shoulders (Elena only)
-    x.fillStyle = male ? "transparent" : "#2d1c14";
+    // back hair: Elena's falls past the shoulders, Emma's is a chin-length bob
+    x.fillStyle = P.hair;
     x.beginPath(); x.moveTo(-70, -16);
     x.bezierCurveTo(-92, -112, 92, -112, 70, -16);
-    x.bezierCurveTo(84, 40, 78, 96, 96, 128);
-    x.quadraticCurveTo(70, 140, 46, 118);
-    x.lineTo(-46, 118);
-    x.quadraticCurveTo(-70, 140, -96, 128);
-    x.bezierCurveTo(-78, 96, -84, 40, -70, -16);
-    x.fill();
-    // scarf + neck
-    x.fillStyle = male ? "#d4a07f" : "#c98d6b"; x.fillRect(male ? -26 : -22, 58, male ? 52 : 44, 64);
-    x.fillStyle = "rgba(0,0,0,.09)"; x.fillRect(male ? -26 : -22, 58, male ? 52 : 44, 18);
-    if (male) {
-      // open shirt collar under the jumper
-      x.fillStyle = "#e9eef2";
-      x.beginPath(); x.moveTo(-30, 112); x.lineTo(0, 150); x.lineTo(-8, 162); x.lineTo(-44, 126); x.closePath(); x.fill();
-      x.beginPath(); x.moveTo(30, 112); x.lineTo(0, 150); x.lineTo(8, 162); x.lineTo(44, 126); x.closePath(); x.fill();
+    if (emma) {
+      x.bezierCurveTo(82, 22, 82, 52, 76, 70); x.quadraticCurveTo(54, 80, 40, 62);
+      x.lineTo(-40, 62); x.quadraticCurveTo(-54, 80, -76, 70); x.bezierCurveTo(-82, 52, -82, 22, -70, -16);
     } else {
+      x.bezierCurveTo(84, 40, 78, 96, 96, 128); x.quadraticCurveTo(70, 140, 46, 118);
+      x.lineTo(-46, 118); x.quadraticCurveTo(-70, 140, -96, 128); x.bezierCurveTo(-78, 96, -84, 40, -70, -16);
+    }
+    x.fill();
+    // neck (+ Elena's scarf)
+    x.fillStyle = P.neck; x.fillRect(-22, 58, 44, 64);
+    x.fillStyle = "rgba(0,0,0,.09)"; x.fillRect(-22, 58, 44, 18);
+    if (!emma) {
       x.fillStyle = "#c6531f";
       x.beginPath(); x.moveTo(-48, 112); x.quadraticCurveTo(0, 150, 48, 112); x.lineTo(42, 134); x.quadraticCurveTo(0, 170, -42, 134); x.closePath(); x.fill();
+    } else {
+      x.strokeStyle = "#e9d9b8"; x.lineWidth = 2;   // fine necklace
+      x.beginPath(); x.moveTo(-20, 96); x.quadraticCurveTo(0, 116, 20, 96); x.stroke();
     }
     // face
-    x.fillStyle = male ? "#e4b493" : "#dca07c";
-    x.beginPath(); x.ellipse(0, 0, male ? 64 : 62, male ? 78 : 76, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = P.skin;
+    x.beginPath(); x.ellipse(0, 0, 62, 76, 0, 0, Math.PI * 2); x.fill();
     x.beginPath(); x.ellipse(-62, 6, 9, 15, 0, 0, Math.PI * 2); x.ellipse(62, 6, 9, 15, 0, 0, Math.PI * 2); x.fill();
-    if (!male) { x.fillStyle = "#e3b341"; x.beginPath(); x.arc(-63, 26, 4, 0, Math.PI * 2); x.arc(63, 26, 4, 0, Math.PI * 2); x.fill(); }
-    if (male) {
-      // short brown hair with a side parting, sideburns, light stubble
-      x.fillStyle = "#6b4a2f";
-      x.beginPath();
-      x.moveTo(-66, -12);
-      x.bezierCurveTo(-76, -72, -40, -102, 2, -102);
-      x.bezierCurveTo(46, -102, 78, -72, 66, -12);
-      x.lineTo(60, -30);
-      x.bezierCurveTo(52, -54, 30, -62, 8, -60);
-      x.bezierCurveTo(-14, -68, -46, -58, -58, -32);
-      x.closePath(); x.fill();
-      x.fillRect(-66, -36, 8, 30); x.fillRect(58, -36, 8, 30);
-      x.strokeStyle = "rgba(255,255,255,.12)"; x.lineWidth = 2;
-      x.beginPath(); x.moveTo(-22, -96); x.quadraticCurveTo(-26, -78, -30, -62); x.stroke();
-      x.fillStyle = "rgba(80,55,35,.10)";
-      x.beginPath(); x.ellipse(0, 36, 50, 40, 0, .12 * Math.PI, .88 * Math.PI); x.lineTo(0, 30); x.closePath(); x.fill();
-      x.beginPath(); x.ellipse(0, 31, 17, 5, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = emma ? "#f4efe6" : "#e3b341";   // pearls / gold earrings
+    x.beginPath(); x.arc(-63, 26, 4, 0, Math.PI * 2); x.arc(63, 26, 4, 0, Math.PI * 2); x.fill();
+    // fringe: side-swept
+    x.fillStyle = P.hair;
+    if (emma) {
+      x.beginPath(); x.moveTo(-66, -6); x.bezierCurveTo(-74, -84, 4, -102, 34, -88); x.bezierCurveTo(66, -76, 74, -40, 66, 4);
+      x.bezierCurveTo(56, -30, 40, -48, 22, -54); x.bezierCurveTo(-4, -62, -40, -50, -66, -6); x.fill();
+    } else {
+      x.beginPath(); x.moveTo(-66, -8); x.bezierCurveTo(-72, -82, -10, -98, 20, -86); x.bezierCurveTo(62, -80, 74, -40, 66, -4);
+      x.bezierCurveTo(50, -46, 20, -58, -8, -50); x.bezierCurveTo(-34, -44, -54, -30, -66, -8); x.fill();
     }
-    // fringe
-    x.fillStyle = male ? "transparent" : "#2d1c14";
-    x.beginPath(); x.moveTo(-66, -8); x.bezierCurveTo(-72, -82, -10, -98, 20, -86); x.bezierCurveTo(62, -80, 74, -40, 66, -4);
-    x.bezierCurveTo(50, -46, 20, -58, -8, -50); x.bezierCurveTo(-34, -44, -54, -30, -66, -8); x.fill();
-    if (!male) { x.fillStyle = "rgba(255,255,255,.07)"; x.beginPath(); x.ellipse(10, -72, 26, 6, -.3, 0, Math.PI * 2); x.fill(); }
+    x.fillStyle = P.shine; x.beginPath(); x.ellipse(10, -72, 26, 6, -.3, 0, Math.PI * 2); x.fill();
     // cheeks
-    x.fillStyle = male ? "rgba(214,96,80,.07)" : "rgba(214,96,80,.18)";
+    x.fillStyle = P.blush;
     x.beginPath(); x.ellipse(-34, 22, 14, 9, 0, 0, Math.PI * 2); x.ellipse(34, 22, 14, 9, 0, 0, Math.PI * 2); x.fill();
     // eyes
     st.nextBlink -= dt;
@@ -1341,8 +1340,15 @@ const Avatar = (() => {
       x.strokeStyle = "#2d1c14"; x.lineWidth = 2.2; x.lineCap = "round";
       x.beginPath(); x.ellipse(ex, -6, 11.5, 7.5 * open + .3, 0, Math.PI * 1.05, Math.PI * 1.95); x.stroke();
     }
+    if (emma) {
+      // thin rectangular glasses
+      x.strokeStyle = "#3a2a22"; x.lineWidth = 2.4;
+      for (const ex of [-24, 24]) { x.beginPath(); x.roundRect ? x.roundRect(ex - 16, -17, 32, 22, 7) : x.rect(ex - 16, -17, 32, 22); x.stroke(); }
+      x.beginPath(); x.moveTo(-8, -9); x.quadraticCurveTo(0, -13, 8, -9); x.stroke();
+      x.beginPath(); x.moveTo(-40, -10); x.lineTo(-58, -6); x.moveTo(40, -10); x.lineTo(58, -6); x.stroke();
+    }
     const browLift = st.speaking ? Math.max(0, noise(t * 1.3)) * 3 : st.listening ? 2 : 0;
-    x.strokeStyle = male ? "#4e3420" : "#2d1c14"; x.lineWidth = male ? 4.6 : 3.4;
+    x.strokeStyle = P.brow; x.lineWidth = 3.4;
     x.beginPath(); x.moveTo(-36, -22 - browLift); x.quadraticCurveTo(-24, -29 - browLift, -12, -24 - browLift); x.stroke();
     x.beginPath(); x.moveTo(12, -24 - browLift); x.quadraticCurveTo(24, -29 - browLift, 36, -22 - browLift); x.stroke();
     x.strokeStyle = "rgba(120,64,40,.45)"; x.lineWidth = 2;
@@ -1358,7 +1364,7 @@ const Avatar = (() => {
       x.strokeStyle = "#b5524a"; x.lineWidth = 2.6;
       x.beginPath(); x.ellipse(0, 40, 15.5 - m * 3, 3.5 + m * 10, 0, 0, Math.PI * 2); x.stroke();
     } else {
-      x.strokeStyle = male ? "#9a4a40" : "#a8453e"; x.lineWidth = 3; x.lineCap = "round";
+      x.strokeStyle = "#a8453e"; x.lineWidth = 3; x.lineCap = "round";
       x.beginPath(); x.moveTo(-15, 38); x.quadraticCurveTo(0, st.thinking ? 41 : 47, 15, 38); x.stroke();
     }
     x.restore(); // head
@@ -1412,7 +1418,7 @@ const Voice = {
     });
     try { this._browserVoices = speechSynthesis.getVoices() || []; } catch {}
   },
-  // best native voice: British man for James, Spain-Spanish woman for Elena; never a French voice
+  // best native voice: British voice for Emma, Spain-Spanish woman for Elena; never a French voice
   _lock: {},
   voicesFor(lang) { return (this._browserVoices || []).filter(v => (v.lang || "").replace("_", "-").toLowerCase().startsWith(lang)); },
   pickVoice(lang) {
@@ -1438,13 +1444,13 @@ const Voice = {
       if (/natural|neural|premium|enhanced/i.test(n)) sc += 15;
       if (v.localService) sc += 12;
       else if (/google/i.test(n)) sc += 4;
-      if (lang === "en") { if (MALE_EN.test(n)) sc += 30; if (FEMALE.test(n)) sc -= 30; }
+      if (lang === "en") { if (FEMALE.test(n)) sc += 30; if (MALE_EN.test(n)) sc -= 10; }   // Emma: prefer a woman's voice
       if (lang === "es" && FEMALE_ES.test(n)) sc += 20;
       if (sc > bs) { bs = sc; best = v; }
     }
     return best;
   },
-  // James always uses a real British voice when the computer has one
+  // Emma always uses a real British voice when the computer has one
   nativeVoice(lang) {
     const v = this.pickVoice(lang); if (!v) return null;
     const vl = (v.lang || "").replace("_", "-").toLowerCase();
@@ -1674,8 +1680,8 @@ function renderOnboarding() {
       render();
     } },
     cv,
-    h("div", null, h("p", { class: "label", text: "Tes profs : Elena (español) · James (English)" }), h("h1", { text: "¡Hola! Comment tu t'appelles ?" })),
-    h("p", { class: "muted", text: "Elena (Séville) et James (Londres) te parlent en visio et corrigent chacune de tes erreurs. Ils mesurent ton vrai niveau pendant le premier cours, suivent tes lacunes et ton vocabulaire, et te donnent des devoirs ciblés après chaque séance." }),
+    h("div", null, h("p", { class: "label", text: "Tes profs : Elena (español) · Emma (English)" }), h("h1", { text: "¡Hola! Comment tu t'appelles ?" })),
+    h("p", { class: "muted", text: "Elena (Séville) et Emma (Londres) te parlent en visio et corrigent chacune de tes erreurs. Ils mesurent ton vrai niveau pendant le premier cours, suivent tes lacunes et ton vocabulaire, et te donnent des devoirs ciblés après chaque séance." }),
     h("div", { class: "field" }, h("label", { for: "onb-name", text: "Ton prénom" }), h("input", { id: "onb-name", autocomplete: "given-name", placeholder: "Ton prénom", required: true, maxlength: "40" })),
     h("div", { class: "onb-row" },
       h("div", { class: "field" }, h("label", { for: "onb-en", text: "Ton niveau ressenti en anglais" }), levelSelect("onb-en", "C1")),
@@ -1719,7 +1725,7 @@ function renderLobby() {
 
   root.append(h("div", { class: "wrap" },
     h("header", { class: "top" },
-      h("div", { class: "brand" }, brandCv, h("div", null, h("h1", { text: l === "en" ? "Lessons with James" : "Clase con Elena" }), h("span", { class: "label", text: Store.online ? "Progrès sauvegardés sur ton compte" : "Progrès sauvegardés sur cet appareil" }))),
+      h("div", { class: "brand" }, brandCv, h("div", null, h("h1", { text: l === "en" ? "Lessons with Emma" : "Clase con Elena" }), h("span", { class: "label", text: Store.online ? "Progrès sauvegardés sur ton compte" : "Progrès sauvegardés sur cet appareil" }))),
       h("div", { class: "lang-tabs" }, tab("es"), tab("en"))),
     h("h2", { class: "hello", text: greet }),
     h("p", { class: "muted", text: bits.join(" ") }),
@@ -1838,10 +1844,10 @@ function lifePanel(l) {
   if (l === "en") {
     const goal = h("textarea", { id: "goal-en", rows: 3, class: "goal", "aria-label": "Ton objectif professionnel" });
     goal.value = goalEn();
-    goal.addEventListener("change", () => { S.profile.goalEn = goal.value.trim(); saveProfile(); toast("Objectif enregistré : James s'y adapte dès le prochain cours."); });
+    goal.addEventListener("change", () => { S.profile.goalEn = goal.value.trim(); saveProfile(); toast("Objectif enregistré : Emma s'y adapte dès le prochain cours."); });
     return h("section", { class: "panel" },
       h("div", { class: "vocab-head" }, h("h2", { text: "Ton anglais pro" }), h("span", { class: "pill", text: `${count(PRO_DOMAINS)} domaines pro abordés` })),
-      h("label", { class: "field", style: "gap:4px" }, h("span", { class: "label", text: "Ton objectif (James construit les cours dessus)" }), goal),
+      h("label", { class: "field", style: "gap:4px" }, h("span", { class: "label", text: "Ton objectif (Emma construit les cours dessus)" }), goal),
       h("p", { class: "lvl-note", text: "Environ 4 séances sur 5 portent sur la recherche clinique, la santé et ton futur métier, avec des simulations d'entretien. Clique sur un domaine pour préparer une séance dessus." }),
       grid(PRO_DOMAINS),
       h("div", { class: "vocab-head", style: "margin-top:6px" }, h("h3", { style: "font-size:15px", text: "Vie quotidienne au Royaume-Uni" }), h("span", { class: "pill", text: count(DOMAINS) })),
@@ -1938,7 +1944,7 @@ function soundCheckPanel(l) {
   const testVoice = h("button", { class: "btn sm", text: `Tester la voix ${deTn(l)}`, onclick: async () => {
     status.className = "status"; status.textContent = `Lecture en cours… tu dois entendre ${tn(l)}.`;
     const parts = l === "es" ? [{ lang: "es", text: `¡Hola ${S.profile.name}! Soy Elena. ¿Me oyes bien? Si me oyes, todo está listo.` }]
-                             : [{ lang: "en", text: `Hello ${S.profile.name}, I'm James. Can you hear me clearly? Good, then we're all set.` }];
+                             : [{ lang: "en", text: `Hello ${S.profile.name}, I'm Emma. Can you hear me clearly? Good, then we're all set.` }];
     await Voice.speak(parts, l);
     status.className = "status " + (Voice.engine === "none" ? "bad" : "ok");
     status.textContent = Voice.engine === "none" ? "Aucune voix disponible dans ce navigateur : tu liras les sous-titres." : `${Voice.voiceLabel(l)}. Si tu n'as rien entendu, monte le volume et vérifie que l'onglet n'est pas en sourdine.`;
@@ -1973,7 +1979,7 @@ function soundCheckPanel(l) {
   Mic.permState().then(st => { if (st === "denied") { helpSlot.replaceChildren(Mic.help("not_granted", l)); status.className = "status bad"; status.textContent = "Micro bloqué pour cette page."; } });
   if (!CAP.dictation) helpSlot.append(Mic.help(null, l));
   const vs = Voice.voicesFor(l).slice().sort((x, y) => (Voice._autoVoice(l) === y) - (Voice._autoVoice(l) === x));
-  const sample = l === "en" ? `Good morning ${S.profile.name}, I'm James. Shall we start with a quick question about your studies?` : `¡Hola ${S.profile.name}! Soy Elena. ¿Qué tal estás hoy?`;
+  const sample = l === "en" ? `Good morning ${S.profile.name}, I'm Emma. Shall we start with a quick question about your studies?` : `¡Hola ${S.profile.name}! Soy Elena. ¿Qué tal estás hoy?`;
   const current = () => wantsClaudeVoice(l) ? S.profile.voices[l] : (S.profile.voices?.[l] || (!claudeFirst(l) && Voice.nativeVoice(l) ? Voice.nativeVoice(l).name : CAP.tts ? "claude:" + claudeVoice(l) : ""));
   const accentOf = v => { const c = (v.lang || "").replace("_", "-").toLowerCase(); return c === "en-gb" ? "accent britannique" : c === "en-us" ? "accent américain" : c === "en-au" ? "accent australien" : c === "en-ie" ? "accent irlandais" : c === "en-in" ? "accent indien" : c === "es-es" ? "espagnol d'Espagne" : c.startsWith("es") ? "espagnol d'Amérique" : v.lang; };
   const isGB = v => (v.lang || "").replace("_", "-").toLowerCase() === (l === "en" ? "en-gb" : "es-es");
@@ -2288,7 +2294,7 @@ async function gradeHomework(l, hw, btn) {
   if (!CAP.sample) { toast("Ouvre cette page dans Claude pour faire corriger tes devoirs."); return; }
   if (arr(hw.exercises).every(ex => !str(ex.answer))) { toast("Réponds à au moins un exercice avant de rendre."); return; }
   btn.disabled = true; btn.textContent = `${tn(l)} corrige…`;
-  const prompt = `Tu es ${tn(l)}, ${l === "en" ? "professeur" : "professeure"} de ${LANGS[l].name.toLowerCase()} de ${S.profile.name} (francophone). Corrige ses devoirs avec exigence et bienveillance.
+  const prompt = `Tu es ${tn(l)}, professeure de ${LANGS[l].name.toLowerCase()} de ${S.profile.name} (francophone). Corrige ses devoirs avec exigence et bienveillance.
 
 ${profileContext(l)}
 
@@ -2367,7 +2373,7 @@ function startCall(spec) {
             h("button", { class: "tgl", "aria-pressed": String(C.captions), onclick: e => { C.captions = !C.captions; e.currentTarget.setAttribute("aria-pressed", String(C.captions)); $("#captions").hidden = !C.captions; }, text: "Sous-titres" }),
             micSettings(),
             h("span", { id: "voice-now", class: "label", style: "text-transform:none;letter-spacing:0", text: Voice.voiceLabel(l) }),
-            h("span", { class: "label", style: "text-transform:none;letter-spacing:0", text: l === "es" ? "Toca una palabra de Elena para entenderla" : "Tap any word James says to understand it" }))),
+            h("span", { class: "label", style: "text-transform:none;letter-spacing:0", text: l === "es" ? "Toca una palabra de Elena para entenderla" : "Tap any word Emma says to understand it" }))),
         h("div", { class: "log", id: "log", "aria-live": "polite" }),
         h("form", { class: "compose", onsubmit: e => { e.preventDefault(); const i = $("#typed"); const v = i.value.trim(); if (v) { i.value = ""; userSays(v, false); } } },
           h("input", { id: "typed", placeholder: l === "es" ? "Escribe aquí…" : "Type here…", autocomplete: "off", maxlength: "1200" }),
@@ -2800,7 +2806,7 @@ NIVEAUX OBSERVÉS RÉPLIQUE PAR RÉPLIQUE : ${signals}
 7. "strengths" : 0 à 3 points forts précis.
 8. "vocab_gaps" : 0 à 6 mots ou expressions supplémentaires qu'il devrait apprendre vu ce qu'il a voulu dire (avec article pour les noms ; "meaning" = définition simple EN ${LANGS[l].name.toUpperCase()}, jamais de traduction ; exemple court).
 9. "homework" : 6 à 8 exercices CIBLÉS : la moitié sur ses lacunes les plus fréquentes, au moins 2 sur le vocabulaire (mots qui lui ont manqué et mots à réviser), et 1 production écrite ("write") de ${isBeginner ? "2-3 phrases simples" : "80-120 mots"} qui oblige à réemployer ces mots. Types : "fill" (phrase à trous ___), "answer" (répondre à une question avec une phrase complète), "rephrase" (reformuler une phrase avec un mot ou une structure imposée), "qcm" (3 "options"), "write". AUCUNE traduction et AUCUN français : toutes les consignes et indices EN ${LANGS[l].name.toUpperCase()}, simples. "expected" = réponse attendue (sauf "write"). Difficulté adaptée au niveau RÉEL.
-${spec.type === "mock" && d.interview ? `C'était un ENTRETIEN BLANC pour le poste ${d.interview.role}${d.interview.company ? " chez " + d.interview.company : ""} (entretien réel : ${d.interview.date || "bientôt"}). Les devoirs : réécrire au propre les 2 réponses les plus faibles en version courte et naturelle, et le vocabulaire clé du poste.\n` : ""}${l === "en" ? `Pour James : l'objectif est professionnel (${goalEn()}). Au moins 3 exercices sur le vocabulaire professionnel de la recherche clinique et de la santé vu ou manquant aujourd'hui, et la production écrite peut être une réponse d'entretien ou un e-mail professionnel.\n` : `Pour Elena : l'objectif est de converser avec des Espagnols ; privilégie les phrases utiles à l'oral et les réponses à des questions de la vie réelle.\n`}10. "next_goal" : objectif du prochain cours, en une phrase, un cran plus exigeant qu'aujourd'hui.
+${spec.type === "mock" && d.interview ? `C'était un ENTRETIEN BLANC pour le poste ${d.interview.role}${d.interview.company ? " chez " + d.interview.company : ""} (entretien réel : ${d.interview.date || "bientôt"}). Les devoirs : réécrire au propre les 2 réponses les plus faibles en version courte et naturelle, et le vocabulaire clé du poste.\n` : ""}${l === "en" ? `Pour Emma : l'objectif est professionnel (${goalEn()}). Au moins 3 exercices sur le vocabulaire professionnel de la recherche clinique et de la santé vu ou manquant aujourd'hui, et la production écrite peut être une réponse d'entretien ou un e-mail professionnel.\n` : `Pour Elena : l'objectif est de converser avec des Espagnols ; privilégie les phrases utiles à l'oral et les réponses à des questions de la vie réelle.\n`}10. "next_goal" : objectif du prochain cours, en une phrase, un cran plus exigeant qu'aujourd'hui.
 11. "objectives" : pour chaque objectif de la séance ci-dessous, "achieved" = true seulement si l'élève l'a clairement réussi dans la transcription, et une note courte en français.
 ${objectives.filter(o => o.kind !== "metric").map(o => `   - id "${o.id}" : ${o.text}`).join("\n") || "   (aucun)"}
 12. "demonstrated" : parmi ces points du programme, ceux que l'élève a utilisés correctement et sans aide (copie le texte exact) : ${nextItems(l, 12).map(x => x.item).join(" | ")}
