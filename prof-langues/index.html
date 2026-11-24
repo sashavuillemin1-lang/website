@@ -459,7 +459,7 @@ const chosenSystemVoice = l => { const n = str(S.profile?.voices?.[l]); return n
 const wantsClaudeVoice = l => str(S.profile?.voices?.[l]).startsWith("claude:");
 // Emma: Claude's natural en-GB voice by default (Chrome's British voice is old, robotic and can switch
 // to the computer's French voice mid-sentence). Elena keeps the computer's Spanish voice the student liked.
-const claudeFirst = l => l === "en" && !!CAP.tts;
+const claudeFirst = l => l === "en" && !!CAP.tts && S.profile?.micMode !== "call";
 const claudeVoice = l => { const v = str(S.profile?.voices?.[l]).replace("claude:", ""); return CLAUDE_VOICES.includes(v) ? v : l === "en" ? "rounded" : "airy"; };
 const deTn = l => (l === "en" ? "d'Emma" : "d'Elena");
 const LEVELS = ["A0", "A1", "A2", "B1", "B2", "C1", "C2"];
@@ -563,6 +563,8 @@ const TYPES = {
              how: L => `EXPRESSIONS IDIOMATIQUES : autour du thème donné, introduis 5 à 7 expressions idiomatiques, phrasal verbs ou mots d'argot que les natifs utilisent vraiment (pas de vieilles expressions que personne ne dit). Pour chacune : une petite anecdote ou situation où tu l'utilises naturellement, puis fais deviner le sens par le contexte, puis demande à l'élève de l'utiliser dans une phrase sur sa propre vie. Mets-les dans "new_words" avec une explication simple. Corrige le registre (familier / neutre / formel).` },
   interview: { name: "Entretien d'embauche", min: 20, short: "Simulation d'entretien en anglais",
              how: L => `ENTRETIEN D'EMBAUCHE SIMULÉ pour le poste donné : tu joues le recruteur ou le futur manager (CRO, laboratoire pharmaceutique, hôpital ou marque de cosmétique). Déroulé réaliste : accueil et small talk, « tell me about yourself », motivation pour la recherche clinique, questions techniques (ICH-GCP, monitoring, consentement, gestion des événements indésirables, oncologie ou cosmétique selon le poste), questions comportementales à traiter avec la méthode STAR, une mise en situation, puis les questions du candidat. Une question à la fois ; relance si la réponse est vague, trop courte ou manque d'exemples. Reste dans le rôle ; dans les 2 dernières minutes, sors du rôle et donne un retour franc : ce qui convainc, ce qui manque, et les formulations professionnelles à retenir.` },
+  chat:    { name: "Discussion libre", min: 15, short: "Parler de tout avec ton prof, hors exercice",
+             how: L => `DISCUSSION LIBRE : tu es toi-même, la coach, pas un personnage. L'élève peut te parler de tout : sa préparation d'entretien, ses doutes, le métier, son organisation, sa journée. Réponds comme une vraie personne, chaleureuse et directe. S'il demande de travailler quelque chose de précis (sa présentation, une réponse d'entretien, un mot, sa prononciation), fais-le tout de suite : propose un modèle, fais-lui répéter, corrige, recommence.` },
   mock:    { name: "Entretien blanc", min: 45, short: "Simulation de ton vrai entretien, question par question", how: () => "" },
   review:  { name: "Révision", min: 10, short: "Tes mots à revoir et tes erreurs",
              how: L => `RÉVISION : fais retravailler à l'élève ses lacunes suivies et les mots à réactiver (listés plus haut), sous forme de quiz oral rapide et vivant : questions directes, phrases à compléter, « comment dit-on… » avec une définition, mini-situations. Reviens sur les erreurs des derniers devoirs.` },
@@ -1036,16 +1038,8 @@ function mockAsk(i, first) {
     ? `[Début de l'entretien. Joue ${iv.recruiter || "la recruteuse"} : salue ${S.profile.name} comme au début d'un appel ${iv.format || "en visio"}, présente-toi en une phrase${iv.company ? " (" + iv.company + ")" : ""}, annonce brièvement le déroulé, puis pose cette question : « ${q.q} »]`
     : `[Reste dans le rôle. Réagis très brièvement et naturellement à sa réponse (une phrase, sans corriger), puis pose la question suivante : « ${q.q} »]`;
 }
-async function mockAnswer(text, oral, bubble) {
-  const l = "en", d = S.data[l], iv = d.interview, M = C.mock;
-  const qi = M.queue[M.pos], q = iv.questions[qi];
-  C.log.push({ who: "student", text });
-  C.busy = true; Voice.stateCb?.(false);
-  const wait = h("span", { class: "checking", text: "Emma prépare le coaching de ta réponse…" });
-  bubble.append(wait); scrollLog();
-  let r;
-  try {
-    r = await askJSON(`Tu es un coach d'entretien expert des CRO et de la recherche clinique, et professeur d'anglais britannique. Analyse la réponse orale du candidat à une question d'entretien.
+function coachAnswer(iv, q, text, oral) {
+  return askJSON(`Tu es un coach d'entretien expert des CRO et de la recherche clinique, et professeur d'anglais britannique. Analyse la réponse orale du candidat à une question d'entretien.
 POSTE : ${iv.role} ${iv.company ? "chez " + iv.company : ""}. ${iv.job}
 PROFIL RÉEL DU CANDIDAT (n'invente rien au-delà) : ${iv.profile}
 CONNAISSANCES MÉTIER (corrige toute erreur technique et propose le vocabulaire exact) : ${JOB_KB}
@@ -1056,14 +1050,80 @@ Réponds uniquement en JSON, toutes les explications EN ANGLAIS simple et court 
 "improved":"version améliorée en anglais britannique naturel, à la première personne, fidèle à son profil réel, phrases courtes faciles à dire, 60 à 130 mots selon la question",
 "pronounce":[{"term":"","ipa":"","say":"syllabes, accent en MAJUSCULES"}],"accent":[{"heard":"","meant":"","issue":"","tip":""}],"score":7,"fluent":false}
 ${oral ? ACCENT_RULE : '"accent" : [] (réponse tapée au clavier).'}
-"fluent" = true seulement si la réponse est prête pour le vrai entretien : contenu complet et pertinent, au plus une petite erreur, structure claire, longueur adaptée. "pronounce" : 2 à 4 mots techniques de la réponse à bien prononcer.`, { effort: "low" });
-  } catch (e) {
+"fluent" = true seulement si la réponse est prête pour le vrai entretien : contenu complet et pertinent, au plus une petite erreur, structure claire, longueur adaptée. "pronounce" : 2 à 4 mots techniques de la réponse à bien prononcer.`, { modelTier: "quick" });
+}
+// is the student answering the question, or talking to Emma herself ("I only want to work on my presentation")?
+function classifyMock(iv, M, text) {
+  const q = iv.questions[M.queue[M.pos]], nxt = iv.questions[M.queue[M.pos + 1]];
+  return askJSON(`Tu es Emma, coach d'entretien, et tu fais passer un entretien blanc en anglais. Le candidat vient de dire (transcription vocale, parfois en français) : « ${text} »
+Question d'entretien en cours : « ${q.q} »${nxt ? `\nQuestion suivante prévue : « ${nxt.q} »` : ""}
+Toutes les questions : ${iv.questions.map((x, i) => `${i}) ${x.q}`).join(" | ")}
+Décide :
+- "answer" s'il essaie de répondre à la question en cours (même maladroitement, même très court, même partiellement hors sujet) ;
+- "request" s'il s'adresse à toi, Emma, en dehors de l'entretien : il veut travailler seulement un point (ex. « je veux juste préparer ma présentation » = la question Tell me about yourself), passer la question, la répéter, arrêter, demande un conseil ou une explication, ne comprend pas, parle de son stress, te pose une question…
+Si "request" : "action" parmi "focus" (travailler seulement une question : son numéro dans "question"), "skip", "repeat", "end", "help", "chat" ; "reply" = ta réponse orale EN ANGLAIS simple et chaleureux (2 ou 3 phrases), hors du rôle de recruteuse, qui répond vraiment à sa demande. Pour focus, skip ou repeat, termine en posant la question concernée mot pour mot ; pour help ou chat, termine en l'invitant à répondre à la question en cours.
+Réponds uniquement en JSON : {"kind":"answer","action":"","question":-1,"reply":""}`, { modelTier: "quick" });
+}
+async function teacherSays(text) {
+  const l = S.cur;
+  C.turns.push({ role: "assistant", content: text });
+  C.lastSay = [{ lang: l, text }]; C.lastTeacherText = text;
+  C.log.push({ who: "teacher", text });
+  $("#log")?.append(h("div", { class: "msg t" }, h("span", { class: "who", text: tn(l) }), wordBubble(text, l))); scrollLog();
+  const cap = $("#captions"); if (cap) cap.replaceChildren(h("span", { text }));
+  const st = Voice.streamStart(l); Voice.streamPush(text); await Voice.streamEnd(); afterTeacherSpoke(st);
+}
+async function mockAnswer(text, oral, bubble) {
+  const l = "en", d = S.data[l], iv = d.interview, M = C.mock;
+  const qi = M.queue[M.pos], q = iv.questions[qi];
+  C.busy = true; Voice.stateCb?.(false); Avatar.set({ thinking: true });
+  const wait = h("span", { class: "checking", text: "…" });
+  bubble.append(wait); scrollLog();
+  let intent = { kind: "answer" };
+  try { intent = await classifyMock(iv, M, text); } catch {}
+  if (!C.open) return;
+  Avatar.set({ thinking: false });
+  if (intent?.kind === "request" && str(intent.reply)) {
+    // Emma steps out of the interview, answers, and adapts the session
+    wait.remove(); bubble.classList.add("help");
+    C.turns.push({ role: "user", content: (oral ? "[oral] " : "") + text });
+    const a = str(intent.action), n = Number(intent.question);
+    if (a === "focus" && Number.isInteger(n) && iv.questions[n]) { M.queue = [n]; M.pos = 0; M.tries = 0; M.forceDrill = true; toast(`On travaille seulement : ${iv.questions[n].q}`); }
+    else if (a === "skip" && M.pos < M.queue.length - 1) { M.pos++; M.tries = 0; }
+    C.busy = false;
+    await teacherSays(str(intent.reply));
+    if (a === "end") mockNext("end");
+    return;
+  }
+  C.log.push({ who: "student", text });
+  const drill = q.drill || M.queue.length === 1 || M.forceDrill;
+  if (!drill) {
+    // move on at once; the coaching card arrives while Emma asks the next question
+    wait.textContent = "Coaching en préparation…";
+    C.busy = false;
+    mockNext("next", text, oral);
+    coachAnswer(iv, q, text, oral).then(r => { wait.remove(); showCoach(r, { iv, q, qi, text, oral, bubble, drill }); })
+      .catch(() => wait.replaceWith(h("span", { class: "checking", text: "Coaching indisponible pour cette réponse." })));
+    return;
+  }
+  wait.textContent = "Emma prépare le coaching de ta réponse…";
+  let r;
+  try { r = await coachAnswer(iv, q, text, oral); }
+  catch (e) {
     C.log.pop(); C.busy = false;
     wait.replaceWith(h("button", { class: "retry", onclick: ev => { ev.currentTarget.remove(); if (!C.busy) mockAnswer(text, oral, bubble); }, text: "Coaching indisponible · réessayer" }));
     return;
   }
   if (!C.open) return;
   wait.remove();
+  const fluent = showCoach(r, { iv, q, qi, text, oral, bubble, drill });
+  C.busy = false;
+  // drilled questions come back until they are fluent (max 6 tries per lesson)
+  M.tries = (M.tries || 0) + 1;
+  mockNext(!fluent && M.tries < 6 ? "redo" : "next", text, oral);
+}
+function showCoach(r, { iv, q, qi, oral, bubble, drill }) {
+  const l = "en", M = C.mock;
   const grammar = arr(r.grammar).filter(g => str(g?.wrong) && str(g?.right));
   const vocab = arr(r.vocab).filter(v => str(v?.said) && str(v?.better));
   const score = Math.max(0, Math.min(10, Math.round(Number(r.score) || 0)));
@@ -1076,7 +1136,7 @@ ${oral ? ACCENT_RULE : '"accent" : [] (réponse tapée au clavier).'}
   q.attempts = (q.attempts || 0) + 1; q.best = Math.max(q.best || 0, score); if (fluent) q.fluent = true; q.lastImproved = str(r.improved);
   saveLang(l);
   const improved = str(r.improved);
-  const card = h("div", { class: "coach" },
+  bubble.append(h("div", { class: "coach" },
     h("div", { class: "coach-head" }, h("span", { class: "k", text: "Coaching" }), h("b", { class: fluent ? "ok" : "", text: `${score}/10${fluent ? " · prête ✓" : ""}` })),
     grammar.length ? h("div", null, h("span", { class: "k", text: "Grammaire" }), grammar.map(g => h("div", null, h("del", { text: str(g.wrong) }), "  →  ", h("ins", { text: str(g.right) }), str(g.why) ? h("p", { text: str(g.why) }) : null))) : null,
     vocab.length ? h("div", null, h("span", { class: "k", text: "Plus naturel" }), vocab.map(v => h("div", null, h("del", { text: str(v.said) }), "  →  ", h("ins", { text: str(v.better) }), str(v.why) ? h("p", { text: str(v.why) }) : null))) : null,
@@ -1086,14 +1146,17 @@ ${oral ? ACCENT_RULE : '"accent" : [] (réponse tapée au clavier).'}
     arr(r.pronounce).length ? h("div", { class: "words" }, arr(r.pronounce).filter(p => str(p?.term)).map(p => h("button", { class: "gap-chip", type: "button", title: str(p.ipa), onclick: () => Voice.speak([{ lang: "en", text: str(p.term) }], "en"), text: `🔊 ${str(p.term)} · ${str(p.say)}` }))) : null,
     h("div", { class: "row" },
       improved ? h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: improved }], "en"), text: "Écouter la version améliorée" }) : null,
-      h("button", { class: "retry", type: "button", onclick: () => mockNext("redo"), text: "Refaire cette réponse" }),
-      M.pos < M.queue.length - 1 ? h("button", { class: "retry", type: "button", onclick: () => mockNext("next"), text: "Question suivante" }) : null));
-  bubble.append(card); scrollLog();
-  C.busy = false;
-  // drilled questions come back until they are fluent (max 6 tries per lesson)
-  M.tries = (M.tries || 0) + 1;
-  const drill = (q.drill || M.queue.length === 1) && !fluent && M.tries < 6;
-  mockNext(drill ? "redo" : "next", text, oral);
+      h("button", { class: "retry", type: "button", onclick: () => mockRetry(qi), text: "Refaire cette réponse" }),
+      drill && M.pos < M.queue.length - 1 ? h("button", { class: "retry", type: "button", onclick: () => mockNext("next"), text: "Question suivante" }) : null)));
+  scrollLog();
+  return fluent;
+}
+// go back to a question (from a coaching card), whatever was asked since
+function mockRetry(qi) {
+  const M = C.mock, iv = S.data.en.interview; if (!C.open || C.busy || !M) return;
+  if (M.queue[M.pos] !== qi) { M.queue.splice(M.pos + 1, 0, qi); M.pos++; }
+  M.tries = 0;
+  teacherTurn(`[Sors brièvement du rôle : propose de reprendre cette question pour l'améliorer avec la version améliorée affichée, puis repose-la mot pour mot : « ${iv.questions[qi].q} »]`, null);
 }
 function mockNext(action, text, oral) {
   if (!C.open || C.busy) return;
@@ -1105,9 +1168,9 @@ function mockNext(action, text, oral) {
     return;
   }
   if (text == null) M.tries = 0;
-  if (M.pos >= M.queue.length - 1) {
+  if (action === "end" || M.pos >= M.queue.length - 1) {
     M.finished = true;
-    teacherTurn(`${answer}[C'était la dernière question. Remercie et explique les prochaines étapes comme une vraie recruteuse, puis sors du rôle et donne en 2 phrases les priorités à travailler avant le vrai entretien.]`, null);
+    if (action !== "end") teacherTurn(`${answer}[C'était la dernière question. Remercie et explique les prochaines étapes comme une vraie recruteuse, puis sors du rôle et donne en 2 phrases les priorités à travailler avant le vrai entretien.]`, null);
     const log = $("#log");
     if (log) log.append(h("div", { class: "timeup" }, h("strong", { text: "Entretien terminé." }), h("p", { text: "Raccroche pour ton bilan et tes devoirs, ou refais une question depuis le carnet." }), h("button", { class: "retry", onclick: () => endCall(), text: "Terminer et voir mon bilan" })));
     return;
@@ -1505,6 +1568,54 @@ const Voice = {
   },
   _state(on) { if (!on && Avatar.st.speaking) C.deafUntil = now() + 2500; Avatar.set({ speaking: on }); try { this.stateCb?.(on); } catch {} },
   // parts: [{lang: "es"|"en"|"fr", text}]
+  route(lang) {
+    if ("speechSynthesis" in window && !wantsClaudeVoice(lang)) {
+      const v = chosenSystemVoice(lang) || (claudeFirst(lang) ? null : this.nativeVoice(lang));
+      if (v) return { kind: "browser", voice: v };
+    }
+    if (CAP.tts && this.engine === "claude") return { kind: "claude" };
+    if ("speechSynthesis" in window) { const v = this.pickVoice(lang); if (v && (v.lang || "").toLowerCase().startsWith(lang)) return { kind: "browser", voice: v }; }
+    return { kind: "none" };
+  },
+  streamStart(lang) {
+    const g = ++this.gen;
+    const st = this._st = { g, lang, route: this.route(lang), pending: 0, done: false, started: false, used: false };
+    st.promise = new Promise(r => st.resolve = r);
+    if (st.route.kind === "browser") { try { speechSynthesis.cancel(); } catch {} }
+    if (st.route.kind === "claude" && C.open && CAP.dictation?.active?.()) { try { CAP.dictation.stop(); } catch {} }
+    return st;
+  },
+  streamPush(text) {
+    const st = this._st;
+    text = str(text).replace(/[*_#`~<>]/g, "");
+    if (!st || st.g !== this.gen || !text || this.muted) return;
+    st.used = true;
+    const rate = this.slow ? .78 : 1;
+    const fin = () => { st.pending--; if (st.done && st.pending <= 0) this._streamEnd(st); };
+    if (st.route.kind === "browser") {
+      st.pending++;
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = st.route.voice; u.lang = st.route.voice.lang; u.rate = rate * .95;
+      let ended = false; const end = () => { if (!ended) { ended = true; fin(); } };
+      u.onstart = () => { if (st.g === this.gen) this._state(true); };
+      u.onend = end; u.onerror = end;
+      setTimeout(end, 6000 + text.length * 160 / rate);   // watchdog
+      try { speechSynthesis.speak(u); } catch { end(); }
+    } else if (st.route.kind === "claude") {
+      st.pending++;
+      const line = [{ text: text.slice(0, 1500), language: ACCENT_CODE[st.lang] || st.lang }];
+      const opts = { voice: claudeVoice(st.lang), rate };
+      const pr = st.started ? CAP.tts.add(line, opts) : CAP.tts.speak(line, opts);
+      st.started = true;
+      Promise.resolve(pr).catch(() => {}).finally(fin);
+    }
+  },
+  streamEnd() {
+    const st = this._st; if (!st) return Promise.resolve();
+    st.done = true; if (st.pending <= 0) this._streamEnd(st);
+    return st.promise;
+  },
+  _streamEnd(st) { if (st.route.kind === "browser" && st.g === this.gen) this._state(false); st.resolve(); },
   async speak(parts, fallbackLang) {
     if (typeof parts === "string") parts = [{ lang: fallbackLang, text: parts }];
     parts = arr(parts).map(p => ({ lang: ["es", "en", "fr"].includes(p.lang) ? p.lang : fallbackLang, text: str(p.text).replace(/[*_#`~<>]/g, "").slice(0, 1500) })).filter(p => p.text);
@@ -1516,9 +1627,7 @@ const Voice = {
     // one voice per teacher for the whole lesson: a native browser voice when the computer has one
     const lang0 = parts[0].lang;
     parts = parts.map(p => ({ ...p, lang: lang0 }));
-    const native = wantsClaudeVoice(lang0) || !("speechSynthesis" in window) ? null
-      : chosenSystemVoice(lang0) || (claudeFirst(lang0) ? null : this.nativeVoice(lang0));
-    if (native) return this._browser(parts, rate, myGen);
+    if (this.route(lang0).kind === "browser") return this._browser(parts, rate, myGen);
     // no voice of this language on the computer (or Claude's voice chosen): use Claude's native voice,
     // never let the browser read English or Spanish with a French voice
     if (CAP.tts && this.engine === "claude") {
@@ -1558,7 +1667,7 @@ const Voice = {
         const c = chunks[i++];
         const u = new SpeechSynthesisUtterance(c.text);
         u.lang = code[c.lang]; u.rate = rate * .95;
-        const v = this.pickVoice(c.lang);
+        const rv = this.route(c.lang); const v = rv.kind === "browser" ? rv.voice : this.pickVoice(c.lang);
         if (v) { u.voice = v; u.lang = v.lang; }
         u.pitch = 1;
         u.onstart = () => this._state(true);
@@ -1665,6 +1774,7 @@ RÈGLES
 - Tout ce que tu dis est lu à voix haute : 1 à 4 phrases, pas de markdown, pas d'emoji, pas de listes.
 - Appelle ${S.profile.name} par son prénom de temps en temps, pas à chaque réplique.
 - Les messages qui commencent par [oral] viennent de la reconnaissance vocale : ne relève pas ponctuation ou accents.
+- Si l'élève te parle de la séance elle-même, même en français (changer de sujet, aller plus lentement, travailler seulement un point précis comme sa présentation, poser une question sur le métier), comprends-le, réponds-y directement et adapte la séance immédiatement, sans continuer l'exercice prévu.
 - AUCUNE traduction, AUCUN mot de français, quoi qu'il arrive. Si l'élève dit « (No entiendo) » ou équivalent, redis la même idée avec des mots plus simples et un exemple. S'il demande de l'aide, donne-lui un modèle de réponse en ${LANGS[l].name.toLowerCase()} à répéter.
 
 FORMAT : uniquement un objet JSON :
@@ -1803,11 +1913,12 @@ function joinBlock(l) {
     h("h2", { text: sp.topic }),
     h("p", { style: "margin:0;color:var(--call-muted)", text: TYPES[sp.type].short + (sp.domain && DOMAIN_BY_ID[sp.domain] ? " · " + DOMAIN_BY_ID[sp.domain].name : "") }));
   const go = h("button", { class: "btn primary", id: "join", onclick: () => startCall(sp), disabled: !CAP.sample, text: "Rejoindre l'appel" });
+  const talk = h("button", { class: "linkbtn", type: "button", disabled: !CAP.sample, onclick: () => startCall(makeSession(l, "chat", l === "en" ? "Free talk with Emma" : "Charla libre con Elena", 15)), text: `Juste parler avec ${tn(l)}` });
   const toggle = h("button", { class: "linkbtn", type: "button", text: S.custom ? "Fermer la séance sur mesure" : "Choisir une autre séance (type, thème, durée)", onclick: () => {
     S.custom = S.custom ? null : { type: sp.type === "diag" ? "conv" : sp.type, minutes: sp.minutes, topic: "" };
     renderLobby();
   } });
-  wrap.append(head, h("div", { class: "row" }, go, toggle), custom);
+  wrap.append(head, h("div", { class: "row" }, go, talk, toggle), custom);
   if (S.custom) buildCustom(l, custom);
   return wrap;
 }
@@ -1815,7 +1926,7 @@ function buildCustom(l, box) {
   const c = S.custom;
   const chipRow = (items, isOn, onPick, label) => h("div", { class: "chips", role: "group", "aria-label": label }, items.map(([val, text]) =>
     h("button", { class: "chip", type: "button", "aria-pressed": String(isOn(val)), onclick: () => { onPick(val); renderLobby(); }, text })));
-  const types = Object.keys(TYPES).filter(t => t !== "diag" && t !== "mock" && !(t === "interview" && l !== "en") && !((t === "debate" || t === "idioms") && isLow(l)));
+  const types = Object.keys(TYPES).filter(t => t !== "diag" && t !== "mock" && t !== "chat" && !(t === "interview" && l !== "en") && !((t === "debate" || t === "idioms") && isLow(l)));
   const sugg = (() => {
     const b = BANK[l], low = isLow(l);
     if (DOMAIN_TYPES.includes(c.type)) {
@@ -2559,23 +2670,22 @@ function setupMic(btn) {
 }
 function micSettings() {
   if (!CAP.dictation) return null;
-  const mode = h("select", { id: "mic-mode", class: "mini-select", "aria-label": "Mode du micro" },
-    h("option", { value: "call", selected: micMode() === "call", text: "Micro ouvert (appel)" }),
-    h("option", { value: "ptt", selected: micMode() === "ptt", text: "Talkie (un appui par phrase)" }));
+  const l = S.cur;
+  const canOpen = "speechSynthesis" in window && !!(chosenSystemVoice(l) || Voice.nativeVoice(l));
+  const mode = h("select", { id: "mic-mode", class: "mini-select", "aria-label": "Micro et voix" },
+    h("option", { value: "call", selected: micMode() === "call", text: l === "en" ? "Micro toujours ouvert · voix britannique du navigateur" : "Micro toujours ouvert" }),
+    h("option", { value: "ptt", selected: micMode() !== "call", text: l === "en" && CAP.tts ? "Voix naturelle de Claude · Espace pour répondre" : "Talkie · un appui par phrase" }));
   const pat = h("select", { id: "mic-patience", class: "mini-select", "aria-label": "Délai avant envoi" },
     [[2000, "Envoi après 2 s de silence"], [3000, "Envoi après 3 s de silence"], [5000, "Envoi après 5 s de silence"]]
       .map(([v, t]) => h("option", { value: String(v), selected: patience() === v, text: t })));
   mode.onchange = () => {
-    S.profile.micMode = mode.value; saveProfile();
-    if (CAP.dictation.active()) { C.flushMic?.(); CAP.dictation.stop().catch(() => {}); }
-    toast(mode.value === "call" ? "Micro ouvert : appuie une fois sur le micro, puis parle comme dans un appel." : "Mode talkie : un appui sur le micro par phrase.");
+    if (mode.value === "call" && !canOpen) { mode.value = "ptt"; toast("Ton ordinateur n'a pas de voix britannique : le micro ouvert n'est pas possible avec la voix de Claude. Ouvre la page dans Chrome ou installe une voix anglaise (Son, micro & accent)."); return; }
+    S.profile.micMode = mode.value; saveProfile(); delete Voice._lock[l]; C.noAutoMic = false;
+    const vl = $("#voice-now"); if (vl) vl.textContent = Voice.voiceLabel(l);
+    if (mode.value === "call") { Voice.stop(); if (!CAP.dictation.active()) Mic.start(l).catch(() => {}); toast("Micro toujours ouvert : parle quand tu veux, ça part tout seul quand tu t'arrêtes."); }
+    else { if (CAP.dictation.active()) { C.flushMic?.(); CAP.dictation.stop().catch(() => {}); } toast(l === "en" ? "Voix naturelle de Claude : appuie sur Espace (ou le micro) pour répondre." : "Mode talkie : un appui par phrase."); }
   };
   pat.onchange = () => { S.profile.patience = Number(pat.value); saveProfile(); };
-  if (autoTalkie(S.cur)) {
-    mode.disabled = true; mode.value = "ptt";
-    return h("div", { style: "display:flex;flex-direction:column;gap:4px" }, h("div", { class: "row", style: "gap:6px" }, mode, pat),
-      h("span", { class: "label", style: "text-transform:none;letter-spacing:0;color:#f0c05a", text: "Voix de Claude : appuie sur le micro (ou espace) pour répondre. Installe une voix native pour le micro ouvert (Son, micro & accent)." }));
-  }
   return h("div", { class: "row", style: "gap:6px" }, mode, pat);
 }
 function showMicHelp(code) {
@@ -2612,7 +2722,7 @@ async function analyse(content, bubble) {
   const wait = h("span", { class: "checking", text: `${tn(S.cur)} vérifie ta phrase…` });
   bubble.append(wait); scrollLog();
   let r;
-  try { r = await askJSON(analysisPrompt(l, teacherLine, content), { effort: "low" }); }
+  try { r = await askJSON(analysisPrompt(l, teacherLine, content), { modelTier: "quick" }); }
   catch (e) {
     if (!C.open) return;
     wait.replaceWith(h("button", { class: "retry", onclick: ev => { ev.currentTarget.remove(); analyse(content, bubble); }, text: "Correction indisponible · réessayer" }));
@@ -2656,6 +2766,26 @@ async function analyse(content, bubble) {
   scrollLog();
 }
 
+// what the teacher has said so far, read from the JSON while it is still being written
+function extractSay(raw) {
+  const i = raw.indexOf('"say"'); if (i < 0) return "";
+  let seg = raw.slice(i); const end = seg.search(/\]\s*,\s*"/); if (end > 0) seg = seg.slice(0, end);
+  const out = [], re = /"lang"\s*:\s*"(\w+)"\s*,\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)(")?|"text"\s*:\s*"((?:[^"\\]|\\.)*)(")?/g; let m;
+  while ((m = re.exec(seg))) {
+    if (m[1] === "fr") continue;
+    let t = m[2] ?? m[4] ?? ""; const closed = m[3] || m[5];
+    if (!closed) t = t.replace(/\\[^"]?$/, "");
+    try { out.push(JSON.parse('"' + t + '"')); } catch { out.push(t.replace(/\\n/g, " ")); }
+  }
+  return out.join(" ");
+}
+function looseJSON(text) {
+  try { return JSON.parse(text); } catch {}
+  const f = text.match(/```(?:json)?\s*([\s\S]*?)```/); if (f) { try { return JSON.parse(f[1]); } catch {} }
+  const a = text.indexOf("{"), b = text.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(text.slice(a, b + 1)); } catch {} }
+  return null;
+}
 async function teacherTurn(content, userBubble) {
   const l = S.cur;
   if (!C.open) return;
@@ -2667,18 +2797,42 @@ async function teacherTurn(content, userBubble) {
   const recent = C.turns.slice(-24);
   while (recent.length && recent[0].role !== "user") recent.shift();
   const input = [{ role: "user", content: convRules(l) + "\n\n---\n\n" + recent[0].content }, ...recent.slice(1)];
-  input[input.length - 1] = { role: "user", content: input.at(-1).content + "\n\n(Réponds avec l'objet JSON demandé.)" };
+  input[input.length - 1] = { role: "user", content: input.at(-1).content + "\n\n(Réponds avec l'objet JSON demandé, en commençant par \"say\".)" };
   const ctl = C.ctl = new AbortController();
-  try {
-    const r = await askJSON(input, { modelTier: "quick", signal: ctl.signal });
+  const speakNow = !(C.listening && micMode() !== "call");
+  const st = speakNow ? Voice.streamStart(l) : null;
+  let spoken = 0, live = null;
+  const cap = $("#captions");
+  // speak every finished sentence as soon as it arrives
+  const feed = (all, final) => {
     if (!C.open) return;
-    typing.remove();
+    if (all && typing.isConnected) { typing.remove(); Avatar.set({ thinking: false }); }
+    if (all) {
+      if (!live) { live = h("div", { class: "msg t" }, h("span", { class: "who", text: tn(l) }), h("div", { class: "bubble", text: all })); $("#log")?.append(live); }
+      else live.querySelector(".bubble").textContent = all;
+      if (cap) cap.replaceChildren(h("span", { text: all }));
+      scrollLog();
+    }
+    if (!st) return;
+    const rest = all.slice(spoken);
+    let cut = -1;
+    if (final) cut = rest.length;
+    else { const re = /[.!?…]["'”)\]]?\s+/g; let m; while ((m = re.exec(rest))) { if (m.index + m[0].length >= 18) cut = m.index + m[0].length; } }
+    if (cut > 0) { Voice.streamPush(rest.slice(0, cut)); spoken += cut; }
+  };
+  try {
+    const res = await CAP.sample(input, { modelTier: "quick", cache: false, signal: ctl.signal, onText: ({ text }) => feed(extractSay(text), false) });
+    if (!C.open) return;
+    const r = looseJSON(res.text) || {};
     const rawSay = arr(r.say).filter(p => str(p?.text));
     const noFr = rawSay.filter(p => p?.lang !== "fr");   // immersion: drop any French part the model slips in
     let say = (noFr.length ? noFr : rawSay).map(p => ({ lang: l, text: str(p.text) }));
     if (!say.length && str(r.reply)) say = [{ lang: l, text: str(r.reply) }];
+    if (!say.length && extractSay(res.text)) say = [{ lang: l, text: extractSay(res.text) }];
     if (!say.length) throw { code: "invalid_json" };
     const text = say.map(p => p.text).join(" ");
+    feed(text, true);
+    typing.remove();
     const words = arr(r.new_words).filter(w => str(w?.word)).slice(0, 4);
     C.turns.push({ role: "assistant", content: text });
     C.lastSay = say; C.lastTeacherText = text;
@@ -2687,15 +2841,16 @@ async function teacherTurn(content, userBubble) {
     C.log.push({ who: "teacher", text });
     const msg = h("div", { class: "msg t" }, h("span", { class: "who", text: tn(l) }), wordBubble(text, l),
       words.length ? h("div", { class: "words" }, words.map(w => h("span", { text: `${str(w.word)} : ${str(w.meaning)}` }))) : null);
-    $("#log")?.append(msg); scrollLog();
-    const cap = $("#captions");
+    if (live) live.replaceWith(msg); else $("#log")?.append(msg);
+    scrollLog();
     if (cap) cap.replaceChildren(h("span", { text }));
     C.busy = false;
     Avatar.set({ thinking: false });
     flushPending();
-    if (!C.busy && (!C.listening || micMode() === "call")) await Voice.speak(say, l);
+    if (st) { await Voice.streamEnd(); afterTeacherSpoke(st); }
   } catch (e) {
-    typing.remove();
+    typing.remove(); live?.remove();
+    if (st) { Voice.stop(); }
     C.turns.pop();
     C.busy = false; Avatar.set({ thinking: false }); Voice.stateCb?.(false);
     if (e?.code === "cancelled" || !C.open) return;
@@ -2705,6 +2860,19 @@ async function teacherTurn(content, userBubble) {
     if (e?.code === "not_granted") { const m = $("#mic"); if (m) m.disabled = true; }
     else flushPending();
   }
+}
+// with Claude's voice the mic had to pause: try to reopen it by itself, else say how to answer
+function afterTeacherSpoke(st) {
+  if (!C.open || st.route.kind !== "claude" || !st.used || !CAP.dictation || CAP.dictation.active() || C.busy || C.noAutoMic) return;
+  Mic.start(S.cur).catch(e => {
+    C.noAutoMic = true;
+    if (e?.code === "no_gesture" || e?.code === "not_granted" || e?.code === "unavailable") {
+      const lb = $("#mic-label"); if (lb) lb.textContent = "Espace ou micro pour répondre";
+      $("#log")?.append(h("div", { class: "timeup" }, h("strong", { text: "Le micro ne peut pas rester ouvert avec la voix de Claude." }),
+        h("p", { text: "Claude coupe le micro pendant que cette voix parle et ne le laisse pas se rallumer tout seul. Deux choix : appuie sur Espace (ou le micro) pour répondre, ou passe en « Micro toujours ouvert » en haut de la transcription : Emma prendra alors la voix britannique de ton navigateur." })));
+      scrollLog();
+    }
+  });
 }
 
 /* Tap a word Elena said: monolingual explanation, never a translation */
