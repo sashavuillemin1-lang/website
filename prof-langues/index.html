@@ -1050,7 +1050,7 @@ RÈGLES :
 - Tu suis exactement les consignes entre crochets du dernier message : elles disent quelle question poser ou s'il faut faire refaire une réponse.
 - Dans le rôle, sois une recruteuse réaliste et professionnelle : britannique, bienveillante, précise. Une seule question à la fois. 1 à 3 phrases, à l'oral, pas de liste, pas de markdown.
 - En MODE COURS (quand la consigne le dit), tu n'es pas la recruteuse mais la coach : pédagogue, rassurante, concrète, jusqu'à 5 phrases.
-- Tu ne corriges pas la réponse dans ta réplique (le coaching écrit s'affiche à côté), sauf si la consigne te demande de sortir du rôle.
+- Après chaque réponse, la consigne te demande une réaction courte de coach : elle porte sur CE QU'IL A RÉELLEMENT DIT (pas sur une réponse idéale), elle est encourageante et concrète, puis on avance. On ne répète jamais une question sauf s'il le demande.
 - Les messages qui commencent par [oral] viennent de la reconnaissance vocale.
 FORMAT : uniquement un objet JSON : {"say":[{"lang":"en","text":"ta réplique"}],"new_words":[]}`;
 }
@@ -1066,7 +1066,7 @@ function mockAsk(i, first) {
   }
   return first
     ? `[Début de l'entretien. Joue ${iv.recruiter || "la recruteuse"} : salue ${S.profile.name} comme au début d'un appel ${iv.format || "en visio"}, présente-toi en une phrase${iv.company ? " (" + iv.company + ")" : ""}, annonce brièvement le déroulé, puis pose cette question : « ${q.q} »]`
-    : `[Reste dans le rôle. Réagis très brièvement et naturellement à sa réponse (une phrase, sans corriger), puis pose la question suivante : « ${q.q} »]`;
+    : `[Puis reprends le rôle de recruteuse et pose la question suivante : « ${q.q} »]`;
 }
 function coachAnswer(iv, q, text, oral) {
   return askJSON(`Tu es un coach d'entretien expert des CRO et de la recherche clinique, et professeur d'anglais britannique. Analyse la réponse orale du candidat à une question d'entretien.
@@ -1077,7 +1077,8 @@ QUESTION : ${q.q}
 ${q.tips ? "CONSIGNES DU CANDIDAT POUR CETTE QUESTION : " + q.tips + "\n" : ""}${q.prepared ? "RÉPONSE QU'IL AVAIT PRÉPARÉE : " + q.prepared + "\n" : ""}RÉPONSE DONNÉE (transcription vocale : ignore ponctuation et majuscules) : « ${text} »
 Réponds uniquement en JSON, toutes les explications EN ANGLAIS simple et court :
 {"grammar":[{"wrong":"","right":"","why":""}],"vocab":[{"said":"","better":"","why":""}],"structure":"2-3 phrases : contenu, structure (STAR pour une question comportementale), longueur, ce qui manque ou ce qui est risqué",
-"improved":"version améliorée en anglais britannique naturel, à la première personne, fidèle à son profil réel, phrases courtes faciles à dire, 60 à 130 mots selon la question",
+"improved":"SA PROPRE réponse, juste retouchée : garde ses idées, son ordre et ses mots quand ils sont corrects ; corrige seulement les fautes et les tournures maladroites, sans ajouter de contenu ni la transformer en texte parfait",
+"could":["1 ou 2 phrases qu'il aurait pu dire en plus ou autrement, basées sur ce qu'il a dit (« You could also say… »), en anglais"],
 "pronounce":[{"term":"","ipa":"","say":"syllabes, accent en MAJUSCULES"}],"accent":[{"heard":"","meant":"","issue":"","tip":""}],"score":7,"fluent":false}
 ${oral ? ACCENT_RULE : '"accent" : [] (réponse tapée au clavier).'}
 "fluent" = true seulement si la réponse est prête pour le vrai entretien : contenu complet et pertinent, au plus une petite erreur, structure claire, longueur adaptée. "pronounce" : 2 à 4 mots techniques de la réponse à bien prononcer.`, { modelTier: "quick" });
@@ -1126,31 +1127,12 @@ async function mockAnswer(text, oral, bubble) {
     return;
   }
   C.log.push({ who: "student", text });
-  const drill = q.drill || M.queue.length === 1 || M.forceDrill || M.lesson;
-  if (!drill) {
-    // move on at once; the coaching card arrives while Emma asks the next question
-    wait.textContent = "Coaching en préparation…";
-    C.busy = false;
-    mockNext("next", text, oral);
-    coachAnswer(iv, q, text, oral).then(r => { wait.remove(); showCoach(r, { iv, q, qi, text, oral, bubble, drill }); })
-      .catch(() => wait.replaceWith(h("span", { class: "checking", text: "Coaching indisponible pour cette réponse." })));
-    return;
-  }
-  wait.textContent = "Emma prépare le coaching de ta réponse…";
-  let r;
-  try { r = await coachAnswer(iv, q, text, oral); }
-  catch (e) {
-    C.log.pop(); C.busy = false;
-    wait.replaceWith(h("button", { class: "retry", onclick: ev => { ev.currentTarget.remove(); if (!C.busy) mockAnswer(text, oral, bubble); }, text: "Coaching indisponible · réessayer" }));
-    return;
-  }
-  if (!C.open) return;
-  wait.remove();
-  const fluent = showCoach(r, { iv, q, qi, text, oral, bubble, drill });
+  // react to what she actually said and move on; the written coaching arrives alongside
+  wait.textContent = "Coaching en préparation…";
   C.busy = false;
-  // drilled questions come back until they are fluent (max 6 tries per lesson)
-  M.tries = (M.tries || 0) + 1;
-  mockNext(!fluent && M.tries < (M.lesson ? 3 : 6) ? "redo" : "next", text, oral);
+  mockNext("next", text, oral);
+  coachAnswer(iv, q, text, oral).then(r => { wait.remove(); if (C.open) showCoach(r, { iv, q, qi, text, oral, bubble, drill: false }); })
+    .catch(() => wait.replaceWith(h("span", { class: "checking", text: "Coaching écrit indisponible pour cette réponse." })));
 }
 function showCoach(r, { iv, q, qi, text, oral, bubble, drill }) {
   const l = "en", M = C.mock;
@@ -1173,11 +1155,12 @@ function showCoach(r, { iv, q, qi, text, oral, bubble, drill }) {
     vocab.length ? h("div", null, h("span", { class: "k", text: "Plus naturel" }), vocab.map(v => h("div", null, h("del", { text: str(v.said) }), "  →  ", h("ins", { text: str(v.better) }), str(v.why) ? h("p", { text: str(v.why) }) : null))) : null,
     str(r.structure) ? h("div", null, h("span", { class: "k", text: "Structure" }), h("p", { text: str(r.structure) })) : null,
     acc.length ? accentCard(l, acc) : null,
-    improved ? h("div", null, h("span", { class: "k", text: "Version améliorée" }), h("p", { class: "improved", text: improved })) : null,
+    arr(r.could).filter(str).length ? h("div", null, h("span", { class: "k", text: "Tu aurais aussi pu dire" }), arr(r.could).filter(str).slice(0, 2).map(c => h("div", { class: "row", style: "gap:6px" }, h("p", { class: "improved", text: "« " + str(c) + " »" }), h("button", { class: "gap-chip", type: "button", onclick: () => Voice.speak([{ lang: "en", text: str(c) }], "en"), text: "🔊" })))) : null,
+    improved ? h("details", null, h("summary", { class: "k", style: "cursor:pointer", text: "Ta réponse, juste retouchée" }), h("p", { class: "improved", text: improved })) : null,
     arr(r.pronounce).length ? h("div", { class: "words" }, arr(r.pronounce).filter(p => str(p?.term)).map(p => h("button", { class: "gap-chip", type: "button", title: str(p.ipa), onclick: () => Voice.speak([{ lang: "en", text: str(p.term) }], "en"), text: `🔊 ${str(p.term)} · ${str(p.say)}` }))) : null,
     h("div", { class: "row" },
-      improved ? h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: improved }], "en"), text: "Écouter la version améliorée" }) : null,
-      h("button", { class: "retry", type: "button", onclick: () => mockRetry(qi), text: "Refaire cette réponse" }),
+      improved ? h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: improved }], "en"), text: "Écouter ta réponse retouchée" }) : null,
+      h("button", { class: "retry", type: "button", onclick: () => mockRetry(qi), text: "Je veux la refaire" }),
       drill && M.pos < M.queue.length - 1 ? h("button", { class: "retry", type: "button", onclick: () => mockNext("next"), text: "Question suivante" }) : null)));
   scrollLog();
   return fluent;
@@ -1187,7 +1170,7 @@ function mockRetry(qi) {
   const M = C.mock, iv = S.data.en.interview; if (!C.open || C.busy || !M) return;
   if (M.queue[M.pos] !== qi) { M.queue.splice(M.pos + 1, 0, qi); M.pos++; }
   M.tries = 0;
-  teacherTurn(`[Sors brièvement du rôle : propose de reprendre cette question pour l'améliorer avec la version améliorée affichée, puis repose-la mot pour mot : « ${iv.questions[qi].q} »]`, null);
+  teacherTurn(`[Il a demandé à refaire cette réponse. Dis-lui en une phrase de garder ses idées et d'essayer d'intégrer une ou deux des formulations proposées, puis repose la question : « ${iv.questions[qi].q} »]`, null);
 }
 
 /* lesson card: what the recruiter checks, how to build the answer, key phrases, a model answer */
@@ -1208,7 +1191,7 @@ ${q.tips ? "CONSIGNES DU CANDIDAT : " + q.tips + "\n" : ""}${q.prepared ? "SA R�
       str(r.goal) ? h("div", null, h("strong", { text: "Ce que le recruteur vérifie : " }), str(r.goal)) : null,
       arr(r.structure).length ? h("div", null, h("strong", { text: "Comment construire ta réponse :" }), h("ol", null, arr(r.structure).map(x => h("li", { text: str(x) })))) : null,
       q.phrases.length ? h("div", null, h("strong", { text: "Formulations clés :" }), h("div", { class: "words" }, q.phrases.map(p => h("button", { class: "gap-chip", type: "button", onclick: () => Voice.speak([{ lang: "en", text: p }], "en"), text: "🔊 " + p })))) : null,
-      q.model ? h("div", null, h("strong", { text: "Réponse modèle :" }), h("p", { class: "improved", text: q.model }), h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: q.model }], "en"), text: "Écouter la réponse modèle" })) : null,
+      q.model ? h("div", null, h("strong", { text: "Exemple de réponse (pour t'inspirer, pas à réciter) :" }), h("p", { class: "improved", text: q.model }), h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: q.model }], "en"), text: "Écouter la réponse modèle" })) : null,
       str(r.avoid) ? h("p", { class: "avoid", text: "À éviter : " + str(r.avoid) }) : null);
   } catch { fillEl(box, h("span", { class: "k", text: `Cours · ${q.q}` }), h("p", { text: "Fiche indisponible : Emma t'explique à l'oral." })); }
   scrollLog();
@@ -1222,7 +1205,7 @@ CONNAISSANCES MÉTIER : ${JOB_KB}
 DÉROULÉ (question, sa réponse transcrite, note du coaching sur 10, version améliorée) :
 ${mockLog.map((x, i) => `${i + 1}. Q : ${x.q}\n   Réponse : ${x.answer}\n   Note : ${x.score}/10 · ${x.structure}\n   Version améliorée : ${x.improved}`).join("\n").slice(-14000)}
 Explications en français, formulations et réponses modèles en anglais britannique. Réponds uniquement en JSON :
-{"impression":"ce qu'une vraie recruteuse penserait à la sortie de cet entretien, 3 phrases","verdict":"prêt / presque prêt / à retravailler","strengths":["3 points forts précis"],"improve":[{"point":"ce qui ne va pas","why":"pourquoi ça compte pour le recruteur","say_instead":"ce qu'il faut dire à la place, en anglais"}],"answers":[{"q":"la question","status":"ok ou à retravailler","feedback":"ce qui manquait, 1-2 phrases","model":"réponse modèle en anglais, 70-120 mots, fidèle à son profil, facile à dire","phrases":["2 ou 3 formulations clés à retenir"]}],"red_flags":["ce qu'il ne faut surtout pas dire, s'il y en a"],"tips":["4 conseils pratiques pour le jour J : rythme, pauses, structure, gestion du stress, questions à poser"],"next":"ce qu'on travaille au prochain entraînement, 1 phrase"}
+{"impression":"ce qu'une vraie recruteuse penserait à la sortie de cet entretien, 3 phrases","verdict":"prêt / presque prêt / à retravailler","strengths":["3 points forts précis"],"improve":[{"point":"ce qui ne va pas","why":"pourquoi ça compte pour le recruteur","say_instead":"ce qu'il faut dire à la place, en anglais"}],"answers":[{"q":"la question","status":"ok ou à retravailler","feedback":"ce qui manquait, 1-2 phrases","model":"sa réponse à LUI, reconstruite à partir de ce qu'il a dit (mêmes idées, même logique), juste mieux formulée et complétée si un point important manquait, en anglais, 70-110 mots, facile à dire","phrases":["2 ou 3 formulations clés à retenir"]}],"red_flags":["ce qu'il ne faut surtout pas dire, s'il y en a"],"tips":["4 conseils pratiques pour le jour J : rythme, pauses, structure, gestion du stress, questions à poser"],"next":"ce qu'on travaille au prochain entraînement, 1 phrase"}
 "improve" : 3 à 5 points, du plus important au moins important.`;
 }
 function debriefView(db, l = "en") {
@@ -1263,17 +1246,18 @@ function mockNext(action, text, oral) {
     return;
   }
   if (text == null) M.tries = 0;
+  const react = text != null ? `[D'abord, réagis à SA réponse en coach, 2 phrases maximum, naturellement : dis ce qui était bien (un point précis de ce qu'il a dit), puis propose 1 ou 2 façons de dire une de SES phrases autrement ou une idée qu'il aurait pu ajouter (« You could also say … »). Ne lui demande PAS de recommencer, ne récite pas une réponse parfaite. Puis enchaîne.] ` : "";
   if (action === "end" || M.pos >= M.queue.length - 1) {
     M.finished = true;
     if (action !== "end") teacherTurn(M.lesson
-      ? `${answer}[Fin du cours. En coach, félicite-le sincèrement, résume en 3 phrases les 2 ou 3 choses les plus importantes à retenir pour ses réponses, puis propose de faire maintenant un entretien blanc complet pour s'entraîner en conditions réelles.]`
-      : `${answer}[C'était la dernière question. Remercie et explique les prochaines étapes comme une vraie recruteuse, puis sors du rôle et donne en 2 phrases les priorités à travailler avant le vrai entretien.]`, null);
+      ? `${answer}${react}[Fin du cours. En coach, félicite-le sincèrement, résume en 3 phrases les 2 ou 3 choses les plus importantes à retenir pour ses réponses, puis propose de faire maintenant un entretien blanc complet pour s'entraîner en conditions réelles.]`
+      : `${answer}${react}[C'était la dernière question. Remercie et explique les prochaines étapes comme une vraie recruteuse, puis sors du rôle et donne en 2 phrases les priorités à travailler avant le vrai entretien.]`, null);
     const log = $("#log");
     if (log) log.append(h("div", { class: "timeup" }, h("strong", { text: "Entretien terminé." }), h("p", { text: "Raccroche pour ton bilan et tes devoirs, ou refais une question depuis le carnet." }), h("button", { class: "retry", onclick: () => endCall(), text: "Terminer et voir mon bilan" })));
     return;
   }
   M.pos++; M.tries = 0;
-  teacherTurn(answer + mockAsk(M.queue[M.pos], false), null);
+  teacherTurn(answer + react + mockAsk(M.queue[M.pos], false), null);
 }
 
 
