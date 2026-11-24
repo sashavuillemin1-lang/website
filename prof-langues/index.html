@@ -326,6 +326,21 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .vp-row:first-child{border-top:none}
 .vp-row.on{background:var(--ok-bg)}
 .vp-name{font-weight:600;font-size:14px}
+.lesson{background:#1d2a24;border:1px solid rgba(139,227,176,.35);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px;color:#e6efe9}
+.lesson .k{font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--call-muted)}
+.lesson ol{margin:4px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:2px}
+.lesson .improved{background:rgba(139,227,176,.08);border-left:3px solid #8be3b0;padding:6px 8px;border-radius:4px;margin:4px 0}
+.lesson .avoid{margin:0;color:#ffb3a8}
+.lesson .gap-chip{border:none;cursor:pointer}
+.debrief{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.debrief h3{font-size:18px}
+.debrief ul{margin:4px 0 0;padding-left:20px}
+.db-item{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.db-item p{margin:0}
+.db-q{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:6px}
+.db-q summary{cursor:pointer;font-weight:600}
+.improved.light{background:var(--ok-bg);border-left:3px solid var(--ok);padding:6px 8px;border-radius:4px;margin:4px 0;flex:1;min-width:0}
+.gap-chip.dark{background:var(--surface-2);color:var(--fg);border:none;cursor:pointer;white-space:nowrap}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -356,6 +371,8 @@ function h(tag, attrs, ...kids) {
   for (const k of kids.flat()) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(String(k)));
   return el;
 }
+// replaceChildren without the "null" text nodes it would create for empty sections
+const fillEl = (el, ...kids) => el.replaceChildren(...kids.flat().filter(k => k != null && k !== false));
 const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => Date.now();
 const today = () => new Date().toISOString();
@@ -651,7 +668,9 @@ function ensurePlan(l) {
     const ivs = d.interviews.filter(ivUpcoming).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
     for (const iv of ivs) {
       const fullToday = d.sessions.some(s => s.type === "mock" && s.mockQ == null && (s.ivId || iv.id) === iv.id && str(s.date).slice(0, 10) === day);
-      if (!fullToday) front.push(mockSession(l, null, iv));
+      const never = !d.sessions.some(x => x.type === "mock" && x.ivId === iv.id);
+      if (never) front.push(mockSession(l, null, iv, true));   // first, a lesson on how to answer
+      else if (!fullToday) front.push(mockSession(l, null, iv));
       const todo = iv.questions.map((q, i) => ({ q, i })).filter(x => !x.q.fluent);
       const drill = todo.find(x => x.q.drill) || (fullToday ? todo[0] : null);
       if (drill) front.push(mockSession(l, drill.i, iv));
@@ -903,10 +922,11 @@ const ACCENT_RULE = `${'"accent" : les mots que la reconnaissance vocale a visib
 const ivUpcoming = iv => !!iv?.questions?.length && (!iv.date || iv.date >= today().slice(0, 10));
 const interviewActive = d => arr(d?.interviews).some(ivUpcoming);
 function daysTo(iso) { if (!iso) return null; const t = new Date(iso + "T12:00:00"); return Math.round((t - new Date(today().slice(0, 10) + "T12:00:00")) / 864e5); }
-function mockSession(l, qIndex, iv = S.data[l].interview) {
+function mockSession(l, qIndex, iv = S.data[l].interview, lesson = false) {
   const q = qIndex == null ? null : iv.questions[qIndex];
   const who = iv.company ? ` (${iv.company})` : "";
-  return { id: uid(), type: "mock", topic: q ? `Drill${who} : ${q.q}` : `Complet · ${iv.role || "poste visé"}${who}`, minutes: q ? 10 : 45, mockQ: qIndex == null ? null : qIndex, ivId: iv.id, domain: "p_interview" };
+  const kind = lesson ? "Cours" : q ? "Drill" : "Complet";
+  return { id: uid(), type: "mock", lesson, topic: q ? `${kind}${who} : ${q.q}` : `${lesson ? "Cours" : "Complet"} · ${iv.role || "poste visé"}${who}`, minutes: lesson ? (q ? 15 : 45) : q ? 10 : 45, mockQ: qIndex == null ? null : qIndex, ivId: iv.id, domain: "p_interview" };
 }
 // what Emma knows about the jobs: injected into mock interviews and coaching
 const JOB_KB = `CLINICAL RESEARCH ASSOCIATE (CRA / ARC): site monitoring under ICH-GCP E6(R2/R3): site selection & feasibility, SIV / IMV / COV, source data verification and review (SDV/SDR), query resolution in the eCRF (Medidata Rave, REDCap...), AE/SAE follow-up and reporting timelines (SAE within 24 h), ISF/TMF and essential documents, IP accountability, protocol deviations, monitoring visit reports and follow-up letters, risk-based monitoring (RBM), central vs on-site monitoring, sponsor / CRO / site roles. EU: Clinical Trials Regulation 536/2014, CTIS, Part I (scientific, all member states) / Part II (national: consent, site suitability, contracts), France: CPP (ethics committee) and ANSM (competent authority), convention unique for academic sites, MR-001 for data protection.
@@ -970,13 +990,18 @@ function interviewPanel(l) {
     h("p", { style: "margin:0;font-weight:600", text: [iv.role, iv.company].filter(Boolean).join(" · ") }),
     h("p", { class: "lvl-note", text: [iv.date ? `le ${fmtDate(iv.date)}` : "", iv.format, iv.recruiter ? `Emma joue ${iv.recruiter}` : ""].filter(Boolean).join(" · ") }),
     h("div", { class: "row" },
-      h("button", { class: "btn primary", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null, iv)), text: "Entretien blanc complet" }),
+      h("button", { class: "btn primary", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null, iv, true)), text: "Cours : Emma t'apprend" }),
+      h("button", { class: "btn", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null, iv)), text: "Entretien blanc complet" }),
+      iv.sheet ? h("button", { class: "btn", type: "button", onclick: () => sheetModal(l, iv), text: "Ma fiche de révision" }) : null),
+    h("div", { class: "row" },
       h("span", { class: "muted", style: "font-size:13px", text: `${fluentN} / ${iv.questions.length} réponses prêtes` })),
     h("h3", { style: "font-size:15px;margin-top:4px", text: "Les questions" }),
     h("div", { class: "iv-qs" }, iv.questions.map((q, i) => h("div", { class: "iv-q" },
       h("span", { class: "iv-state " + (q.fluent ? "ok" : q.attempts ? "mid" : ""), title: q.fluent ? "Prête" : q.attempts ? "À retravailler" : "Pas encore travaillée", text: q.fluent ? "✓" : q.attempts ? q.best + "/10" : "·" }),
       h("div", { style: "min-width:0" }, h("div", { class: "iv-qt", text: q.q }), q.drill ? h("small", { class: "muted", text: "À répéter jusqu'à ce que ce soit fluide" }) : q.tips === "ajoutée par Emma" ? h("small", { class: "muted", text: "Question ajoutée par Emma" }) : null),
-      h("button", { class: "btn sm", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, i, iv)), text: "S'entraîner" })))),
+      h("div", { class: "row", style: "gap:6px;flex-wrap:nowrap" },
+        h("button", { class: "btn sm", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, i, iv, true)), text: "Apprendre" }),
+        h("button", { class: "btn sm", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, i, iv)), text: "S'entraîner" }))))),
     iv.vocab.length ? h("h3", { style: "font-size:15px;margin-top:4px", text: "Prononciation des mots clés" }) : null,
     iv.vocab.length ? h("div", { class: "iv-vocab" }, iv.vocab.map(v => pronounceChip(l, v))) : null,
     h("div", { class: "row" },
@@ -1024,6 +1049,7 @@ ${JOB_KB}
 RÈGLES :
 - Tu suis exactement les consignes entre crochets du dernier message : elles disent quelle question poser ou s'il faut faire refaire une réponse.
 - Dans le rôle, sois une recruteuse réaliste et professionnelle : britannique, bienveillante, précise. Une seule question à la fois. 1 à 3 phrases, à l'oral, pas de liste, pas de markdown.
+- En MODE COURS (quand la consigne le dit), tu n'es pas la recruteuse mais la coach : pédagogue, rassurante, concrète, jusqu'à 5 phrases.
 - Tu ne corriges pas la réponse dans ta réplique (le coaching écrit s'affiche à côté), sauf si la consigne te demande de sortir du rôle.
 - Les messages qui commencent par [oral] viennent de la reconnaissance vocale.
 FORMAT : uniquement un objet JSON : {"say":[{"lang":"en","text":"ta réplique"}],"new_words":[]}`;
@@ -1034,6 +1060,10 @@ function mockQueue(spec) {
 }
 function mockAsk(i, first) {
   const iv = S.data.en.interview, q = iv.questions[i];
+  if (C.mock?.lesson) {
+    showLesson(iv, i);
+    return `${first ? `[Début d'un COURS D'ENTRETIEN (pas un entretien blanc) : salue ${S.profile.name}, rassure-le en une phrase (on va préparer chaque question ensemble, calmement), puis commence.] ` : "[Question suivante du cours.] "}[Tu es la coach. Une fiche s'affiche à l'écran avec l'objectif de la question, la structure, les formulations clés et une réponse modèle. Explique à l'oral, simplement, en 3 à 5 phrases : ce que le recruteur veut vérifier avec cette question et comment construire la réponse. Ne lis pas toute la réponse modèle. Puis demande-lui d'essayer sa propre réponse à : « ${q.q} »]`;
+  }
   return first
     ? `[Début de l'entretien. Joue ${iv.recruiter || "la recruteuse"} : salue ${S.profile.name} comme au début d'un appel ${iv.format || "en visio"}, présente-toi en une phrase${iv.company ? " (" + iv.company + ")" : ""}, annonce brièvement le déroulé, puis pose cette question : « ${q.q} »]`
     : `[Reste dans le rôle. Réagis très brièvement et naturellement à sa réponse (une phrase, sans corriger), puis pose la question suivante : « ${q.q} »]`;
@@ -1096,7 +1126,7 @@ async function mockAnswer(text, oral, bubble) {
     return;
   }
   C.log.push({ who: "student", text });
-  const drill = q.drill || M.queue.length === 1 || M.forceDrill;
+  const drill = q.drill || M.queue.length === 1 || M.forceDrill || M.lesson;
   if (!drill) {
     // move on at once; the coaching card arrives while Emma asks the next question
     wait.textContent = "Coaching en préparation…";
@@ -1120,9 +1150,9 @@ async function mockAnswer(text, oral, bubble) {
   C.busy = false;
   // drilled questions come back until they are fluent (max 6 tries per lesson)
   M.tries = (M.tries || 0) + 1;
-  mockNext(!fluent && M.tries < 6 ? "redo" : "next", text, oral);
+  mockNext(!fluent && M.tries < (M.lesson ? 3 : 6) ? "redo" : "next", text, oral);
 }
-function showCoach(r, { iv, q, qi, oral, bubble, drill }) {
+function showCoach(r, { iv, q, qi, text, oral, bubble, drill }) {
   const l = "en", M = C.mock;
   const grammar = arr(r.grammar).filter(g => str(g?.wrong) && str(g?.right));
   const vocab = arr(r.vocab).filter(v => str(v?.said) && str(v?.better));
@@ -1136,6 +1166,7 @@ function showCoach(r, { iv, q, qi, oral, bubble, drill }) {
   q.attempts = (q.attempts || 0) + 1; q.best = Math.max(q.best || 0, score); if (fluent) q.fluent = true; q.lastImproved = str(r.improved);
   saveLang(l);
   const improved = str(r.improved);
+  (C.mockLog = C.mockLog || []).push({ q: q.q, answer: str(text), score, improved, structure: str(r.structure) });
   bubble.append(h("div", { class: "coach" },
     h("div", { class: "coach-head" }, h("span", { class: "k", text: "Coaching" }), h("b", { class: fluent ? "ok" : "", text: `${score}/10${fluent ? " · prête ✓" : ""}` })),
     grammar.length ? h("div", null, h("span", { class: "k", text: "Grammaire" }), grammar.map(g => h("div", null, h("del", { text: str(g.wrong) }), "  →  ", h("ins", { text: str(g.right) }), str(g.why) ? h("p", { text: str(g.why) }) : null))) : null,
@@ -1158,6 +1189,70 @@ function mockRetry(qi) {
   M.tries = 0;
   teacherTurn(`[Sors brièvement du rôle : propose de reprendre cette question pour l'améliorer avec la version améliorée affichée, puis repose-la mot pour mot : « ${iv.questions[qi].q} »]`, null);
 }
+
+/* lesson card: what the recruiter checks, how to build the answer, key phrases, a model answer */
+async function showLesson(iv, qi) {
+  const q = iv.questions[qi], log = $("#log"); if (!log) return;
+  const box = h("div", { class: "lesson" }, h("span", { class: "k", text: `Cours · ${q.q}` }), h("p", { class: "checking", text: "Emma prépare la fiche de cette question…" }));
+  log.append(box); scrollLog();
+  try {
+    const r = await askJSON(`Tu es Emma, coach d'entretien pour les métiers de la recherche clinique et des données de santé. Prépare une fiche de cours pour cette question d'entretien en anglais.
+POSTE : ${iv.role}${iv.company ? " chez " + iv.company : ""}. ${iv.job}
+PROFIL RÉEL DU CANDIDAT (n'invente rien) : ${iv.profile}
+CONNAISSANCES MÉTIER : ${JOB_KB}
+QUESTION : ${q.q}
+${q.tips ? "CONSIGNES DU CANDIDAT : " + q.tips + "\n" : ""}${q.prepared ? "SA RÉPONSE PRÉPARÉE : " + q.prepared + "\n" : ""}Réponds uniquement en JSON :
+{"goal":"ce que le recruteur veut vraiment vérifier, en français, 1-2 phrases","structure":["3 ou 4 étapes de la réponse, en français, très concrètes (ex. Aujourd'hui : qui tu es → Expérience : 2 preuves chiffrées → Pourquoi ce poste)"],"phrases":["4 formulations clés en anglais britannique, prêtes à dire"],"model":"une réponse modèle en anglais britannique naturel, à la première personne, fidèle à son profil réel, 70 à 120 mots, phrases courtes faciles à dire","avoid":"l'erreur classique à éviter sur cette question, en français, 1 phrase"}`, { modelTier: "quick" });
+    q.model = str(r.model); q.phrases = arr(r.phrases).map(str).filter(Boolean); saveLang("en");
+    fillEl(box, h("span", { class: "k", text: `Cours · ${q.q}` }),
+      str(r.goal) ? h("div", null, h("strong", { text: "Ce que le recruteur vérifie : " }), str(r.goal)) : null,
+      arr(r.structure).length ? h("div", null, h("strong", { text: "Comment construire ta réponse :" }), h("ol", null, arr(r.structure).map(x => h("li", { text: str(x) })))) : null,
+      q.phrases.length ? h("div", null, h("strong", { text: "Formulations clés :" }), h("div", { class: "words" }, q.phrases.map(p => h("button", { class: "gap-chip", type: "button", onclick: () => Voice.speak([{ lang: "en", text: p }], "en"), text: "🔊 " + p })))) : null,
+      q.model ? h("div", null, h("strong", { text: "Réponse modèle :" }), h("p", { class: "improved", text: q.model }), h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: q.model }], "en"), text: "Écouter la réponse modèle" })) : null,
+      str(r.avoid) ? h("p", { class: "avoid", text: "À éviter : " + str(r.avoid) }) : null);
+  } catch { fillEl(box, h("span", { class: "k", text: `Cours · ${q.q}` }), h("p", { text: "Fiche indisponible : Emma t'explique à l'oral." })); }
+  scrollLog();
+}
+/* end-of-interview debrief: like a recruiter's feedback, with what to say instead */
+function debriefPrompt(iv, mockLog) {
+  return `Tu es Emma, coach d'entretien experte des CRO, de la recherche clinique et des données de santé, et ancienne recruteuse. ${S.profile.name} vient de passer un entretien blanc en anglais pour ce poste. Fais-lui un vrai débrief, franc, bienveillant et très concret, pour qu'il réussisse le vrai entretien${iv.date ? " le " + iv.date : ""}. Il est stressé : rassure-le sur ce qui va bien, sans mentir.
+POSTE : ${iv.role}${iv.company ? " chez " + iv.company : ""}. ${iv.job}
+PROFIL RÉEL (n'invente rien) : ${iv.profile}
+CONNAISSANCES MÉTIER : ${JOB_KB}
+DÉROULÉ (question, sa réponse transcrite, note du coaching sur 10, version améliorée) :
+${mockLog.map((x, i) => `${i + 1}. Q : ${x.q}\n   Réponse : ${x.answer}\n   Note : ${x.score}/10 · ${x.structure}\n   Version améliorée : ${x.improved}`).join("\n").slice(-14000)}
+Explications en français, formulations et réponses modèles en anglais britannique. Réponds uniquement en JSON :
+{"impression":"ce qu'une vraie recruteuse penserait à la sortie de cet entretien, 3 phrases","verdict":"prêt / presque prêt / à retravailler","strengths":["3 points forts précis"],"improve":[{"point":"ce qui ne va pas","why":"pourquoi ça compte pour le recruteur","say_instead":"ce qu'il faut dire à la place, en anglais"}],"answers":[{"q":"la question","status":"ok ou à retravailler","feedback":"ce qui manquait, 1-2 phrases","model":"réponse modèle en anglais, 70-120 mots, fidèle à son profil, facile à dire","phrases":["2 ou 3 formulations clés à retenir"]}],"red_flags":["ce qu'il ne faut surtout pas dire, s'il y en a"],"tips":["4 conseils pratiques pour le jour J : rythme, pauses, structure, gestion du stress, questions à poser"],"next":"ce qu'on travaille au prochain entraînement, 1 phrase"}
+"improve" : 3 à 5 points, du plus important au moins important.`;
+}
+function debriefView(db, l = "en") {
+  const say = t => h("button", { class: "gap-chip dark", type: "button", onclick: () => Voice.speak([{ lang: l, text: t }], l), text: "🔊 Écouter" });
+  return h("div", { class: "debrief" },
+    h("h3", { text: "Le retour d'Emma sur ton entretien" }),
+    str(db.verdict) ? h("span", { class: "pill " + (/prêt/i.test(db.verdict) && !/presque|retravailler/i.test(db.verdict) ? "done" : "todo"), text: str(db.verdict) }) : null,
+    str(db.impression) ? h("p", { text: str(db.impression) }) : null,
+    arr(db.strengths).length ? h("div", null, h("strong", { text: "Ce qui va bien" }), h("ul", null, arr(db.strengths).map(x => h("li", { text: str(x) })))) : null,
+    arr(db.improve).length ? h("div", null, h("strong", { text: "Ce qu'il faut améliorer, et quoi dire à la place" }),
+      arr(db.improve).map(x => h("div", { class: "db-item" }, h("b", { text: str(x.point) }), str(x.why) ? h("p", { class: "muted", text: str(x.why) }) : null,
+        str(x.say_instead) ? h("div", { class: "row", style: "gap:6px" }, h("p", { class: "improved light", text: "« " + str(x.say_instead) + " »" }), say(str(x.say_instead))) : null))) : null,
+    arr(db.answers).length ? h("div", null, h("strong", { text: "Question par question" }),
+      arr(db.answers).map(x => h("details", { class: "db-q" }, h("summary", null, h("span", { text: str(x.q) }), h("small", { class: /ok/i.test(str(x.status)) ? "trend good" : "trend", text: "  " + str(x.status) })),
+        str(x.feedback) ? h("p", { text: str(x.feedback) }) : null,
+        str(x.model) ? h("div", null, h("p", { class: "improved light", text: str(x.model) }), say(str(x.model))) : null,
+        arr(x.phrases).length ? h("p", { class: "muted", text: "À retenir : " + arr(x.phrases).map(str).join(" · ") }) : null))) : null,
+    arr(db.red_flags).filter(str).length ? h("div", null, h("strong", { text: "À ne pas dire" }), h("ul", null, arr(db.red_flags).filter(str).map(x => h("li", { text: str(x) })))) : null,
+    arr(db.tips).length ? h("div", null, h("strong", { text: "Pour le jour J" }), h("ul", null, arr(db.tips).map(x => h("li", { text: str(x) })))) : null,
+    str(db.next) ? h("p", { class: "muted", text: "Prochain entraînement : " + str(db.next) }) : null);
+}
+function sheetModal(l, iv) {
+  const card = h("div", { class: "flash wide", role: "dialog", "aria-label": "Fiche de révision" });
+  const ov = h("div", { class: "overlay" }, card);
+  const close = () => { Voice.stop(); ov.remove(); };
+  card.append(h("div", { class: "flash-top" }, h("h2", { text: "Ta fiche de révision" }), h("button", { class: "btn sm", onclick: close, text: "Fermer" })),
+    h("p", { class: "muted", style: "margin:0", text: `${[iv.role, iv.company].filter(Boolean).join(" · ")} · mise à jour le ${fmtDate(iv.sheet.date)}. Relis-la avant l'entretien et écoute les réponses modèles.` }),
+    debriefView(iv.sheet, l));
+  document.body.append(ov);
+}
 function mockNext(action, text, oral) {
   if (!C.open || C.busy) return;
   const M = C.mock, iv = S.data.en.interview;
@@ -1170,7 +1265,9 @@ function mockNext(action, text, oral) {
   if (text == null) M.tries = 0;
   if (action === "end" || M.pos >= M.queue.length - 1) {
     M.finished = true;
-    if (action !== "end") teacherTurn(`${answer}[C'était la dernière question. Remercie et explique les prochaines étapes comme une vraie recruteuse, puis sors du rôle et donne en 2 phrases les priorités à travailler avant le vrai entretien.]`, null);
+    if (action !== "end") teacherTurn(M.lesson
+      ? `${answer}[Fin du cours. En coach, félicite-le sincèrement, résume en 3 phrases les 2 ou 3 choses les plus importantes à retenir pour ses réponses, puis propose de faire maintenant un entretien blanc complet pour s'entraîner en conditions réelles.]`
+      : `${answer}[C'était la dernière question. Remercie et explique les prochaines étapes comme une vraie recruteuse, puis sors du rôle et donne en 2 phrases les priorités à travailler avant le vrai entretien.]`, null);
     const log = $("#log");
     if (log) log.append(h("div", { class: "timeup" }, h("strong", { text: "Entretien terminé." }), h("p", { text: "Raccroche pour ton bilan et tes devoirs, ou refais une question depuis le carnet." }), h("button", { class: "retry", onclick: () => endCall(), text: "Terminer et voir mon bilan" })));
     return;
@@ -1261,13 +1358,13 @@ function accentItem(l, dr, text) {
     const finish = () => {
       offs.forEach(f => { try { f(); } catch {} }); clearTimeout(silence); say.textContent = "Je la dis";
       const got = heard.join(" ");
-      if (!got) { out.replaceChildren(h("small", { class: "muted", text: "Rien entendu. Parle près du micro et réessaie." })); return; }
+      if (!got) { fillEl(out, h("small", { class: "muted", text: "Rien entendu. Parle près du micro et réessaie." })); return; }
       const r = wordDiff(text, got);
       const d = S.data[l]; d.accentDrill = d.accentDrill || {};
       const st = d.accentDrill[dr.issue] = d.accentDrill[dr.issue] || { tries: 0, ok: 0 };
       st.tries++; if (r.score >= .9) st.ok++;
       saveLang(l);
-      out.replaceChildren(
+      fillEl(out, 
         h("div", { class: "acc-words" }, r.words.map(x => h("span", { class: x.ok ? "ok" : "ko", text: x.w }))),
         h("small", { class: "muted", text: `Compris : « ${got} »` }),
         h("small", { class: r.score >= .9 ? "trend good" : "trend", text: r.score >= .9 ? "Très clair ✓" : r.score >= .6 ? "Presque : réécoute les mots en rouge et recommence." : "Recommence lentement, mot par mot, après avoir réécouté." }));
@@ -1276,7 +1373,7 @@ function accentItem(l, dr, text) {
       dd.onFinal(({ text: t }) => { if (str(t)) { heard.push(str(t)); clearTimeout(silence); silence = setTimeout(() => dd.stop().catch(() => {}), 1200); } }),
       dd.onState(({ state }) => { if (state === "listening") say.textContent = "J'écoute… (stop)"; if (state === "idle") finish(); })
     ];
-    Mic.start(l).catch(e => { offs.forEach(f => f()); out.replaceChildren(h("small", { class: "muted", text: e?.code === "not_granted" ? "Micro refusé." : "Le micro n'a pas démarré." })); });
+    Mic.start(l).catch(e => { offs.forEach(f => f()); fillEl(out, h("small", { class: "muted", text: e?.code === "not_granted" ? "Micro refusé." : "Le micro n'a pas démarré." })); });
     setTimeout(() => { if (dd.active()) dd.stop().catch(() => {}); }, 12000);
   };
   return h("div", { class: "acc-item" }, h("div", { class: "acc-text", text }), h("div", { class: "row", style: "gap:6px" }, listen, slow, say), out);
@@ -2209,7 +2306,7 @@ function workshop(l) {
   let pickDom = d.vocab.length >= 6 ? "mine" : doms[0].id, count = 8;
   const choose = () => {
     const chip = (val, text, on, fn) => h("button", { class: "chip light", type: "button", "aria-pressed": String(on), onclick: () => { fn(val); choose(); }, text });
-    card.replaceChildren(
+    fillEl(card, 
       h("div", { class: "flash-top" }, h("h2", { text: "Atelier de vocabulaire" }), h("button", { class: "btn sm", onclick: close, text: "Fermer" })),
       h("p", { class: "muted", style: "margin:0", text: `Des exercices écrits, corrigés dès que tu réponds, sans traduction. Les mots ratés vont dans ta banque.` }),
       h("span", { class: "label", text: "Sur quoi ?" }),
@@ -2221,7 +2318,7 @@ function workshop(l) {
       !CAP.sample ? h("p", { class: "muted", text: "Ouvre la page dans Claude pour générer des exercices." }) : null);
   };
   async function generate() {
-    card.replaceChildren(h("div", { class: "row" }, h("div", { class: "spinner" }), h("p", { style: "margin:0", text: "Préparation des exercices…" })));
+    fillEl(card, h("div", { class: "row" }, h("div", { class: "spinner" }), h("p", { style: "margin:0", text: "Préparation des exercices…" })));
     const L = LANGS[l].name.toUpperCase(), dom = DOMAIN_BY_ID[pickDom];
     const mine = d.vocab.slice().sort((a, b) => a.box - b.box).slice(0, 30).map(v => v.w).join(", ");
     try {
@@ -2240,7 +2337,7 @@ Réponds uniquement en JSON : {"exercises":[{"type":"fill","prompt":"","expected
       if (!list.length) throw { code: "invalid_json" };
       run(list, dom);
     } catch (e) {
-      card.replaceChildren(h("h2", { text: "Exercices indisponibles" }), h("p", { text: errCopy(e) }),
+      fillEl(card, h("h2", { text: "Exercices indisponibles" }), h("p", { text: errCopy(e) }),
         h("div", { class: "row" }, h("button", { class: "btn primary", onclick: generate, text: "Réessayer" }), h("button", { class: "btn", onclick: close, text: "Fermer" })));
     }
   }
@@ -2268,7 +2365,7 @@ Réponds uniquement en JSON : {"exercises":[{"type":"fill","prompt":"","expected
       }));
       render(); body.append(blockHolder);
     });
-    card.replaceChildren(
+    fillEl(card, 
       h("div", { class: "flash-top" }, h("h2", { text: dom ? dom.name : "Mes mots" }), h("button", { class: "btn sm", onclick: close, text: "Fermer" })),
       prog, body, score,
       h("div", { class: "row" }, h("button", { class: "btn", onclick: () => choose(), text: "Autre série" })));
@@ -2290,7 +2387,7 @@ function flashcards(l, list) {
   function show() {
     const v = queue.shift();
     if (!v) {
-      card.replaceChildren(h("h2", { text: "Révision terminée" }), h("p", { text: `${good} bonne${good > 1 ? "s" : ""} réponse${good > 1 ? "s" : ""} sur ${total} mots. Les mots ratés reviendront plus tôt.` }),
+      fillEl(card, h("h2", { text: "Révision terminée" }), h("p", { text: `${good} bonne${good > 1 ? "s" : ""} réponse${good > 1 ? "s" : ""} sur ${total} mots. Les mots ratés reviendront plus tôt.` }),
         h("button", { class: "btn primary", onclick: close, text: "Fermer" }));
       return;
     }
@@ -2312,7 +2409,7 @@ function flashcards(l, list) {
       if (r[0] !== "good" && !retried.has(v)) { retried.add(v); queue.push(v); }
       done++;
       res.hidden = false; res.className = "res " + (r[0] === "good" ? "good" : r[0] === "mid" ? "mid" : "bad");
-      res.replaceChildren(h("strong", { text: r[1] + " " }), h("span", { text: v.w }), v.ex ? h("div", { class: "muted", style: "font-size:14px;margin-top:4px", text: v.ex }) : null);
+      fillEl(res, h("strong", { text: r[1] + " " }), h("span", { text: v.w }), v.ex ? h("div", { class: "muted", style: "font-size:14px;margin-top:4px", text: v.ex }) : null);
       input.disabled = true; checkBtn.hidden = true; skip.hidden = true; listen.hidden = false; nextBtn.hidden = false;
       Voice.speak([{ lang: l, text: v.w }], l);
       nextBtn.focus();
@@ -2323,7 +2420,7 @@ function flashcards(l, list) {
       h("div", { class: "prompt", text: v.m || "?" }),
       input, res,
       h("div", { class: "row" }, checkBtn, skip, listen, nextBtn));
-    card.replaceChildren(
+    fillEl(card, 
       h("div", { class: "flash-top" }, h("span", { class: "label", text: `Carte ${Math.min(done + 1, total + retried.size)} · ${queue.length} restante${queue.length > 1 ? "s" : ""}` }),
         h("button", { class: "btn sm", onclick: close, text: "Arrêter" })),
       form);
@@ -2491,7 +2588,7 @@ const C = { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [],
 
 function startCall(spec) {
   const l = S.cur, d = S.data[l];
-  C.spec = { ...spec }; C.timeUp = false; C.objectives = buildObjectives(l); C.mock = null;
+  C.spec = { ...spec }; C.timeUp = false; C.objectives = buildObjectives(l); C.mock = null; C.mockLog = [];
   Object.assign(C, { turns: [], log: [], errors: [], betters: [], gaps: [], analyses: [], words: [], used: new Set(),
     targets: dueWords(l, 6), liveLevel: d.assessed ? d.level : null,
     start: now(), busy: false, finals: [], listening: false, lastSay: null, lastTeacherText: "", pending: null, open: true, micOffs: [] });
@@ -2552,7 +2649,7 @@ function startCall(spec) {
   setupMic(micBtn);
   document.addEventListener("keydown", spaceKey);
   if (C.spec.type === "mock" && d.interview) {
-    C.mock = { queue: mockQueue(C.spec), pos: 0, tries: 0 };
+    C.mock = { queue: mockQueue(C.spec), pos: 0, tries: 0, lesson: !!C.spec.lesson };
     teacherTurn(mockAsk(C.mock.queue[0], true), null);
     return;
   }
@@ -2913,12 +3010,12 @@ Réponds uniquement en JSON : {"lemma":"forme de dictionnaire (avec article pour
     const inBank = S.data[l].vocab.some(v => vocabKey(v.w) === vocabKey(lemma));
     const add = h("button", { type: "button", text: inBank ? (l === "es" ? "Ya está en tu vocabulario" : "Already in your words") : (l === "es" ? "+ Añadir a mi vocabulario" : "+ Add to my words"), disabled: inBank });
     add.onclick = () => { addVocab(l, [{ word: lemma, meaning: def, example: ex }], "lacune", C.spec?.domain); saveLang(l); add.textContent = l === "es" ? "Añadida ✓" : "Added ✓"; add.disabled = true; };
-    box.replaceChildren(h("b", { text: lemma }), def ? h("p", { text: def }) : null, ex ? h("p", { class: "ex", text: ex }) : null,
+    fillEl(box, h("b", { text: lemma }), def ? h("p", { text: def }) : null, ex ? h("p", { class: "ex", text: ex }) : null,
       h("div", { class: "row" }, h("button", { type: "button", onclick: () => { if (!C.listening) Voice.speak([{ lang: l, text: lemma + ". " + ex }], l); }, text: l === "es" ? "Escuchar" : "Listen" }), add,
         h("button", { type: "button", onclick: () => { box.remove(); span.classList.remove("sel"); }, text: "✕", "aria-label": "Fermer" })));
     scrollLog();
   } catch (e) {
-    if (box.isConnected) box.replaceChildren(h("b", { text: word }), h("p", { text: errCopy(e) }));
+    if (box.isConnected) fillEl(box, h("b", { text: word }), h("p", { text: errCopy(e) }));
   }
 }
 function showTimeUp() {
@@ -2955,6 +3052,7 @@ async function endCall() {
   const minutes = Math.max(1, Math.round((now() - C.start) / 60000));
   const studentTurns = C.log.filter(x => x.who === "student").length;
   const spec = { ...C.spec }, objectives = arr(C.objectives).map(o => ({ ...o }));
+  const mockLog = arr(C.mockLog).slice();
   const snapshot = { log: C.log.slice(), errors: C.errors.slice(), betters: C.betters.slice(), gaps: C.gaps.slice(), words: C.words.slice(), used: [...C.used], analyses: C.analyses.slice(), live: C.liveLevel };
   closeCall();
   // vocabulary bookkeeping happens even without a report
@@ -3017,6 +3115,8 @@ MESURES : ${metrics.ept} erreur(s) par intervention, ${metrics.wpt} mots par int
 
 Réponds uniquement en JSON :
 {"summary":"","message":"","level":"","level_note":"","skills":{"grammaire":0,"vocabulaire":0,"aisance":0,"comprehension":0},"top_mistakes":[{"wrong":"","right":"","rule":""}],"weakness_updates":[{"label":"","delta":1,"note":""}],"strengths":[],"vocab_gaps":[{"word":"","meaning":"","example":""}],"homework":{"title":"","focus":"","exercises":[{"type":"fill","prompt":"","hint":"","expected":""}]},"next_goal":"","objectives":[{"id":"","achieved":false,"note":""}],"demonstrated":[]}`;
+  const ivDone = spec.type === "mock" ? d.interviews.find(x => x.id === spec.ivId) : null;
+  const debriefP = ivDone && mockLog.length ? askJSON(debriefPrompt(ivDone, mockLog), {}).catch(() => null) : null;
   let r;
   try { r = await askJSON(prompt, {}); }
   catch (e) {
@@ -3024,7 +3124,7 @@ Réponds uniquement en JSON :
     d.lastObjectives = objectives; updatePlateau(l);
     applyWeakness(l, Object.entries(snapshot.errors.reduce((a, x) => (a[x.category] = (a[x.category] || 0) + 1, a), {})).map(([label, delta]) => ({ label, delta })));
     saveLang(l);
-    card.replaceChildren(h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs et les mots qui t'ont manqué ont quand même été enregistrés." }),
+    fillEl(card, h("h2", { text: "Bilan indisponible" }), h("p", { text: errCopy(e) + " Tes erreurs et les mots qui t'ont manqué ont quand même été enregistrés." }),
       h("button", { class: "btn primary", onclick: () => { ov.remove(); renderLobby(); }, text: "Retour" }));
     return;
   }
@@ -3056,7 +3156,7 @@ Réponds uniquement en JSON :
   }
   saveLang(l);
   const mistakes = arr(r.top_mistakes).filter(m => str(m?.right));
-  card.replaceChildren(
+  fillEl(card, 
     h("span", { class: "label", text: `Bilan · ${minutes} min · ${snapshot.errors.length} correction${snapshot.errors.length > 1 ? "s" : ""} · ${snapshot.gaps.length + arr(r.vocab_gaps).length} mots ajoutés` }),
     h("h2", { text: l === "es" ? `¡Buen trabajo, ${S.profile.name}!` : `Well done, ${S.profile.name}!` }),
     h("p", { style: "margin:0", text: str(r.message) }),
@@ -3072,6 +3172,17 @@ Réponds uniquement en JSON :
     exs.length ? h("p", { class: "notice", text: `Devoirs : « ${str(hwIn.title) || "Devoirs"} », ${exs.length} exercices sur ${str(hwIn.focus) || "tes lacunes"}.` }) : null,
     str(r.next_goal) ? h("p", { class: "muted", style: "margin:0", text: "Prochain cours : " + str(r.next_goal) }) : null,
     h("button", { class: "btn primary", style: "align-self:flex-start", onclick: () => { ov.remove(); renderLobby(); }, text: "Voir mes devoirs et mon vocabulaire" }));
+  if (debriefP) {
+    const slot = h("div", { class: "row" }, h("div", { class: "spinner" }), h("p", { style: "margin:0", text: "Emma prépare ton retour détaillé sur l'entretien…" }));
+    card.insertBefore(slot, card.children[2] || null);
+    const db = await debriefP;
+    if (db && typeof db === "object") {
+      ivDone.sheet = { ...db, date: today() };
+      for (const a of arr(db.answers)) { const q = ivDone.questions.find(x => norm(x.q) === norm(a.q)); if (q && str(a.model)) { q.model = str(a.model); q.phrases = arr(a.phrases).map(str); } }
+      saveLang(l);
+      slot.replaceWith(debriefView(db, l));
+    } else slot.replaceWith(h("p", { class: "muted", text: "Le retour détaillé n'a pas pu être préparé cette fois." }));
+  }
 }
 
 /* =========================================================
