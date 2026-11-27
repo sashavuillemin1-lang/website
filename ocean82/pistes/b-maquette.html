@@ -91,8 +91,9 @@ h2 { font-size: clamp(2.6rem, 4.3vw, 4.2rem); line-height: .98; margin: 0 0 2.2r
 .dishes b { font: 400 .95rem/1 var(--sans); color: var(--sand); white-space: nowrap; }
 .carte .link { margin-top: 2.4rem; align-self: flex-start; }
 .vivier { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: 100vh; padding: clamp(2rem, 5vw, 4.5rem); isolation: isolate; overflow: hidden; }
-.vivier img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 62% 50%; z-index: -2; }
-.vivier::after { content: ""; position: absolute; inset: 40% 0 0 0; z-index: -1; background: linear-gradient(rgba(239, 230, 216, 0), rgba(239, 230, 216, .96) 62%); }
+.vivier img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 50%; z-index: -2; }
+.vivier h2 { margin-bottom: 1.4rem; }
+.vivier::after { content: ""; position: absolute; inset: 56% 0 0 0; z-index: -1; background: linear-gradient(rgba(239, 230, 216, 0), rgba(239, 230, 216, .97) 46%); }
 .vivier p { margin: 0 0 1.4rem; max-width: 26rem; color: var(--mute); }
 .price { font: 400 1.6rem/1 var(--serif); color: var(--ink) !important; }
 .price small { font: 400 .62rem/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; color: var(--sand); margin: 0 1.4em 0 .5em; }
@@ -152,7 +153,7 @@ h2 { font-size: clamp(2.6rem, 4.3vw, 4.2rem); line-height: .98; margin: 0 0 2.2r
         <a class="tag caps" href="#carte" style="--x: 52; --t: 7; --d: 45"><i><b>01</b><span>La carte</span></i></a>
         <a class="tag caps" href="#vivier" style="--x: 62.5; --t: 16; --d: 44.5"><i><b>02</b><span>Le vivier</span></i></a>
         <a class="tag caps" href="#cave" style="--x: 33.5; --t: 14; --d: 45.5"><i><b>03</b><span>La cave</span></i></a>
-        <a class="tag caps up" href="#terrasse" style="--x: 46; --t: 73; --d: 53.5"><i><b>04</b><span>La terrasse</span></i></a>
+        <a class="tag caps up" href="#terrasse" style="--x: 40; --t: 81; --d: 54"><i><b>04</b><span>La terrasse</span></i></a>
       </div>
       <figcaption class="caps">Faites tourner la maquette · touchez une étiquette pour entrer</figcaption>
     </figure>
@@ -188,7 +189,6 @@ h2 { font-size: clamp(2.6rem, 4.3vw, 4.2rem); line-height: .98; margin: 0 0 2.2r
     <img src="../assets/3d/ivoire-vivier.webp" width="1760" height="1100" alt="Le vivier à langoustes, vu dans la maquette 3D" loading="lazy">
     <p class="num caps"><b>02</b> Le vivier</p>
     <h2>La langouste, <em>choisie devant vous.</em></h2>
-    <p>Langouste du vivier, préparée selon votre choix : grillée, thermidor ou flambée.</p>
     <p class="price">41 €<small>la livre</small>90 €<small>le kilo</small></p>
   </section>
 </main>
