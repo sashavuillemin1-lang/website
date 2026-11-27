@@ -10,6 +10,14 @@ initLang();
 initReservation($('#resa-form'));
 reveal();
 
+// ------------------------------------------------------------------ l'interface suit la journée (jour → golden hour → nuit)
+// la section qui passe sous la navigation donne sa teinte à la pilule et à la barre du navigateur mobile
+const meta = $('meta[name="theme-color"]'), tint = { jour: '#f4e7d3', or: '#ffc857', nuit: '#0b2233', corail: '#ff6b4a' };
+const sky = new IntersectionObserver(es => {
+  for (const e of es) if (e.isIntersecting) { document.documentElement.dataset.sky = e.target.dataset.sky; meta.content = tint[e.target.dataset.sky]; }
+}, { rootMargin: '-6% 0px -92% 0px' });
+for (const s of $$('[data-sky]')) sky.observe(s);
+
 // ------------------------------------------------------------------ la carte : une rubrique à la fois
 const panels = $$('#carte-panels .carte-sec'), chips = $('#carte-chips');
 let current = 'carte-froids';

@@ -109,6 +109,7 @@ figcaption { margin-top: .7rem; font: 400 .68rem/1.5 var(--sans); letter-spacing
   font: 400 .72rem/1.5 var(--sans); letter-spacing: .18em; text-transform: uppercase; }
 .ribbon p { margin: 0; display: inline-flex; align-items: center; gap: .6rem; }
 .ribbon b { font-weight: 500; }
+.ribbon sup { margin: 0 .3em 0 -.12em; font-size: .78em; letter-spacing: .04em; text-transform: none; }
 .ribbon a { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; }
 .ribbon a:hover { text-decoration: underline; text-underline-offset: .3em; }
 
@@ -330,13 +331,17 @@ address svg { flex: none; margin-top: .22rem; opacity: .85; }
   .nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; gap: 1.5rem; margin: .3rem calc(-1 * var(--pad)) 0; padding: 0 var(--pad); overflow-x: auto; scrollbar-width: none; border-top: 1px solid var(--line-2); }
   .nav::-webkit-scrollbar { display: none; }
   .nav a { padding: .8rem 0; }
-  .hero, .maison, .vivier-grid { display: block; }
-  .hero { padding-top: 2.4rem; }
+  .maison, .vivier-grid { display: block; }
+  /* sur téléphone la photo vient juste après l'appel à réserver, avant les trois repères */
+  .hero { display: flex; flex-direction: column; align-items: stretch; padding-top: 2.4rem; }
+  .hero-copy { display: contents; }
+  .hero-art { order: 2; }
+  .facts { order: 3; margin-top: 3.2rem; border-top: 1px solid var(--line); }
   h1 { font-size: clamp(2.9rem, 13.2vw, 4.4rem); }
   .facts { grid-template-columns: 1fr; gap: 0; padding-top: 0; }
   .facts div { display: grid; grid-template-columns: 6.2rem minmax(0, 1fr); gap: 1rem; align-items: baseline; padding: .8rem 0; border-bottom: 1px solid var(--line-2); }
   .facts dt { margin: 0; }
-  .hero-art { width: 84%; margin: 3.4rem 0 0 auto; }
+  .hero-art { width: 84%; margin: 2.8rem 0 0 auto; }
   .hero-inset { left: -22%; bottom: 8%; width: 46%; }
   .stamp { top: -1.4rem; right: -.6rem; width: 5.2rem; }
   .maison { display: flex; flex-direction: column; }

@@ -76,12 +76,19 @@ em { font: italic 400 1.07em/1 var(--ital); letter-spacing: -.015em; text-transf
 .lang button[aria-pressed="true"] { background: var(--mer); color: var(--sable); }
 .nav .btn-corail { box-shadow: none; }
 .nav .btn-corail:hover { translate: none; }
+/* l'interface suit la journée : pastille « 82 » soleil à la golden hour, navigation de nuit après le coucher du soleil */
+.nav, .brand b, .lang, .lang button { transition: background .5s, color .5s, box-shadow .5s; }
+[data-sky="or"] .brand b { background: var(--soleil); }
+[data-sky="nuit"] .nav { background: rgba(11, 34, 51, .84); color: var(--sable); box-shadow: 0 10px 30px rgba(0, 0, 0, .32), inset 0 0 0 1px rgba(127, 214, 220, .3); }
+[data-sky="nuit"] .nav-links a:hover { background: rgba(127, 214, 220, .2); }
+[data-sky="nuit"] .lang { background: rgba(244, 231, 211, .13); }
+[data-sky="nuit"] .lang button[aria-pressed="true"] { background: var(--sable); color: var(--nuit); }
 
 /* ---------- héros */
 .hero { position: relative; overflow: clip; padding: clamp(6.6rem, 13vh, 9.5rem) var(--gut) clamp(3.5rem, 7vw, 6.5rem); }
-.hero::before { content: ""; position: absolute; right: -9vw; top: 3vw; width: 60vw; max-width: 62rem; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(closest-side, var(--lagon-2) 0, var(--lagon-3) 72%, rgba(205, 238, 234, 0) 100%); }
-.hero-in { position: relative; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); align-items: center; gap: clamp(1.5rem, 4vw, 4.5rem); }
+.hero::before { content: ""; position: absolute; right: -10vw; top: 2vw; width: 58vw; max-width: 60rem; aspect-ratio: 1; border-radius: 50%;      /* le lagon, en aplat */
+  background: linear-gradient(165deg, var(--lagon-2) 0, var(--lagon-3) 70%); }
+.hero-in { position: relative; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); align-items: center; gap: clamp(1.5rem, 4vw, 4.5rem); }
 .hero .lead { margin: 1.6rem 0 2rem; }
 .cta { display: flex; flex-wrap: wrap; gap: .8rem 1rem; }
 .trio { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: clamp(.55rem, 1.3vw, 1.2rem); padding-bottom: 1.2rem; }
@@ -89,6 +96,8 @@ em { font: italic 400 1.07em/1 var(--ital); letter-spacing: -.015em; text-transf
 .arch picture { aspect-ratio: 3 / 5; overflow: hidden; border-radius: 999px 999px var(--r) var(--r); background: var(--lagon-3); box-shadow: 0 24px 50px rgba(7, 59, 76, .24); }
 .arch img { width: 100%; height: 100%; object-fit: cover; transition: scale .9s var(--ease); }
 .arch:hover img { scale: 1.06; }
+.arch:focus-visible { outline: 0; }
+.arch:focus-visible picture { outline: 3px solid var(--corail); outline-offset: 4px; }      /* le repère de focus épouse l'arche */
 .a1 { margin-top: 16%; }
 .a3 { margin-top: 32%; }
 .arch-tag { position: relative; display: flex; align-items: center; gap: .4rem; width: fit-content; max-width: 100%; margin: -1.15rem auto 0; padding: .55rem .9rem; border-radius: 99px; white-space: nowrap;
@@ -105,6 +114,14 @@ em { font: italic 400 1.07em/1 var(--ital); letter-spacing: -.015em; text-transf
 .sticker-sun circle { fill: var(--corail); }
 .sticker-sun path { fill: none; stroke: var(--corail); stroke-width: 5; stroke-linecap: round; }
 @keyframes turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: no-preference) {      /* entrée en scène : les trois arches se lèvent, l'autocollant se colle */
+  .arch { animation: rise 1s var(--ease) both; }
+  .a2 { animation-delay: .1s; }
+  .a3 { animation-delay: .2s; }
+  .sticker { animation: pop .7s .6s var(--ease) both; }
+}
+@keyframes rise { from { opacity: 0; translate: 0 44px; } }
+@keyframes pop { from { opacity: 0; scale: .4; rotate: -70deg; } }
 
 /* ---------- bandeau défilant */
 .ticker { position: relative; z-index: 2; width: 104vw; margin: .6rem 0 0 -2vw; padding: .85rem 0; overflow: clip; rotate: -1.4deg; background: var(--corail); color: var(--nuit); }
@@ -257,7 +274,7 @@ em { font: italic 400 1.07em/1 var(--ital); letter-spacing: -.015em; text-transf
 .tp-tall { display: none; }
 #tour-canvas { opacity: 0; outline: 0; transition: opacity .9s ease; }
 .is-live #tour-canvas { opacity: 1; }
-#tour-canvas:focus-visible { outline: 3px solid var(--soleil); outline-offset: -6px; }
+.hublot:has(#tour-canvas:focus-visible) { box-shadow: 0 0 0 clamp(5px, .7vw, 10px) var(--nuit), 0 0 0 clamp(9px, 1.2vw, 17px) var(--soleil), 0 40px 80px rgba(0, 0, 0, .45); }   /* le repère de focus suit la forme du hublot */
 .tour-enter { position: absolute; z-index: 3; left: 0; right: 0; bottom: 11%; width: fit-content; margin: 0 auto; }
 .is-inside .tour-enter { display: none; }
 .tour-hint { position: absolute; z-index: 3; left: 0; right: 0; top: 9%; display: flex; align-items: center; gap: .5rem; width: fit-content; margin: 0 auto; padding: .55rem .95rem; border-radius: 99px;
@@ -387,7 +404,9 @@ address a:hover { color: var(--lagon-2); }
   .resa-form { grid-template-columns: minmax(0, 1fr); }
   .mid { grid-template-columns: minmax(0, .62fr) minmax(0, 1fr); }
   .tpin { font-size: .72rem; }
-  .tour-chips button { padding: .7rem .85rem; font-size: .82rem; }
+  .tour-chips { flex-wrap: nowrap; justify-content: flex-start; gap: .35rem; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gut)); padding-inline: var(--gut); }
+  .tour-chips::-webkit-scrollbar { display: none; }
+  .tour-chips button { flex: none; padding: .7rem .7rem; font-size: .8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
