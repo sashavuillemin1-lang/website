@@ -1,0 +1,22 @@
+<form class="resa-form" id="resa-form">
+  <div class="field"><label for="r-name" data-en="Name">Nom</label><input id="r-name" name="name" autocomplete="name" required></div>
+  <div class="field"><label for="r-phone" data-en="Phone">Téléphone</label><input id="r-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
+  <div class="field"><label for="r-email" data-en="Email">E-mail</label><input id="r-email" name="email" type="email" autocomplete="email" required></div>
+  <div class="field"><label for="r-guests" data-en="Guests">Personnes</label><select id="r-guests" name="guests">
+    <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></div>
+  <div class="field"><label for="r-date">Date</label><input id="r-date" name="date" type="date" required></div>
+  <div class="field"><label for="r-time" data-en="Time">Heure</label><select id="r-time" name="time"></select></div>
+  <div class="field field-wide"><label for="r-msg" data-en="Special requests">Demandes spéciales</label><textarea id="r-msg" name="message" rows="2"></textarea></div>
+  <button class="btn resa-submit" type="submit"><span data-en="Request my table">Demander ma table</span></button>
+  <p class="resa-note" data-en="The restaurant may contact you to confirm your reservation. Please let us know in case of any changes. We hold your table for 15 minutes.">Le restaurant peut vous contacter pour confirmer votre réservation. Merci de nous prévenir en cas de changement. Nous gardons votre table pendant 15 minutes.</p>
+</form>
+<div class="resa-done" hidden tabindex="-1">
+  <p class="resa-done-title" data-en="Almost there.">C’est presque fait.</p>
+  <p class="resa-done-sum" data-resa-summary></p>
+  <p class="resa-done-txt" data-en="Send your request to the restaurant in one tap:">Envoyez votre demande au restaurant en un geste :</p>
+  <div class="resa-done-actions">
+    <a class="btn" data-resa-wa target="_blank" rel="noopener"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg><span>WhatsApp</span></a>
+    <a class="btn btn-ghost" data-resa-mail><svg width="18" height="18" aria-hidden="true"><use href="#i-mail"/></svg><span>E-mail</span></a>
+  </div>
+  <button type="button" class="resa-back" data-resa-back data-en="Edit my request">Modifier ma demande</button>
+</div>
