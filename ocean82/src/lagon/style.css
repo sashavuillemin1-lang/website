@@ -89,6 +89,8 @@ em { font: italic 400 1.07em/1 var(--ital); letter-spacing: -.015em; text-transf
 .hero::before { content: ""; position: absolute; right: -10vw; top: 2vw; width: 58vw; max-width: 60rem; aspect-ratio: 1; border-radius: 50%;      /* le lagon, en aplat */
   background: linear-gradient(165deg, var(--lagon-2) 0, var(--lagon-3) 70%); }
 .hero-in { position: relative; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); align-items: center; gap: clamp(1.5rem, 4vw, 4.5rem); }
+.hero-txt { container-type: inline-size; }
+.hero-txt .display { font-size: clamp(3.2rem, 22.6cqi, 9.6rem); }      /* le titre se cale sur la largeur de sa colonne : « DU LAGON » tient toujours sur une ligne */
 .hero .lead { margin: 1.6rem 0 2rem; }
 .cta { display: flex; flex-wrap: wrap; gap: .8rem 1rem; }
 .trio { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: clamp(.55rem, 1.3vw, 1.2rem); padding-bottom: 1.2rem; }
@@ -359,6 +361,7 @@ address a:hover { color: var(--lagon-2); }
   .hero::before { right: -30vw; top: auto; bottom: -6vw; width: 120vw; }
   .hero-in { grid-template-columns: minmax(0, 1fr); }
   .display { font-size: clamp(3.2rem, 15.4vw, 7rem); }
+  .hero-txt .display { font-size: clamp(3.2rem, 21.5cqi, 8.4rem); }
   .hero .lead { margin: 1.2rem 0 1.5rem; }
   .trio { margin-top: 1.6rem; }
   .sticker { right: -1%; top: -9%; }
