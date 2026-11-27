@@ -1,8 +1,8 @@
 {
  "maison-texte": "Claire, éditoriale, intemporelle. Le papier crème et l’encre chocolat du logo, une composition de magazine : chapitres numérotés, grandes photos légendées, carte typographiée comme une carte imprimée.",
  "maison-points": "<li>La proposition la plus proche de l’identité actuelle : couleurs du logo, signature « Franck &amp; Romain ».</li><li>La carte complète se lit dans la page, rubrique par rubrique, sans ouvrir de fenêtre.</li><li>La visite 360° dans un cadre, avec ses quatre lieux en vignettes : on y entre quand on veut.</li>",
- "lagon-texte": "…",
- "lagon-points": "<li>…</li>",
+ "lagon-texte": "Colorée, moderne, solaire. La page suit une journée à Grand Case : le fond passe du turquoise du lagon à l’or du coucher du soleil, puis au bleu de la nuit, avec les photos prises à chaque heure.",
+ "lagon-points": "<li>Grands titres, arches et pastilles : le ton le plus actuel, pensé d’abord pour le téléphone et les réseaux.</li><li>Assiettes en carrousel, carte complète par onglets, vivier, cave et bar en grandes cartes.</li><li>La visite 360° dans un hublot : la petite planète, puis on entre.</li>",
  "poids-titre": "moins de 1,5 Mo",
  "n1-req": "16",
  "n1-first": "0,7 Mo",
@@ -12,8 +12,8 @@
  "n2-first": "0,4 Mo",
  "n2-full": "0,7 Mo",
  "n2-js": "3",
- "n3-req": "—",
- "n3-first": "—",
- "n3-full": "—",
- "n3-js": "—"
+ "n3-req": "16",
+ "n3-first": "0,4 Mo",
+ "n3-full": "0,9 Mo",
+ "n3-js": "3"
 }

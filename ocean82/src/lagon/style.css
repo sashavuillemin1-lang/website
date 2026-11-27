@@ -10,7 +10,7 @@
   --grot: "Bricolage", "Helvetica Neue", Arial, system-ui, sans-serif;
   --ital: "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --pad: clamp(1.1rem, 4vw, 3.5rem);
-  --max: 84rem;
+  --max: 90rem;
   --gut: max(var(--pad), calc((100% - var(--max)) / 2));      /* marge qui centre le contenu sur --max */
   --r: clamp(22px, 2.6vw, 38px);
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -124,6 +124,16 @@ em { font: italic 400 1.07em/1 var(--ital); letter-spacing: -.015em; text-transf
 }
 @keyframes rise { from { opacity: 0; translate: 0 44px; } }
 @keyframes pop { from { opacity: 0; scale: .4; rotate: -70deg; } }
+/* légère profondeur : en quittant le héros, les trois arches ne montent pas à la même vitesse (là où le navigateur le permet) */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 901px) {
+    .arch { animation: rise 1s var(--ease) both, drift linear both; animation-timeline: auto, scroll(root); animation-range: normal, 0 110vh; }
+    .a1 { --drift: -60px; }
+    .a2 { --drift: -130px; }
+    .a3 { --drift: -30px; }
+  }
+}
+@keyframes drift { to { transform: translateY(var(--drift, 0)); } }
 
 /* ---------- bandeau défilant */
 .ticker { position: relative; z-index: 2; width: 104vw; margin: .6rem 0 0 -2vw; padding: .85rem 0; overflow: clip; rotate: -1.4deg; background: var(--corail); color: var(--nuit); }
@@ -375,6 +385,7 @@ address a:hover { color: var(--lagon-2); }
   .horizon { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; margin-inline: calc(-1 * var(--gut)); padding-inline: 0; }
   .polaroid { grid-column: 1; grid-row: 1; justify-self: center; width: min(86%, 220px); translate: 6% 0; margin-bottom: -1.5rem; }
   .events { grid-column: 2; grid-row: 1; translate: -4% 0; margin: 0 .8rem -1rem 0; font-size: .9rem; }
+  .events .chip { padding: .5rem .7rem; font-size: .68rem; letter-spacing: .04em; white-space: nowrap; }
   .sun { grid-column: 1 / -1; grid-row: 2; aspect-ratio: 5 / 4; }
   .sun-wide { display: none; }
   .sun-tall { display: block; }
