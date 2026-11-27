@@ -10,6 +10,7 @@ Macros disponibles dans page.html, style.css et app.js :
     [[url: clé | largeur | ext]]                        URL d'une déclinaison (webp par défaut, la plus grande si largeur omise)
     [[inc: fichier]]                                    inclusion depuis src/partials/
     [[css]]  [[menu]]  [[digestifs]]  [[info.xxx]]      styles en ligne, carte, digestifs, coordonnées
+    [[clé]]                                             valeur lue dans src/<page>/vars.json (chiffres mesurés, textes)
 """
 import html, json, os, re, sys
 
@@ -99,6 +100,8 @@ def minify_css(s):
 
 def expand(text, page, prefix):
     src = os.path.join(HERE, page)
+    vpath = os.path.join(src, 'vars.json')        # textes et chiffres propres à une page : [[clé]]
+    page_vars = json.load(open(vpath, encoding='utf-8')) if os.path.exists(vpath) else {}
 
     def macro(m):
         body = m.group(1).strip()
@@ -124,6 +127,8 @@ def expand(text, page, prefix):
             return '%s <span lang="en">%s</span>' % (esc(TAX[0]), esc(TAX[1]))
         if name == 'root':
             return prefix
+        if name in page_vars:
+            return page_vars[name]
         raise SystemExit('macro inconnue dans %s : [[%s]]' % (page, body))
 
     return re.sub(r'\[\[(.+?)\]\]', macro, text, flags=re.S)

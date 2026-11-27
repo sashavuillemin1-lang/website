@@ -103,7 +103,7 @@ function start() {
     const w = wide.matches, asp = innerWidth / innerHeight, f = w ? 1 : 1.2, n = w ? 0 : 0.1;
     const side = s => (w ? { cx: s === 'L' ? 0.3 * asp : s === 'R' ? -0.3 * asp : 0, cy: 0 } : { cx: 0, cy: s === 'C' ? 0 : 0.26 });
     const v = (scene, yaw, pitch, fov, lens, s = 'C') => ({ scene, yaw, pitch, fov: Math.min(fov * f, 118), n: lens + n, ...side(s) });
-    const planet = { scene: 'ciel', yaw: -15, pitch: -90, fov: w ? 252 : 276, n: 2, cx: w ? 0.36 * asp : 0, cy: w ? 0 : -0.36 };   // = l'affiche fixe (src/images.py)
+    const planet = { scene: 'ciel', yaw: -15, pitch: -90, fov: w ? 252 : 276, n: 2, cx: w ? 0.4 * asp : 0, cy: w ? 0 : -0.36 };   // = l'affiche fixe (src/images.py)
     KF = [
       ['#accueil', 0, planet],
       ['#accueil', 0.2, { ...planet, yaw: -62, fov: planet.fov - 14 }],
@@ -199,7 +199,7 @@ function start() {
     pano.stop(); pano.autoRotate = 0;
     if (on) {
       pano.setDrag('xy'); const c0 = [...pano.center];
-      pano.look(fit(HOME[sceneNow]), 1100); chip(sceneNow); canvas.tabIndex = 0;
+      pano.look(fit(HOME[sceneNow]), 1100); chip(sceneNow); canvas.tabIndex = 0; canvas.focus({ preventScroll: true });
       pano.tween(700, k => { pano.center = [c0[0] * (1 - k), c0[1] * (1 - k)]; pano.dirty = true; });
     } else { pano.setDrag('x'); pano.uy = pano.up = pano.vy = pano.vp = 0; canvas.tabIndex = -1; apply(cur = scrollY); }
   }
@@ -212,7 +212,7 @@ function start() {
     const [yaw, pitch] = pin.el.dataset.in.split(',').map(Number), to = pin.el.dataset.to;
     chip(to); pano.walk(fit({ ...HOME[to], yaw, pitch }), { towards: { yaw: pin.yaw, pitch: pin.pitch * 0.5 } });
   });
-  window.__o82 = { pano, roam };
+  window.__o82 = { pano, roam, apply: y => apply(cur = y) };      // accès pour les tests et les captures
 }
 
 // ------------------------------------------------------------------ sans WebGL (ou mouvement réduit) : vues fixes en fondu

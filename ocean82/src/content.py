@@ -46,7 +46,7 @@ MENU = [
         ('Penne arrabbiata', 'Penne arrabbiata', '25'),
     ]},
     {'id': 'poissons', 'fr': 'Les poissons', 'en': 'Fish & seafood', 'items': [
-        ('Langouste du vivier, préparée selon votre choix : grillée, thermidor ou flambée (+5 €)', 'Lobster from the tank: grilled, thermidor or flambéed (+€5)', '41 / livre · 90 / kg'),
+        ('Langouste du vivier, préparée selon votre choix : grillée, thermidor ou flambée (+5 €)', 'Lobster from the tank: grilled, thermidor or flambéed (+€5)', '41\u202f€ / livre · 90\u202f€ / kg'),
         ('Le vivaneau (pêche locale) rôti, chutney de mangue et son beurre blanc', 'Roasted local snapper with mango chutney and white wine butter sauce', '39'),
         ('La marmite des Caraïbes (Saint-Jacques, langouste, vivaneau, moules) dans son bouillon de crustacés à la crème', 'Caribbean fish pot: sea scallops, lobster, snapper and mussels in a creamy seafood broth', '39'),
         ('Tataki de thon local, salsa de mangue acidulée et caramel de soja', 'Local tuna tataki with citrus mango salsa and caramel soy sauce', '36'),
