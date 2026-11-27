@@ -78,8 +78,8 @@ export class Pano {
   }
 
   /** scenes: { id: 'chemin/vers/id' } → fichiers id-512.webp, id-2048.{avif,webp}, id-4096.{avif,webp} */
-  constructor(canvas, { scenes, dprMax = 2, grain = 0.035, vignette = 0.45, onRender = null, level = null } = {}) {
-    this.canvas = canvas; this.scenes = scenes; this.dprMax = dprMax; this.onRender = onRender;
+  constructor(canvas, { scenes, dprMax = 2, maxPixels = 3.6e6, grain = 0.035, vignette = 0.45, onRender = null, level = null } = {}) {
+    this.canvas = canvas; this.scenes = scenes; this.dprMax = dprMax; this.maxPixels = maxPixels; this.onRender = onRender;
     this.grain = grain; this.vignette = vignette; this.dim = 1;
     this.center = [0, 0];              // décalage du centre optique, en demi-hauteurs d'écran (x vers la droite, y vers le haut)
     this.reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -98,6 +98,9 @@ export class Pano {
     this._init();
     this._resize = this._resize.bind(this); this._tick = this._tick.bind(this);
     this.ro = new ResizeObserver(this._resize); this.ro.observe(canvas); this._resize();
+    this.onscreen = true;              // hors écran : on ne dessine plus (visionneuses intégrées dans une page)
+    this.io = new IntersectionObserver(es => { this.onscreen = es[es.length - 1].isIntersecting; if (this.onscreen) this.dirty = true; });
+    this.io.observe(canvas);
     canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.lost = true; });
     canvas.addEventListener('webglcontextrestored', () => { this.lost = false; this.tex.clear(); this._init(); this.preload(Object.keys(scenes)); this.need(this.a.scene); });
     this._controls();
@@ -193,7 +196,8 @@ export class Pano {
   }
 
   _resize() {
-    const c = this.canvas, dpr = Math.min(window.devicePixelRatio || 1, this.dprMax);
+    const c = this.canvas;      // la densité est plafonnée : au-delà de ~3,6 Mpx le gain est invisible et le coût bien réel
+    const dpr = Math.max(0.75, Math.min(window.devicePixelRatio || 1, this.dprMax, Math.sqrt(this.maxPixels / Math.max(1, c.clientWidth * c.clientHeight))));
     const w = Math.max(1, Math.round(c.clientWidth * dpr)), h = Math.max(1, Math.round(c.clientHeight * dpr));
     if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
     this.W = c.clientWidth || 1; this.H = c.clientHeight || 1; this.dirty = true;
@@ -298,7 +302,7 @@ export class Pano {
       const k = clamp((now - t.t0) / t.d, 0, 1); t.fn(t.easing(k), k);
       if (k >= 1) { this.tweens.delete(t); t.res(true); }
     }
-    if (!this.dragging && !this.reduced) {
+    if (!this.dragging && !this.reduced && this.onscreen) {
       if (Math.abs(this.vy) + Math.abs(this.vp) > 0.01) {
         this.uy += this.vy; this.up = clamp(this.up + this.vp, -90 - this.a.pitch, 90 - this.a.pitch);
         this.vy *= 0.93; this.vp *= 0.93; this.dirty = true;
@@ -307,7 +311,7 @@ export class Pano {
       }
     }
     this._last = now;
-    if (this.dirty && !this.lost) { this.dirty = false; this._draw(); if (this.onRender) this.onRender(this); }
+    if (this.dirty && !this.lost && this.onscreen) { this.dirty = false; this._draw(); if (this.onRender) this.onRender(this); }
   }
 
   _draw() {
@@ -329,7 +333,7 @@ export class Pano {
   }
 
   destroy() {
-    this.alive = false; this.ro.disconnect(); this.stop();
+    this.alive = false; this.ro.disconnect(); this.io.disconnect(); this.stop();
     const ext = this.gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext();
   }
 }
