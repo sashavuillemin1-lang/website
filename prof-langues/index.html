@@ -343,6 +343,12 @@ h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:
 .gap-chip.dark{background:var(--surface-2);color:var(--fg);border:none;cursor:pointer;white-space:nowrap}
 .duration{margin:0;font:500 12px var(--f-mono)}
 .duration.ok{color:#8be3b0}.duration.ko{color:#f0c05a}
+.coach-list{margin:2px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:2px;color:#dfe6e3}
+.coach-list em{color:var(--call-muted)}
+.my-answer{margin-top:4px;font-size:13.5px}
+.my-answer summary{cursor:pointer;color:var(--sky);font-weight:600}
+.my-answer p{margin:6px 0;background:var(--ok-bg);border-left:3px solid var(--ok);padding:6px 8px;border-radius:4px}
+.my-answer ul{margin:4px 0 0;padding-left:18px}
 .diag{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;background:#f0c05a;color:#121a1d;border-radius:6px;padding:3px 7px}
 @media (max-width:820px){
   .captions{display:none}
@@ -997,13 +1003,17 @@ function interviewPanel(l) {
       h("button", { class: "btn primary", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null, iv, true)), text: "Cours : Emma t'apprend" }),
       iv.questions.length >= 6 ? h("button", { class: "btn", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null, iv, false, "round")), text: "Séance en 4 temps (60 min)" }) : null,
       h("button", { class: "btn", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, null, iv)), text: "Entretien blanc complet" }),
-      iv.sheet ? h("button", { class: "btn", type: "button", onclick: () => sheetModal(l, iv), text: "Ma fiche de révision" }) : null),
+      iv.sheet || iv.questions.some(q => q.myAnswer) ? h("button", { class: "btn", type: "button", onclick: () => sheetModal(l, iv), text: "Ma fiche de révision" }) : null),
     h("div", { class: "row" },
       h("span", { class: "muted", style: "font-size:13px", text: `${fluentN} / ${iv.questions.length} réponses prêtes` })),
     h("h3", { style: "font-size:15px;margin-top:4px", text: "Les questions" }),
     h("div", { class: "iv-qs" }, iv.questions.map((q, i) => h("div", { class: "iv-q" },
       h("span", { class: "iv-state " + (q.fluent ? "ok" : q.attempts ? "mid" : ""), title: q.fluent ? "Prête" : q.attempts ? "À retravailler" : "Pas encore travaillée", text: q.fluent ? "✓" : q.attempts ? q.best + "/10" : "·" }),
-      h("div", { style: "min-width:0" }, h("div", { class: "iv-qt", text: q.q }), q.drill ? h("small", { class: "muted", text: "À répéter jusqu'à ce que ce soit fluide" }) : q.tips === "ajoutée par Emma" ? h("small", { class: "muted", text: "Question ajoutée par Emma" }) : null),
+      h("div", { style: "min-width:0" }, h("div", { class: "iv-qt", text: q.q }),
+        q.myAnswer ? h("details", { class: "my-answer" }, h("summary", { text: `Ma réponse type (${fmtDate(q.myAnswerDate)})` }), h("p", { text: q.myAnswer }),
+          h("button", { class: "btn sm", type: "button", onclick: () => Voice.speak([{ lang: "en", text: q.myAnswer }], "en"), text: "🔊 Écouter" }),
+          arr(q.myTerms).length ? h("ul", null, arr(q.myTerms).map(t => h("li", null, h("strong", { text: t.term }), " : " + t.definition))) : null) : null,
+        q.drill ? h("small", { class: "muted", text: "À répéter jusqu'à ce que ce soit fluide" }) : q.tips === "ajoutée par Emma" ? h("small", { class: "muted", text: "Question ajoutée par Emma" }) : null),
       h("div", { class: "row", style: "gap:6px;flex-wrap:nowrap" },
         h("button", { class: "btn sm", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, i, iv, true)), text: "Apprendre" }),
         h("button", { class: "btn sm", disabled: !CAP.sample, onclick: () => startCall(mockSession(l, i, iv)), text: "S'entraîner" }))))),
@@ -1081,11 +1091,13 @@ POSTE : ${iv.role} ${iv.company ? "chez " + iv.company : ""}. ${iv.job}
 PROFIL RÉEL DU CANDIDAT (n'invente rien au-delà) : ${iv.profile}
 CONNAISSANCES MÉTIER (corrige toute erreur technique et propose le vocabulaire exact) : ${JOB_KB}
 QUESTION : ${q.q}
-${q.tips ? "CONSIGNES DU CANDIDAT POUR CETTE QUESTION : " + q.tips + "\n" : ""}${q.prepared ? "RÉPONSE QU'IL AVAIT PRÉPARÉE : " + q.prepared + "\n" : ""}RÉPONSE DONNÉE (transcription vocale : ignore ponctuation et majuscules) : « ${text} »
+${q.tips ? "CONSIGNES DU CANDIDAT POUR CETTE QUESTION : " + q.tips + "\n" : ""}${q.prepared ? "RÉPONSE QU'IL AVAIT PRÉPARÉE : " + q.prepared + "\n" : ""}${q.myAnswer ? "SA DERNIÈRE RÉPONSE TYPE (construite avec lui la fois précédente) : " + q.myAnswer + "\n" : ""}RÉPONSE DONNÉE (transcription vocale : ignore ponctuation et majuscules) : « ${text} »
 Réponds uniquement en JSON, toutes les explications EN ANGLAIS simple et court :
 {"grammar":[{"wrong":"","right":"","why":""}],"vocab":[{"said":"","better":"","why":""}],"structure":"2-3 phrases : contenu, structure (STAR pour une question comportementale), longueur, ce qui manque ou ce qui est risqué",
-"improved":"SA PROPRE réponse, juste retouchée : garde ses idées, son ordre et ses mots quand ils sont corrects ; corrige seulement les fautes et les tournures maladroites, sans ajouter de contenu ni la transformer en texte parfait",
-"could":["1 ou 2 phrases qu'il aurait pu dire en plus ou autrement, basées sur ce qu'il a dit (« You could also say… »), en anglais"],
+"improved":"SA NOUVELLE RÉPONSE TYPE, en anglais britannique, construite À PARTIR DE CE QU'IL VIENT DE DIRE : garde son discours, ses exemples, son ordre et ses formulations quand elles sont bonnes ; améliore la structure, la clarté, la grammaire et le vocabulaire ; complète seulement avec des éléments de son profil réel s'il manque un point important ; si sa dernière réponse type contient de bonnes idées qu'il n'a pas redites, tu peux les garder. N'invente AUCUNE expérience, tâche, outil, chiffre ou résultat qui ne soit ni dans sa réponse ni dans son profil réel. Longueur : 45 s à 1 min 30 à l'oral (environ 110 à 200 mots), phrases courtes faciles à dire.",
+"added":[{"what":"chaque idée que tu as ajoutée et qu'il n'a pas dite cette fois","from":"d'où elle vient : « ton profil : … » ou « ta réponse précédente »"}],
+"terms":[{"term":"chaque terme technique ou expression de la nouvelle réponse qu'il n'a pas utilisé lui-même","definition":"définition simple en français, 1 phrase"}],
+"could":["1 ou 2 phrases clés de la nouvelle réponse à retenir, en anglais"],
 "pronounce":[{"term":"","ipa":"","say":"syllabes, accent en MAJUSCULES"}],"accent":[{"heard":"","meant":"","issue":"","tip":""}],"score":7,"fluent":false}
 ${oral ? ACCENT_RULE : '"accent" : [] (réponse tapée au clavier).'}
 "fluent" = true seulement si la réponse est prête pour le vrai entretien : contenu complet et pertinent, au plus une petite erreur, structure claire, longueur adaptée. "pronounce" : 2 à 4 mots techniques de la réponse à bien prononcer.`, { modelTier: "quick" });
@@ -1154,6 +1166,7 @@ function showCoach(r, { iv, q, qi, text, oral, bubble, drill, secs }) {
   vocab.forEach(v => C.betters.push({ said: str(v.said), better: str(v.better) }));
   C.analyses.push({ errors: grammar.length, level: null });
   q.attempts = (q.attempts || 0) + 1; q.best = Math.max(q.best || 0, score); if (fluent) q.fluent = true; q.lastImproved = str(r.improved);
+  if (str(r.improved)) { q.myAnswer = str(r.improved); q.myAnswerDate = today(); q.myTerms = arr(r.terms).filter(t => str(t?.term)).map(t => ({ term: str(t.term), definition: str(t.definition) })).slice(0, 8); }
   saveLang(l);
   const improved = str(r.improved);
   (C.mockLog = C.mockLog || []).push({ q: q.q, qi, phase: C.mock?.phases?.[C.mock.pos] || "", answer: str(text), score, improved, structure: str(r.structure) });
@@ -1166,12 +1179,16 @@ function showCoach(r, { iv, q, qi, text, oral, bubble, drill, secs }) {
     vocab.length ? h("div", null, h("span", { class: "k", text: "Plus naturel" }), vocab.map(v => h("div", null, h("del", { text: str(v.said) }), "  →  ", h("ins", { text: str(v.better) }), str(v.why) ? h("p", { text: str(v.why) }) : null))) : null,
     str(r.structure) ? h("div", null, h("span", { class: "k", text: "Structure" }), h("p", { text: str(r.structure) })) : null,
     acc.length ? accentCard(l, acc) : null,
-    arr(r.could).filter(str).length ? h("div", null, h("span", { class: "k", text: "Tu aurais aussi pu dire" }), arr(r.could).filter(str).slice(0, 2).map(c => h("div", { class: "row", style: "gap:6px" }, h("p", { class: "improved", text: "« " + str(c) + " »" }), h("button", { class: "gap-chip", type: "button", onclick: () => Voice.speak([{ lang: "en", text: str(c) }], "en"), text: "🔊" })))) : null,
-    improved ? h("details", null, h("summary", { class: "k", style: "cursor:pointer", text: "Ta réponse, juste retouchée" }), h("p", { class: "improved", text: improved })) : null,
+    improved ? h("div", null, h("span", { class: "k", text: "Ta nouvelle réponse type (à partir de ce que tu as dit)" }), h("p", { class: "improved", text: improved }),
+      h("div", { class: "row", style: "gap:6px" },
+        h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: improved }], "en"), text: "🔊 Écouter" }),
+        h("button", { class: "retry", type: "button", onclick: () => mockRetry(qi), text: "Je la redis maintenant" }))) : null,
+    arr(r.added).filter(a => str(a?.what)).length ? h("div", null, h("span", { class: "k", text: "Ce que j'ai ajouté, et d'où ça vient" }), h("ul", { class: "coach-list" }, arr(r.added).filter(a => str(a?.what)).map(a => h("li", null, str(a.what), str(a.from) ? h("em", { text: " (" + str(a.from) + ")" }) : null)))) : null,
+    arr(r.terms).filter(t => str(t?.term)).length ? h("div", null, h("span", { class: "k", text: "Mots à connaître" }), h("ul", { class: "coach-list" }, arr(r.terms).filter(t => str(t?.term)).map(t => h("li", null, h("strong", { text: str(t.term) }), " : " + str(t.definition))))) : null,
+    arr(r.could).filter(str).length ? h("div", null, h("span", { class: "k", text: "Phrases clés à retenir" }), arr(r.could).filter(str).slice(0, 2).map(c => h("div", { class: "row", style: "gap:6px" }, h("p", { class: "improved", text: "« " + str(c) + " »" }), h("button", { class: "gap-chip", type: "button", onclick: () => Voice.speak([{ lang: "en", text: str(c) }], "en"), text: "🔊" })))) : null,
     arr(r.pronounce).length ? h("div", { class: "words" }, arr(r.pronounce).filter(p => str(p?.term)).map(p => h("button", { class: "gap-chip", type: "button", title: str(p.ipa), onclick: () => Voice.speak([{ lang: "en", text: str(p.term) }], "en"), text: `🔊 ${str(p.term)} · ${str(p.say)}` }))) : null,
     h("div", { class: "row" },
-      improved ? h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: improved }], "en"), text: "Écouter ta réponse retouchée" }) : null,
-      h("button", { class: "retry", type: "button", onclick: () => mockRetry(qi), text: "Je veux la refaire" }),
+      h("button", { class: "retry", type: "button", onclick: () => mockRetry(qi), text: "Refaire cette question" }),
       drill && M.pos < M.queue.length - 1 ? h("button", { class: "retry", type: "button", onclick: () => mockNext("next"), text: "Question suivante" }) : null)));
   scrollLog();
   return fluent;
@@ -1181,7 +1198,7 @@ function mockRetry(qi) {
   const M = C.mock, iv = S.data.en.interview; if (!C.open || C.busy || !M) return;
   if (M.queue[M.pos] !== qi) { M.queue.splice(M.pos + 1, 0, qi); M.pos++; }
   M.tries = 0;
-  teacherTurn(`[Il a demandé à refaire cette réponse. Dis-lui en une phrase de garder ses idées et d'essayer d'intégrer une ou deux des formulations proposées, puis repose la question : « ${iv.questions[qi].q} »]`, null);
+  teacherTurn(`[Il veut redire sa réponse avec sa nouvelle réponse type affichée à l'écran. Dis-lui en une phrase de garder ses mots et de s'appuyer sur la nouvelle version, sans la réciter par cœur, puis repose la question : « ${iv.questions[qi].q} »]`, null);
 }
 
 /* lesson card: what the recruiter checks, how to build the answer, key phrases, a model answer */
@@ -1195,14 +1212,16 @@ POSTE : ${iv.role}${iv.company ? " chez " + iv.company : ""}. ${iv.job}
 PROFIL RÉEL DU CANDIDAT (n'invente rien) : ${iv.profile}
 CONNAISSANCES MÉTIER : ${JOB_KB}
 QUESTION : ${q.q}
+${q.myAnswer ? "SA DERNIÈRE RÉPONSE TYPE (pars de son discours) : " + q.myAnswer + "\n" : ""}
 ${q.tips ? "CONSIGNES DU CANDIDAT : " + q.tips + "\n" : ""}${q.prepared ? "SA RÉPONSE PRÉPARÉE : " + q.prepared + "\n" : ""}Réponds uniquement en JSON :
-{"goal":"ce que le recruteur veut vraiment vérifier, en français, 1-2 phrases","structure":["3 ou 4 étapes de la réponse, en français, très concrètes (ex. Aujourd'hui : qui tu es → Expérience : 2 preuves chiffrées → Pourquoi ce poste)"],"phrases":["4 formulations clés en anglais britannique, prêtes à dire"],"model":"une réponse modèle en anglais britannique naturel, à la première personne, fidèle à son profil réel, 70 à 120 mots, phrases courtes faciles à dire","avoid":"l'erreur classique à éviter sur cette question, en français, 1 phrase"}`, { modelTier: "quick" });
+{"goal":"ce que le recruteur veut vraiment vérifier, en français, 1-2 phrases","structure":["3 ou 4 étapes de la réponse, en français, très concrètes (ex. Aujourd'hui : qui tu es → Expérience : 2 preuves chiffrées → Pourquoi ce poste)"],"phrases":["4 formulations clés en anglais britannique, prêtes à dire"],"model":"un exemple de réponse en anglais britannique naturel, à la première personne, construit UNIQUEMENT avec les faits de son profil réel${q.myAnswer ? " et sa dernière réponse type" : ""}, 70 à 120 mots, phrases courtes faciles à dire. N'invente AUCUNE expérience, tâche, outil, chiffre ou résultat qui ne soit ni dans sa réponse ni dans son profil réel.","terms":[{"term":"terme technique de l'exemple","definition":"définition simple en français"}],"avoid":"l'erreur classique à éviter sur cette question, en français, 1 phrase"}`, { modelTier: "quick" });
     q.model = str(r.model); q.phrases = arr(r.phrases).map(str).filter(Boolean); saveLang("en");
     fillEl(box, h("span", { class: "k", text: `Cours · ${q.q}` }),
       str(r.goal) ? h("div", null, h("strong", { text: "Ce que le recruteur vérifie : " }), str(r.goal)) : null,
       arr(r.structure).length ? h("div", null, h("strong", { text: "Comment construire ta réponse :" }), h("ol", null, arr(r.structure).map(x => h("li", { text: str(x) })))) : null,
       q.phrases.length ? h("div", null, h("strong", { text: "Formulations clés :" }), h("div", { class: "words" }, q.phrases.map(p => h("button", { class: "gap-chip", type: "button", onclick: () => Voice.speak([{ lang: "en", text: p }], "en"), text: "🔊 " + p })))) : null,
       q.model ? h("div", null, h("strong", { text: "Exemple de réponse (pour t'inspirer, pas à réciter) :" }), h("p", { class: "improved", text: q.model }), h("button", { class: "retry", type: "button", onclick: () => Voice.speak([{ lang: "en", text: q.model }], "en"), text: "Écouter la réponse modèle" })) : null,
+      arr(r.terms).filter(t => str(t?.term)).length ? h("div", null, h("strong", { text: "Mots à connaître :" }), h("ul", null, arr(r.terms).filter(t => str(t?.term)).map(t => h("li", null, h("strong", { text: str(t.term) }), " : " + str(t.definition))))) : null,
       str(r.avoid) ? h("p", { class: "avoid", text: "À éviter : " + str(r.avoid) }) : null);
   } catch { fillEl(box, h("span", { class: "k", text: `Cours · ${q.q}` }), h("p", { text: "Fiche indisponible : Emma t'explique à l'oral." })); }
   scrollLog();
@@ -1216,7 +1235,7 @@ CONNAISSANCES MÉTIER : ${JOB_KB}
 ${iv.coachFocus ? "CE QU'IL VEUT QUE TU CORRIGES EN PRIORITÉ : " + iv.coachFocus + "\n" : ""}DÉROULÉ (question, sa réponse transcrite, note du coaching sur 10, version améliorée) :
 ${mockLog.map((x, i) => `${i + 1}. Q : ${x.q}\n   Réponse : ${x.answer}\n   Note : ${x.score}/10 · ${x.structure}\n   Version améliorée : ${x.improved}`).join("\n").slice(-14000)}
 Explications en français, formulations et réponses modèles en anglais britannique. Réponds uniquement en JSON :
-{"impression":"ce qu'une vraie recruteuse penserait à la sortie de cet entretien, 3 phrases","verdict":"prêt / presque prêt / à retravailler","strengths":["3 points forts précis"],"improve":[{"point":"ce qui ne va pas","why":"pourquoi ça compte pour le recruteur","say_instead":"ce qu'il faut dire à la place, en anglais"}],"answers":[{"q":"la question","status":"ok ou à retravailler","feedback":"ce qui manquait, 1-2 phrases","model":"sa réponse à LUI, reconstruite à partir de ce qu'il a dit (mêmes idées, même logique), juste mieux formulée et complétée si un point important manquait, en anglais, 70-110 mots, facile à dire","phrases":["2 ou 3 formulations clés à retenir"]}],"red_flags":["ce qu'il ne faut surtout pas dire, s'il y en a"],"tips":["4 conseils pratiques pour le jour J : rythme, pauses, structure, gestion du stress, questions à poser"],"next":"ce qu'on travaille au prochain entraînement, 1 phrase"}
+{"impression":"ce qu'une vraie recruteuse penserait à la sortie de cet entretien, 3 phrases","verdict":"prêt / presque prêt / à retravailler","strengths":["3 points forts précis"],"improve":[{"point":"ce qui ne va pas","why":"pourquoi ça compte pour le recruteur","say_instead":"ce qu'il faut dire à la place, en anglais"}],"answers":[{"q":"la question","status":"ok ou à retravailler","feedback":"ce qui manquait, 1-2 phrases","model":"sa réponse à LUI, reconstruite à partir de ce qu'il a dit (mêmes idées, même logique), mieux formulée et complétée seulement avec des faits de son profil réel, en anglais, 110-200 mots, facile à dire. N'invente AUCUNE expérience, tâche, outil, chiffre ou résultat qui ne soit ni dans sa réponse ni dans son profil réel.","phrases":["2 ou 3 formulations clés à retenir"]}],"red_flags":["ce qu'il ne faut surtout pas dire, s'il y en a"],"tips":["4 conseils pratiques pour le jour J : rythme, pauses, structure, gestion du stress, questions à poser"],"next":"ce qu'on travaille au prochain entraînement, 1 phrase"}
 "improve" : 3 à 5 points, du plus important au moins important.`;
 }
 function debriefView(db, l = "en") {
@@ -1243,8 +1262,12 @@ function sheetModal(l, iv) {
   const ov = h("div", { class: "overlay" }, card);
   const close = () => { Voice.stop(); ov.remove(); };
   card.append(h("div", { class: "flash-top" }, h("h2", { text: "Ta fiche de révision" }), h("button", { class: "btn sm", onclick: close, text: "Fermer" })),
-    h("p", { class: "muted", style: "margin:0", text: `${[iv.role, iv.company].filter(Boolean).join(" · ")} · mise à jour le ${fmtDate(iv.sheet.date)}. Relis-la avant l'entretien et écoute les réponses modèles.` }),
-    debriefView(iv.sheet, l));
+    h("p", { class: "muted", style: "margin:0", text: `${[iv.role, iv.company].filter(Boolean).join(" · ")}${iv.sheet ? " · débrief du " + fmtDate(iv.sheet.date) : ""}. Relis-la avant l'entretien et écoute tes réponses.` }),
+    iv.sheet ? debriefView(iv.sheet, l) : null,
+    iv.questions.some(q => q.myAnswer) ? h("div", { class: "debrief" }, h("h3", { text: "Tes réponses types (construites à partir de tes réponses)" }),
+      iv.questions.filter(q => q.myAnswer).map(q => h("details", { class: "db-q" }, h("summary", null, h("span", { text: q.q })),
+        h("div", { class: "row", style: "gap:6px" }, h("p", { class: "improved light", text: q.myAnswer }), h("button", { class: "gap-chip dark", type: "button", onclick: () => Voice.speak([{ lang: l, text: q.myAnswer }], l), text: "🔊 Écouter" })),
+        arr(q.myTerms).length ? h("ul", null, arr(q.myTerms).map(t => h("li", null, h("strong", { text: t.term }), " : " + t.definition))) : null))) : null);
   document.body.append(ov);
 }
 
