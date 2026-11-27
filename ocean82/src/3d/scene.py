@@ -278,13 +278,13 @@ for i in range(7):
         for y in (TD / 2, TD - 0.1):
             box('post', (0.15, 0.15, PH), (x, y, F + PH / 2), M['struct'])
 box('fascia', (2 * W2 + 0.5, 0.2, 0.42), (0, 0.12, F + PH + 0.21), M['struct'], bevel=0.02)
-box('enseigne', (6.6, 0.08, 0.8), (0, 0.0, F + PH + 0.39), M['frame'] if NIGHT else M['struct'], bevel=0.02)     # de nuit : plaque sombre, lettres lumineuses
+box('enseigne', (6.2, 0.08, 0.56), (0, 0.0, F + PH + 0.2), M['frame'] if NIGHT else M['struct'], bevel=0.02)     # de nuit : plaque sombre, lettres lumineuses (sous le débord du toit)
 for s in (-1, 1):
     box('fascia_side', (0.2, TD, 0.42), (s * (W2 + 0.02), TD / 2, F + PH + 0.21), M['struct'], bevel=0.02)
 for i in range(31):
     x = -W2 + 0.3 + i * (2 * W2 - 0.6) / 30
-    L = math.hypot(TD + 0.5, 0.95)
-    box('chevron', (0.06, L, 0.11), (x, TD / 2 - 0.1, F + PH + 0.68), M['struct'], rot=(math.atan2(0.95, TD + 0.5), 0, 0), bevel=0)
+    slope = 0.95 / (TD + 0.5); y0, y1 = 0.24, TD + 0.15
+    box('chevron', (0.06, math.hypot(y1 - y0, (y1 - y0) * slope), 0.11), (x, (y0 + y1) / 2, F + PH + 0.68 + ((y0 + y1) / 2 - (TD / 2 - 0.1)) * slope), M['struct'], rot=(math.atan(slope), 0, 0), bevel=0)
 for i in range(6):
     x0 = -W2 + 0.15 + i * (2 * W2 - 0.3) / 6; x1 = x0 + (2 * W2 - 0.3) / 6
     box('verre', (x1 - x0 - 0.2, 0.02, 1.0), ((x0 + x1) / 2, 0.12, F + 0.55), M['glass'], bevel=0)
@@ -310,7 +310,7 @@ poly('toit_haut', [(-W2 + 1.6, TD - 1.2, ZR1 + 0.25), (W2 - 1.6, TD - 1.2, ZR1 +
                    (-W2 + 5.4, (TD + HD) / 2 - 1.5, ZT), (W2 - 5.4, (TD + HD) / 2 - 1.5, ZT)],
      [(0, 1, 5, 4), (1, 2, 5), (2, 3, 4, 5), (3, 0, 4), (0, 3, 2, 1)], M['roof'])
 box('acrotere', (2 * W2 - 3.2, HD - TD - 0.6, 0.3), (0, (TD + HD) / 2 - 1.5, ZR1 + 0.12), M['struct'], bevel=0.02)
-text('O C E A N   8 2', 0.5, (0, -0.045, F + PH + 0.39), M['sign'] if NIGHT else M['frame'], 'jost', depth=0.012)
+text('O C E A N   8 2', 0.36, (0, -0.045, F + PH + 0.2), M['sign'] if NIGHT else M['frame'], 'jost', depth=0.012)
 
 # ------------------------------------------------------------------ mobilier
 def make_table(round_=False):
