@@ -10,6 +10,26 @@ des contenus de <https://ocean82.fr> : mêmes textes, même carte 2027, mêmes p
 | `maison/` | 2 · **La Maison** — claire, éditoriale, aux couleurs de la marque |
 | `lagon/` | 3 · **Lagon** — colorée, moderne : du lagon au coucher du soleil |
 
+## Nouveau cap : pistes « luxe épuré » avec décor 3D (`pistes/`)
+
+Les trois premières propositions n'ont pas été retenues. Le cap suivant — luxe épuré, restaurant modélisé en 3D stylisé,
+la carte et le vivier au premier plan, dans l'esprit du site du Rainbow Café — est exploré dans `pistes/` :
+
+| Fichier | Piste |
+| --- | --- |
+| `pistes/index.html` | Présentation des trois pistes (écran d'accueil + écran suivant + téléphone) |
+| `pistes/a-heure-bleue.html` | A · **Heure bleue** — nocturne, plein écran, Bodoni Moda |
+| `pistes/b-maquette.html` | B · **Maquette** — ivoire, maquette d'architecte annotée, Cormorant Garamond |
+| `pistes/c-chocolat.html` | C · **Chocolat** — couleurs du logo, la carte dès l'accueil, capitales Jost |
+
+Ce sont des écrans d'accueil, pas des sites complets. Les images 3D (`assets/3d/`) sortent d'un modèle Blender décrit par
+un script, sans interface : `src/3d/scene.py` (voir l'en-tête du fichier pour les ambiances et les vues disponibles).
+
+```bash
+pip install bpy            # Blender en module Python (≈ 430 Mo)
+python src/3d/scene.py bleue face sortie.png 2000 1250 64
+```
+
 ## Voir les maquettes
 
 Ce sont des pages statiques, sans serveur d'application ni dépendance :

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ocean 82 — piste C « Chocolat »</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#241610">
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/jost.woff2" crossorigin>
+<style>
+@font-face { font-family: "Jost"; src: url(../assets/fonts/jost.woff2) format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Bodoni"; src: url(../assets/fonts/bodoni-italic.woff2) format("woff2"); font-weight: 400 900; font-style: italic; font-display: swap; }
+:root {
+  --cocoa: #241610; --choc: #32201a; --sand: #eecd9b; --cream: #f6ecda; --mute: rgba(246, 236, 218, .68); --line: rgba(238, 205, 155, .24);
+  --sans: "Jost", Futura, "Century Gothic", system-ui, sans-serif; --serif: "Bodoni", Didot, Georgia, serif;
+  --pad: clamp(1.2rem, 3.4vw, 3.6rem);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--cocoa); }
+body { margin: 0; background: var(--cocoa); color: var(--cream); font: 300 1rem/1.7 var(--sans); -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 1px solid var(--sand); outline-offset: 4px; }
+.caps { font: 400 .68rem/1.4 var(--sans); letter-spacing: .34em; text-transform: uppercase; }
+
+/* ---------- accueil : la carte d'abord, le restaurant en écrin */
+.hero { display: grid; grid-template-columns: minmax(0, 47fr) minmax(0, 53fr); min-height: 100vh; min-height: 100svh; }
+.panel { display: grid; grid-template-rows: auto 1fr auto; padding: 1.5rem var(--pad) 1.6rem; background: linear-gradient(160deg, #3a251d, var(--cocoa) 70%); position: relative; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.brand { display: inline-grid; grid-template-columns: auto auto; column-gap: .42em; align-items: baseline; line-height: 1; }
+.brand b { font: 300 1.42rem/1 var(--sans); letter-spacing: .34em; }
+.brand i { font: 400 1.42rem/1 var(--sans); font-style: normal; color: var(--sand); }
+.brand small { grid-column: 1 / -1; margin-top: .55em; font: 400 .54rem/1 var(--sans); letter-spacing: .46em; text-transform: uppercase; color: var(--mute); }
+.nav { display: flex; gap: clamp(1rem, 1.8vw, 2rem); }
+.nav a { position: relative; padding: .6rem 0; }
+.nav a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: .2rem; height: 1px; background: var(--sand); transition: right .35s; }
+.nav a:hover::after, .nav a[aria-current]::after { right: 0; }
+
+.menu { align-self: center; max-width: 33rem; padding: 2rem 0; }
+.menu > .caps { color: var(--sand); display: flex; align-items: center; gap: 1.1rem; margin: 0; }
+.menu > .caps::after { content: ""; flex: 0 0 3.5rem; height: 1px; background: var(--line); }
+h1 { margin: 1.1rem 0 .5rem -.04em; font: 200 clamp(3.2rem, 6.1vw, 6rem)/.95 var(--sans); letter-spacing: .13em; text-transform: uppercase; color: var(--cream); }
+.sub { margin: 0 0 2.1rem; font: italic 400 1.45rem/1.3 var(--serif); color: var(--sand); }
+.dishes { list-style: none; margin: 0 0 2.4rem; padding: 0; border-top: 1px solid var(--line); }
+.dishes li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; align-items: baseline; gap: .4rem; padding: .95rem 0; border-bottom: 1px solid var(--line); }
+.dishes small { font: 400 .62rem/1 var(--sans); letter-spacing: .2em; color: var(--sand); }
+.dishes span { font: 300 1.12rem/1.35 var(--sans); letter-spacing: .01em; }
+.dishes b { font: 400 1.02rem/1 var(--sans); color: var(--sand); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cta { display: flex; flex-wrap: wrap; gap: .9rem; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .8rem; min-height: 3.3rem; padding: 0 2rem; border: 1px solid var(--sand); color: var(--sand);
+  font: 500 .68rem/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; transition: background .3s, color .3s; }
+.btn:hover { background: var(--sand); color: var(--cocoa); }
+.btn-full { background: var(--sand); color: var(--cocoa); }
+.btn-full:hover { background: var(--cream); border-color: var(--cream); }
+.btn-sm { min-height: 2.8rem; padding: 0 1.5rem; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 2rem; color: var(--mute); }
+
+.scene { position: relative; overflow: hidden; isolation: isolate; }
+.scene img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; z-index: -1; }
+.scene::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(20, 11, 8, .5), rgba(20, 11, 8, 0) 22%, rgba(20, 11, 8, 0) 70%, rgba(20, 11, 8, .6)); }
+.scene-top { position: absolute; top: 1.5rem; right: var(--pad); display: flex; align-items: center; gap: 1.6rem; }
+.lang { color: var(--mute); letter-spacing: .2em; }
+.lang b { font-weight: 500; color: var(--cream); }
+.seam { position: absolute; left: 1.3rem; bottom: 1.6rem; writing-mode: vertical-rl; transform: rotate(180deg); color: var(--mute); }
+.pin { position: absolute; display: flex; align-items: center; gap: .8rem; transform: translate(-7px, -50%); white-space: nowrap; }
+.pin::before { content: ""; width: 13px; height: 13px; border-radius: 50%; background: var(--sand); animation: pulse 2.8s infinite; }
+.pin span { padding: .65rem 1rem; background: rgba(28, 16, 12, .62); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid var(--line); color: var(--cream); }
+.pin span b { font-weight: 400; color: var(--sand); margin-left: .8em; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(238, 205, 155, .55); } 70%, 100% { box-shadow: 0 0 0 14px rgba(238, 205, 155, 0); } }
+.scene-cap { position: absolute; right: var(--pad); bottom: 1.6rem; color: var(--mute); }
+
+/* ---------- la maison : le restaurant sur la baie */
+.house { position: relative; min-height: 100vh; display: grid; align-content: end; padding: clamp(3rem, 8vh, 6rem) var(--pad); isolation: isolate; overflow: hidden; }
+.house img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; z-index: -2; }
+.house::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to bottom, rgba(24, 14, 10, .35), rgba(24, 14, 10, 0) 30%, rgba(24, 14, 10, 0) 48%, rgba(24, 14, 10, .9)); }
+.house-in { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: end; gap: 2rem 5rem; }
+.house .caps { color: var(--sand); margin: 0 0 1.2rem; }
+h2 { margin: 0; font: 200 clamp(2.2rem, 4.3vw, 4.2rem)/1.08 var(--sans); letter-spacing: .1em; text-transform: uppercase; }
+h2 em { display: block; font: italic 400 .62em/1.25 var(--serif); letter-spacing: 0; text-transform: none; color: var(--sand); margin-top: .35em; }
+.house p { margin: 0 0 1.4rem; color: var(--mute); max-width: 28rem; }
+.trio { display: flex; gap: 2.4rem; margin: 0; }
+.trio dt { color: var(--sand); margin-bottom: .3rem; }
+.trio dd { margin: 0; font: 300 1.05rem/1.4 var(--sans); }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .scene { order: -1; height: 56svh; }
+  .scene img { object-position: 50% 38%; }
+  .scene-top { left: var(--pad); justify-content: space-between; top: 1.1rem; }
+  .lang, .seam, .scene-cap, .nav { display: none; }
+  .panel { grid-template-rows: auto; padding: 0 var(--pad) 1.6rem; background: var(--cocoa); }
+  .panel .top { display: none; }
+  .mbrand { display: inline-grid !important; }
+  .menu { padding: 1.8rem 0 1.6rem; }
+  h1 { font-size: clamp(2.8rem, 13.5vw, 3.6rem); letter-spacing: .1em; }
+  .sub { font-size: 1.25rem; margin-bottom: 1.5rem; }
+  .dishes li { grid-template-columns: 1.9rem minmax(0, 1fr) auto; padding: .8rem 0; }
+  .dishes span { font-size: 1rem; }
+  .cta .btn { flex: 1 1 auto; }
+  .foot { display: none; }
+  .house { display: block; min-height: 0; padding: 0; }
+  .house::before { display: none; }
+  .house img { position: static; height: 46svh; }
+  .house-in { grid-template-columns: minmax(0, 1fr); padding: 2.2rem var(--pad) 3rem; }
+  .pin { left: 46% !important; top: 30% !important; }
+  .trio { flex-wrap: wrap; gap: 1.2rem 2rem; }
+}
+.mbrand { display: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="panel">
+    <div class="top">
+      <a class="brand" href="#" aria-label="Ocean 82 — accueil"><b>Ocean</b><i>82</i><small>by the sea</small></a>
+      <nav class="nav caps" aria-label="Navigation principale">
+        <a href="#carte" aria-current="true">La carte</a><a href="#vivier">Le vivier</a><a href="#cave">La cave</a><a href="#maison">La maison</a>
+      </nav>
+    </div>
+    <div class="menu" id="carte">
+      <p class="caps">Carte 2027</p>
+      <h1>La carte</h1>
+      <p class="sub">Cuisine française, saveurs de la mer.</p>
+      <ol class="dishes">
+        <li><small>01</small><span>Langouste du vivier, grillée, thermidor ou flambée</span><b>41 € / livre</b></li>
+        <li><small>02</small><span>Tataki de thon local, salsa de mangue et caramel de soja</span><b>36 €</b></li>
+        <li><small>03</small><span>Vivaneau rôti, chutney de mangue et beurre blanc</span><b>39 €</b></li>
+        <li><small>04</small><span>Éventail de magret de canard, sauce à la canne à sucre</span><b>38 €</b></li>
+      </ol>
+      <div class="cta">
+        <a class="btn btn-full" href="#carte">Voir toute la carte</a>
+        <a class="btn" href="#reserver">Réserver une table</a>
+      </div>
+    </div>
+    <p class="foot caps"><span>Ouvert tous les jours · 15h – 22h30</span><span>+590 590 52 98 12</span></p>
+  </div>
+  <div class="scene">
+    <img src="../assets/3d/chocolat-carte.webp" width="1400" height="1750" alt="Vue 3D : la carte sur son pupitre de laiton, devant le vivier à langoustes éclairé" fetchpriority="high">
+    <div class="scene-top">
+      <a class="brand mbrand" href="#" aria-label="Ocean 82 — accueil"><b>Ocean</b><i>82</i></a>
+      <span class="lang caps"><b>FR</b> / EN</span>
+      <a class="btn btn-sm" href="#reserver">Réserver</a>
+    </div>
+    <a class="pin caps" href="#vivier" style="left: 64%; top: 36.5%"><span>Le vivier <b>41 € / livre</b></span></a>
+    <p class="seam caps">Grand Case · Saint-Martin</p>
+    <p class="scene-cap caps">Vue 3D · entrez dans la salle</p>
+  </div>
+</header>
+
+<main>
+  <section class="house" id="maison">
+    <img src="../assets/3d/chocolat-ext.webp" width="1760" height="1100" alt="Le restaurant Ocean 82 en 3D, sur ses pilotis au bord de la baie, au crépuscule" loading="lazy">
+    <div class="house-in">
+      <div>
+        <p class="caps">La maison</p>
+        <h2>Une table française <em>posée sur la baie.</em></h2>
+      </div>
+      <div>
+        <p>Alliant simplicité et design chic, Ocean 82 est un restaurant français aux saveurs de la mer, directement sur la baie de Grand Case.</p>
+        <dl class="trio">
+          <div><dt class="caps">La cuisine</dt><dd>Chef Franck Vuillemin</dd></div>
+          <div><dt class="caps">La cave</dt><dd>Grands crus</dd></div>
+          <div><dt class="caps">Le vivier</dt><dd>Langoustes</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

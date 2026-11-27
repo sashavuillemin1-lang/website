@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ocean 82 — piste B « Maquette »</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f7f1e8">
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/cormorant.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/jost.woff2" crossorigin>
+<style>
+@font-face { font-family: "Cormorant"; src: url(../assets/fonts/cormorant.woff2) format("woff2"); font-weight: 300 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Cormorant"; src: url(../assets/fonts/cormorant-italic.woff2) format("woff2"); font-weight: 300 700; font-style: italic; font-display: swap; }
+@font-face { font-family: "Jost"; src: url(../assets/fonts/jost.woff2) format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+:root {
+  --ivory: #f7f1e8; --paper: #fbf7f0; --shade: #efe6d8; --ink: #3a2620; --choc: #483026; --mute: #7a6156; --sand: #b88c4d; --line: rgba(72, 48, 38, .16); --aqua: #7cc4c4;
+  --serif: "Cormorant", "Iowan Old Style", Garamond, Georgia, serif; --sans: "Jost", Futura, "Century Gothic", system-ui, sans-serif;
+  --pad: clamp(1.2rem, 3.6vw, 3.8rem);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--ivory); }
+body { margin: 0; background: var(--ivory); color: var(--ink); font: 300 1rem/1.7 var(--sans); -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 1px solid var(--choc); outline-offset: 4px; }
+.caps { font: 400 .68rem/1.4 var(--sans); letter-spacing: .32em; text-transform: uppercase; }
+
+/* ---------- accueil : la maquette du restaurant, posée sur la page */
+.hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+.top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 2rem; padding: 1.5rem var(--pad); }
+.brand { display: inline-grid; grid-template-columns: auto auto; column-gap: .42em; align-items: baseline; justify-self: start; line-height: 1; }
+.brand b { font: 300 1.42rem/1 var(--sans); letter-spacing: .34em; }
+.brand i { font: 400 1.42rem/1 var(--sans); font-style: normal; color: var(--sand); }
+.brand small { grid-column: 1 / -1; margin-top: .55em; font: 400 .54rem/1 var(--sans); letter-spacing: .46em; text-transform: uppercase; color: var(--mute); }
+.nav { display: flex; gap: clamp(1.2rem, 2.3vw, 2.5rem); }
+.nav a { position: relative; padding: .6rem 0; }
+.nav a::after { content: ""; position: absolute; left: 50%; right: 50%; bottom: .2rem; height: 1px; background: var(--choc); transition: left .35s, right .35s; }
+.nav a:hover::after { left: 0; right: 0; }
+.top-end { justify-self: end; display: flex; align-items: center; gap: 1.6rem; }
+.lang { color: var(--mute); letter-spacing: .2em; }
+.lang b { font-weight: 500; color: var(--ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .8rem; min-height: 3.3rem; padding: 0 2.1rem; border: 1px solid var(--choc); color: var(--choc);
+  font: 500 .68rem/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; transition: background .3s, color .3s; }
+.btn:hover { background: var(--choc); color: var(--paper); }
+.btn-full { background: var(--choc); color: var(--paper); }
+.btn-full:hover { background: #2c1b15; }
+.btn-sm { min-height: 2.8rem; padding: 0 1.5rem; }
+
+.stage { display: grid; grid-template-columns: minmax(0, 36fr) minmax(0, 64fr); align-items: center; gap: 1rem; padding: 0 0 0 var(--pad); min-height: 0; }
+.pitch { max-width: 32rem; padding-bottom: 3vh; }
+.pitch .caps { color: var(--sand); }
+h1, h2 { font-family: var(--serif); font-weight: 300; margin: 0; letter-spacing: -.02em; }
+h1 { font-size: clamp(3.1rem, 6.1vw, 6.2rem); line-height: .94; margin: 1.5rem 0 1.7rem; }
+h1 em, h2 em { font-style: italic; font-weight: 300; color: var(--sand); }
+.pitch p:not(.caps) { margin: 0 0 2.2rem; max-width: 25rem; color: var(--mute); font-size: 1.05rem; }
+.pitch .caps { margin: 0; white-space: nowrap; }
+.cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2.2rem; }
+.link { display: inline-flex; align-items: center; gap: 1rem; padding-bottom: .7rem; border-bottom: 1px solid var(--line); transition: gap .3s, border-color .3s; }
+.link:hover { gap: 1.5rem; border-color: var(--choc); }
+
+/* la maquette et ses légendes : chaque étiquette est une porte d'entrée */
+.model { position: relative; margin: 0; align-self: center; justify-self: end; width: min(100%, calc((100svh - 13.5rem) * 1.449)); }
+.model img { width: 100%; }
+.tag { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--t) * 1%); bottom: calc((100 - var(--d)) * 1%); display: flex; flex-direction: column; align-items: flex-start; white-space: nowrap; }
+.tag.up { top: calc(var(--d) * 1%); bottom: calc((100 - var(--t)) * 1%); flex-direction: column-reverse; }
+.tag::after { content: ""; flex: 1; width: 1px; margin-top: .5rem; background: var(--choc); opacity: .6; }
+.tag.up::after { margin: 0 0 .5rem; }
+.tag::before { content: ""; position: absolute; left: -3px; bottom: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--choc); }
+.tag.up::before { bottom: auto; top: -3px; }
+.tag i { font-style: normal; display: grid; gap: .25rem; }
+.tag b { font: italic 300 1.5rem/1 var(--serif); color: var(--sand); }
+.tag span { display: block; }
+.tag:hover span { color: var(--sand); }
+.model figcaption { position: absolute; right: var(--pad); bottom: 1.5%; color: var(--mute); text-align: right; }
+.model figcaption::before { content: ""; display: inline-block; width: 1.1rem; height: 1.1rem; margin-right: .8em; vertical-align: -3px; border: 1px solid var(--mute); border-radius: 50%; border-left-color: transparent; transform: rotate(-30deg); }
+
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 var(--pad); padding: 1.3rem 0 1.6rem; border-top: 1px solid var(--line); gap: 2rem; }
+.facts dt { color: var(--sand); margin-bottom: .35rem; }
+.facts dd { margin: 0; font: 400 1.22rem/1.3 var(--serif); }
+
+/* ---------- la carte et le vivier, côte à côte */
+.duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--shade); }
+.carte { padding: clamp(3.5rem, 9vh, 7rem) clamp(1.4rem, 6vw, 6.5rem); background: var(--paper); display: flex; flex-direction: column; justify-content: center; }
+.num { display: flex; align-items: baseline; gap: 1rem; color: var(--sand); margin: 0 0 1.4rem; }
+.num b { font: italic 300 1.7rem/1 var(--serif); letter-spacing: 0; }
+h2 { font-size: clamp(2.6rem, 4.3vw, 4.2rem); line-height: .98; margin: 0 0 2.2rem; }
+.rub { color: var(--sand); margin: 1.6rem 0 .5rem; }
+.dishes { list-style: none; margin: 0; padding: 0; }
+.dishes li { display: flex; align-items: baseline; gap: .8rem; padding: .5rem 0; font: 400 1.36rem/1.3 var(--serif); }
+.dishes i { flex: 1; border-bottom: 1px dotted rgba(72, 48, 38, .35); transform: translateY(-.3em); }
+.dishes b { font: 400 .95rem/1 var(--sans); color: var(--sand); white-space: nowrap; }
+.carte .link { margin-top: 2.4rem; align-self: flex-start; }
+.vivier { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: 100vh; padding: clamp(2rem, 5vw, 4.5rem); isolation: isolate; overflow: hidden; }
+.vivier img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 62% 50%; z-index: -2; }
+.vivier::after { content: ""; position: absolute; inset: 40% 0 0 0; z-index: -1; background: linear-gradient(rgba(239, 230, 216, 0), rgba(239, 230, 216, .96) 62%); }
+.vivier p { margin: 0 0 1.4rem; max-width: 26rem; color: var(--mute); }
+.price { font: 400 1.6rem/1 var(--serif); color: var(--ink) !important; }
+.price small { font: 400 .62rem/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; color: var(--sand); margin: 0 1.4em 0 .5em; }
+
+@media (max-width: 860px) {
+  .top { grid-template-columns: 1fr auto; padding-block: 1.1rem; }
+  .nav, .lang { display: none; }
+  .brand b, .brand i { font-size: 1.2rem; }
+  .hero { grid-template-rows: auto auto auto; min-height: 0; }
+  .stage { grid-template-columns: minmax(0, 1fr); padding: 1.6rem var(--pad) 0; gap: 0; }
+  .pitch { padding: 0; }
+  h1 { font-size: clamp(3rem, 14vw, 4rem); margin: 1.1rem 0 1.2rem; }
+  .pitch p:not(.caps) { margin-bottom: 1.6rem; }
+  .pitch .caps { white-space: normal; }
+  .model { width: auto; justify-self: stretch; margin: 1rem calc(-1 * var(--pad)) 0; }
+  .model img { width: 118%; max-width: none; margin-left: -9%; }
+  .model figcaption { position: static; text-align: center; padding: 0 var(--pad); margin-top: -.6rem; }
+  .tag::after, .tag::before { display: none; }
+  .tags { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; margin: 1.4rem var(--pad) 0; border-top: 1px solid var(--line); }
+  .tag, .tag.up { position: static; flex-direction: row; padding: .95rem 0; border-bottom: 1px solid var(--line); }
+  .tag i { display: flex; align-items: baseline; gap: .7rem; }
+  .facts { grid-template-columns: 1fr 1fr; gap: 1.1rem 1.2rem; margin-top: 1.6rem; border-top: 0; padding-top: 0; }
+  .facts dd { font-size: 1.08rem; }
+  .duo { grid-template-columns: minmax(0, 1fr); }
+  .vivier { min-height: 78vh; }
+}
+@media (min-width: 861px) { .tags { display: contents; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="top">
+    <a class="brand" href="#" aria-label="Ocean 82 — accueil"><b>Ocean</b><i>82</i><small>by the sea</small></a>
+    <nav class="nav caps" aria-label="Navigation principale">
+      <a href="#carte">La carte</a><a href="#vivier">Le vivier</a><a href="#cave">La cave</a><a href="#maison">La maison</a><a href="#contact">Contact</a>
+    </nav>
+    <div class="top-end">
+      <span class="lang caps"><b>FR</b> / EN</span>
+      <a class="btn btn-full btn-sm" href="#reserver">Réserver</a>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="pitch">
+      <p class="caps">Restaurant français · Grand Case, Saint-Martin</p>
+      <h1>Une table française, <em>posée sur la baie.</em></h1>
+      <p>Cuisine française aux saveurs de la mer, langouste du vivier et cave de grands crus, directement sur la baie de Grand Case.</p>
+      <div class="cta">
+        <a class="btn btn-full" href="#reserver">Réserver une table</a>
+        <a class="link caps" href="#carte">Découvrir la carte <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+    <figure class="model">
+      <img src="../assets/3d/ivoire-maquette.webp" width="2000" height="1380" alt="Maquette 3D du restaurant Ocean 82 sur son socle : pavillon sur pilotis, terrasse, palmiers et bord de mer" fetchpriority="high">
+      <div class="tags">
+        <a class="tag caps" href="#carte" style="--x: 52; --t: 7; --d: 45"><i><b>01</b><span>La carte</span></i></a>
+        <a class="tag caps" href="#vivier" style="--x: 62.5; --t: 16; --d: 44.5"><i><b>02</b><span>Le vivier</span></i></a>
+        <a class="tag caps" href="#cave" style="--x: 33.5; --t: 14; --d: 45.5"><i><b>03</b><span>La cave</span></i></a>
+        <a class="tag caps up" href="#terrasse" style="--x: 46; --t: 73; --d: 53.5"><i><b>04</b><span>La terrasse</span></i></a>
+      </div>
+      <figcaption class="caps">Faites tourner la maquette · touchez une étiquette pour entrer</figcaption>
+    </figure>
+  </div>
+
+  <dl class="facts">
+    <div><dt class="caps">Ouvert tous les jours</dt><dd>15h – 22h30</dd></div>
+    <div><dt class="caps">Adresse</dt><dd>82 Boulevard de Grand Case</dd></div>
+    <div><dt class="caps">Téléphone</dt><dd>+590 590 52 98 12</dd></div>
+    <div><dt class="caps">WhatsApp</dt><dd>+590 690 77 77 57</dd></div>
+  </dl>
+</header>
+
+<main class="duo">
+  <section class="carte" id="carte">
+    <p class="num caps"><b>01</b> La carte 2027</p>
+    <h2>Cuisine française, <em>saveurs de la mer.</em></h2>
+    <p class="rub caps">Le vivier</p>
+    <ul class="dishes"><li><span>Langouste grillée, thermidor ou flambée</span><i></i><b>41 € / livre</b></li></ul>
+    <p class="rub caps">La mer</p>
+    <ul class="dishes">
+      <li><span>Tataki de thon local, salsa de mangue</span><i></i><b>36 €</b></li>
+      <li><span>Vivaneau rôti, chutney de mangue</span><i></i><b>39 €</b></li>
+    </ul>
+    <p class="rub caps">La terre</p>
+    <ul class="dishes">
+      <li><span>Éventail de magret de canard</span><i></i><b>38 €</b></li>
+      <li><span>Filet de bœuf à la plancha, sauce morilles</span><i></i><b>45 €</b></li>
+    </ul>
+    <a class="link caps" href="#carte">Voir toute la carte <span aria-hidden="true">→</span></a>
+  </section>
+  <section class="vivier" id="vivier">
+    <img src="../assets/3d/ivoire-vivier.webp" width="1760" height="1100" alt="Le vivier à langoustes, vu dans la maquette 3D" loading="lazy">
+    <p class="num caps"><b>02</b> Le vivier</p>
+    <h2>La langouste, <em>choisie devant vous.</em></h2>
+    <p>Langouste du vivier, préparée selon votre choix : grillée, thermidor ou flambée.</p>
+    <p class="price">41 €<small>la livre</small>90 €<small>le kilo</small></p>
+  </section>
+</main>
+</body>
+</html>
