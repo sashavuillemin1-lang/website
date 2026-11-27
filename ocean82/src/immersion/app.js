@@ -13,6 +13,7 @@ const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t
 const wide = matchMedia('(min-aspect-ratio: 21/20)');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+window.o82 = true;
 initLang();
 initReservation($('#resa-form'));
 
@@ -62,7 +63,7 @@ for (const a of $$('a[href^="#"]')) a.addEventListener('click', e => {
   const el = $(a.getAttribute('href')); if (!el) return;
   e.preventDefault(); if (html.classList.contains('roam-on')) roam(false);
   const slow = a.id === 'enter';        // « Entrer » : on prend le temps de la descente
-  glideTo(stopY(el), slow ? 3000 : 900, slow ? 4400 : 3400); history.replaceState(null, '', a.getAttribute('href'));
+  glideTo(stopY(el), slow ? 3000 : 900, slow ? 4400 : 3400); try { history.replaceState(null, '', a.getAttribute('href')); } catch (err) { /* page ouverte hors serveur */ }
 });
 for (const ev of ['wheel', 'touchstart', 'keydown']) addEventListener(ev, () => cancelAnimationFrame(scrollAnim), { passive: true });
 
@@ -220,7 +221,9 @@ function fallback() {
   html.classList.add('no-gl');
   const data = JSON.parse($('#stills-data').textContent), box = $('#stills'), made = {};
   const which = { maison: 'entree', vivier: 'vivier', cave: 'cave', carte: 'salle', bar: 'bar', terrasse: 'terrasse', reserver: 'mer', contact: 'mer' };
+  const near = { vivier: 'entree', cave: 'entree', bar: 'salle', mer: 'terrasse' };      // version allégée : une vue par pièce
   const show = key => {
+    if (key && !data[key]) key = near[key];
     if (key && !made[key]) { const i = made[key] = new Image(); i.alt = ''; i.decoding = 'async'; i.src = data[key]; box.append(i); }
     for (const k in made) made[k].classList.toggle('is-on', k === key);
   };

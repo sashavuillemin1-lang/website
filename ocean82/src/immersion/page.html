@@ -8,6 +8,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0f0c0a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23483026'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='30' text-anchor='middle' fill='%23eecd9b'%3E82%3C/text%3E%3C/svg%3E">
+<script>document.documentElement.className='js';setTimeout(function(){if(!window.o82)document.documentElement.className=''},4000)</script>
 <link rel="preload" as="font" type="font/woff2" href="[[root]]assets/fonts/cormorant.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="[[root]]assets/fonts/jost.woff2" crossorigin>
 <link rel="modulepreload" href="[[root]]assets/js/pano.js">
@@ -19,12 +20,17 @@
 
 <!-- La scène : une image fixe d'abord (rapide), puis la visite 3D par-dessus dès qu'elle est prête -->
 <div class="stage" aria-hidden="true">
+[[#web]]
   <picture class="poster">
     <source media="(max-aspect-ratio: 21/20)" type="image/avif" srcset="[[url: petite-planete-portrait | 640 | avif]] 640w, [[url: petite-planete-portrait | 800 | avif]] 800w, [[url: petite-planete-portrait | 1280 | avif]] 1280w" sizes="100vh">
     <source media="(max-aspect-ratio: 21/20)" srcset="[[url: petite-planete-portrait | 640 | webp]] 640w, [[url: petite-planete-portrait | 800 | webp]] 800w, [[url: petite-planete-portrait | 1280 | webp]] 1280w" sizes="100vh">
     <source type="image/avif" srcset="[[url: petite-planete | 640 | avif]] 640w, [[url: petite-planete | 960 | avif]] 960w, [[url: petite-planete | 1600 | avif]] 1600w" sizes="100vh">
     <img src="[[url: petite-planete | 960 | webp]]" srcset="[[url: petite-planete | 640 | webp]] 640w, [[url: petite-planete | 960 | webp]] 960w, [[url: petite-planete | 1600 | webp]] 1600w" sizes="100vh" width="1600" height="1600" alt="" fetchpriority="high" decoding="async">
   </picture>
+[[/web]]
+[[#solo]]
+  <picture class="poster"><source media="(max-aspect-ratio: 21/20)" srcset="[[url: petite-planete-portrait | 800]]"><img src="[[url: petite-planete | 960]]" width="1600" height="1600" alt="" decoding="async"></picture>
+[[/solo]]
   <div class="stills" id="stills"></div>
   <canvas id="scene" tabindex="-1"></canvas>
   <div class="veil"></div>
@@ -249,7 +255,12 @@
   </div>
 </dialog>
 
+[[#web]]
 <script type="application/json" id="stills-data">{"ciel":"[[url: vue-ciel | 1280]]","entree":"[[url: vue-entree | 1280]]","vivier":"[[url: vue-vivier | 1280]]","cave":"[[url: vue-cave | 1280]]","salle":"[[url: vue-salle | 1280]]","bar":"[[url: vue-bar | 1280]]","terrasse":"[[url: vue-enfilade | 1280]]","mer":"[[url: vue-terrasse | 1280]]"}</script>
+[[/web]]
+[[#solo]]
+<script type="application/json" id="stills-data">{"ciel":"[[url: vue-ciel | 800]]","entree":"[[url: vue-entree | 800]]","salle":"[[url: vue-salle | 800]]","terrasse":"[[url: vue-terrasse | 800]]"}</script>
+[[/solo]]
 <script type="module" src="app.js"></script>
 </body>
 </html>

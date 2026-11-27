@@ -134,6 +134,8 @@ export class Pano {
   }
 
   async _image(url) {
+    const inline = globalThis.O82_INLINE && globalThis.O82_INLINE[url.split('/').pop()];   // version « un seul fichier » : images intégrées à la page
+    if (inline) url = inline;
     if (typeof createImageBitmap === 'function') {
       try { return await createImageBitmap(await (await fetch(url)).blob()); } catch (e) { /* repli ci-dessous */ }
     }

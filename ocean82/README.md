@@ -21,6 +21,15 @@ cd ocean82 && python3 -m http.server 8000
 puis ouvrir <http://localhost:8000/>. (Un simple double-clic sur les fichiers ne suffit pas : les modules JavaScript et la
 visite 360° demandent un serveur web.)
 
+### Sans serveur : une maquette = un fichier
+
+```bash
+python3 src/build.py --solo sortie/
+```
+
+écrit `ocean82-1-immersion.html`, `ocean82-2-maison.html` et `ocean82-3-lagon.html` : images, polices, scripts et panoramas
+sont intégrés dans chaque fichier (2 à 3 Mo). Ils s'ouvrent d'un double-clic et se partagent en pièce jointe.
+
 ## Modifier
 
 Les pages sont assemblées à partir de `src/` par un petit script Python sans dépendance :

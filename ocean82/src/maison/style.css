@@ -318,6 +318,14 @@ address svg { flex: none; margin-top: .22rem; opacity: .85; }
   }
 }
 
+/* ---------- largeurs intermédiaires (tablette, panneau latéral) : le sommaire passe sur sa propre ligne */
+@media (min-width: 900px) and (max-width: 1099px) {
+  html { scroll-padding-top: 7.4rem; }
+  .masthead { grid-template-columns: minmax(0, 1fr) auto; padding-bottom: 0; }
+  .masthead-end { grid-column: 2; grid-row: 1; }
+  .nav { grid-column: 1 / -1; grid-row: 2; justify-content: center; margin: .3rem calc(-1 * var(--pad)) 0; padding: 0 var(--pad); border-top: 1px solid var(--line-2); }
+}
+
 /* ---------- petits écrans */
 @media (max-width: 899px) {
   html { scroll-padding-top: 7.4rem; }

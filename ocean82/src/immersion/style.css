@@ -128,8 +128,10 @@ h1 em { font-weight: 300; color: #ffe2b0; }
   padding: clamp(1.3rem, 2.4vw, 2.3rem); background: var(--glass);
   -webkit-backdrop-filter: blur(22px) saturate(1.25); backdrop-filter: blur(22px) saturate(1.25);
   border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
-  opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform 1s var(--ease); }
-.stop.is-in .card, .stop.is-in .statement, .stop.is-in .instants { opacity: 1; transform: none; }
+  transition: opacity .7s ease, transform 1s var(--ease); }
+/* les panneaux n'attendent le défilement que si le script tourne : sans lui, tout le contenu reste lisible */
+.js .card, .js .statement, .js .instants { opacity: 0; transform: translateY(28px); }
+.js .stop.is-in .card, .js .stop.is-in .statement, .js .stop.is-in .instants { opacity: 1; transform: none; }
 .card-wide { width: min(100%, 35rem); }
 .card-n { display: flex; align-items: center; gap: .9rem; font: 300 .78rem/1 var(--sans); letter-spacing: .3em; color: var(--sand); margin: 0 0 1.4rem; }
 .card-n::after { content: ""; flex: 1; height: 1px; background: var(--line); }
@@ -152,7 +154,7 @@ h2 em { color: var(--sand); }
 
 /* la terrasse : on laisse voir la baie — texte en bas à gauche, mosaïque d'instants en bas à droite */
 .stop-wide .pinbox { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 2rem 3rem; padding-bottom: clamp(1.6rem, 6vh, 4rem); }
-.statement, .instants { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform 1s var(--ease); }
+.statement, .instants { transition: opacity .8s ease, transform 1s var(--ease); }
 .statement { position: relative; max-width: 40rem; }
 .statement::before { content: ""; position: absolute; z-index: -1; inset: -5rem -7rem -4rem -7rem; background: radial-gradient(closest-side, rgba(8, 6, 5, .7), rgba(8, 6, 5, 0)); }
 .statement h2 { font-size: clamp(2.7rem, 6vw, 5.6rem); line-height: .94; text-shadow: 0 3px 40px rgba(0, 0, 0, .6); }
@@ -265,6 +267,9 @@ html:has(dialog[open]) { overflow: hidden; }
 .no-gl .hero { height: 170vh; }
 .no-gl .stop { min-height: 150vh; }
 .no-gl .stop-resa { min-height: 0; }
+
+/* ---------- largeurs intermédiaires (tablette, panneau latéral) : le rail d'étapes fait office de menu */
+@media (max-width: 1040px) { .nav { display: none; } }
 
 /* ---------- petits écrans */
 @media (max-width: 860px) {
